@@ -1,0 +1,145 @@
+---
+type Props = {
+	initialSlug?: string;
+	slugs?: string[];
+};
+
+const { initialSlug = '', slugs: slugsProp } = Astro.props;
+
+const slugs =
+	slugsProp && slugsProp.length > 0
+		? slugsProp
+		: ['alex-morgan', 'jamie-lee', 'taylor-reed', 'casey-jordan'];
+---
+
+<div class="rounded-3xl border border-mauve/20 bg-cream/90 p-8 shadow-sm md:p-10">
+	<h2 class="font-serif text-3xl text-plum">RSVP</h2>
+	<p class="mt-2 text-brown-soft">
+		Please respond by August 1, 2026. Use the guest slug from your invitation link if you have one.
+	</p>
+	<form id="rsvp-form" class="mt-8 space-y-6">
+		<div>
+			<label for="rsvp-slug" class="block text-sm font-medium text-plum">Guest slug</label>
+			<select
+				id="rsvp-slug"
+				name="slug"
+				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+				required
+			>
+				<option value="" disabled selected={initialSlug === ''}>Select your invite</option>
+				{
+					slugs.map((s) => (
+						<option value={s} selected={initialSlug === s}>
+							{s.replace(/-/g, ' ')}
+						</option>
+					))
+				}
+			</select>
+		</div>
+		<div>
+			<label for="rsvp-name" class="block text-sm font-medium text-plum">Full name</label>
+			<input
+				type="text"
+				id="rsvp-name"
+				name="displayName"
+				required
+				autocomplete="name"
+				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+				placeholder="Jordan Ellis"
+			/>
+		</div>
+		<fieldset>
+			<legend class="text-sm font-medium text-plum">Will you attend?</legend>
+			<div class="mt-3 flex flex-wrap gap-6">
+				<label class="inline-flex cursor-pointer items-center gap-2">
+					<input type="radio" name="attending" value="yes" class="accent-olive" checked />
+					<span class="text-brown-soft">Joyfully accepts</span>
+				</label>
+				<label class="inline-flex cursor-pointer items-center gap-2">
+					<input type="radio" name="attending" value="no" class="accent-olive" />
+					<span class="text-brown-soft">Regretfully declines</span>
+				</label>
+			</div>
+		</fieldset>
+		<div>
+			<label for="rsvp-count" class="block text-sm font-medium text-plum">Guests in your party</label>
+			<input
+				type="number"
+				id="rsvp-count"
+				name="guestCount"
+				min="1"
+				max="10"
+				value="1"
+				class="mt-2 w-full max-w-[8rem] rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+			/>
+		</div>
+		<div>
+			<label for="rsvp-dietary" class="block text-sm font-medium text-plum">Dietary notes</label>
+			<input
+				type="text"
+				id="rsvp-dietary"
+				name="dietary"
+				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+				placeholder="Allergies or preferences"
+			/>
+		</div>
+		<div>
+			<label for="rsvp-message" class="block text-sm font-medium text-plum">Message for the couple</label>
+			<textarea
+				id="rsvp-message"
+				name="message"
+				rows="3"
+				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+				placeholder="Optional"
+			></textarea>
+		</div>
+		<p id="rsvp-status" class="hidden text-sm" role="status"></p>
+		<button
+			type="submit"
+			class="w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark md:w-auto"
+		>
+			Submit RSVP
+		</button>
+	</form>
+</div>
+
+<script>
+	const form = document.getElementById('rsvp-form') as HTMLFormElement | null;
+	const statusEl = document.getElementById('rsvp-status');
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		if (!statusEl) return;
+		const fd = new FormData(form);
+		const attending = fd.get('attending') === 'yes';
+		const payload = {
+			slug: String(fd.get('slug') ?? ''),
+			displayName: String(fd.get('displayName') ?? ''),
+			attending,
+			guestCount: Number(fd.get('guestCount') ?? 1),
+			dietary: String(fd.get('dietary') ?? ''),
+			message: String(fd.get('message') ?? ''),
+		};
+		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
+		statusEl.textContent = 'Sending…';
+		try {
+			const res = await fetch('/api/rsvp', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload),
+			});
+			const data = (await res.json()) as { ok?: boolean; error?: string };
+			if (!res.ok || !data.ok) {
+				statusEl.classList.add('text-mauve-dark');
+				statusEl.textContent = data.error ?? 'Something went wrong. Please try again.';
+				return;
+			}
+			statusEl.classList.add('text-olive');
+			statusEl.textContent = 'Thank you — your RSVP has been saved.';
+			form.reset();
+		} catch {
+			statusEl.classList.add('text-mauve-dark');
+			statusEl.textContent = 'Network error. Please try again.';
+		}
+	});
+</script>

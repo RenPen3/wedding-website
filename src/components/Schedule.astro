@@ -1,0 +1,42 @@
+---
+const items = [
+	{ time: '3:30 PM', title: 'Guest arrival', detail: 'Welcome drinks on the terrace' },
+	{ time: '4:30 PM', title: 'Ceremony', detail: 'Outdoor lawn overlooking the river' },
+	{ time: '5:15 PM', title: 'Cocktail hour', detail: 'Garden canapés and sparkling wine' },
+	{ time: '6:30 PM', title: 'Reception', detail: 'Dinner and toasts in the barn' },
+	{ time: '8:30 PM', title: 'Dancing', detail: 'Open floor until the stars come out' },
+	{ time: '11:00 PM', title: 'Send-off', detail: 'Sparkler exit by the oak tree' },
+];
+---
+
+<section id="schedule" class="scroll-mt-24 bg-cream py-20 md:py-28">
+	<div class="mx-auto max-w-3xl px-6 md:px-8">
+		<h2 class="text-center font-serif text-3xl text-plum md:text-4xl">Day-of schedule</h2>
+		<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true"></div>
+		<ol class="mt-14">
+			{
+				items.map((item, i) => (
+					<li class="relative flex gap-5 pb-12 last:pb-0 md:gap-7">
+						<div class="relative flex w-5 shrink-0 flex-col items-center md:w-6">
+							<span
+								class="relative z-10 mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 border-mauve bg-cream"
+								aria-hidden="true"
+							/>
+							{i < items.length - 1 ? (
+								<span
+									class="absolute left-1/2 top-[1.125rem] bottom-0 w-px -translate-x-1/2 bg-mauve/25"
+									aria-hidden="true"
+								/>
+							) : null}
+						</div>
+						<div class="min-w-0 flex-1 pt-0.5">
+							<p class="text-sm font-semibold uppercase tracking-wider text-olive">{item.time}</p>
+							<h3 class="mt-1 font-serif text-2xl text-plum">{item.title}</h3>
+							<p class="mt-1 text-brown-soft">{item.detail}</p>
+						</div>
+					</li>
+				))
+			}
+		</ol>
+	</div>
+</section>

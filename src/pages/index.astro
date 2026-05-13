@@ -1,17 +1,40 @@
 ---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import WeddingDetails from '../components/WeddingDetails.astro';
+import Schedule from '../components/Schedule.astro';
+import RSVPForm from '../components/RSVPForm.astro';
+import Registry from '../components/Registry.astro';
+import TravelInfo from '../components/TravelInfo.astro';
+import FAQ from '../components/FAQ.astro';
+import Footer from '../components/Footer.astro';
+import { getState } from '../lib/wedding-store';
 
+const { guests } = await getState();
+const slugs = guests.map((g) => g.slug);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout>
+	<Navbar />
+	<main>
+		<Hero />
+		<WeddingDetails />
+		<Schedule />
+		<section id="rsvp" class="scroll-mt-24 bg-plum-deep py-20 text-cream md:py-28">
+			<div class="mx-auto max-w-xl px-6 md:px-8">
+				<h2 class="text-center font-serif text-3xl md:text-4xl">Kindly respond</h2>
+				<p class="mx-auto mt-3 max-w-md text-center text-ivory/80">
+					We cannot wait to celebrate with you. Please submit one RSVP per invitation.
+				</p>
+				<div class="mt-10">
+					<RSVPForm slugs={slugs} />
+				</div>
+			</div>
+		</section>
+		<Registry />
+		<TravelInfo />
+		<FAQ />
+	</main>
+	<Footer />
+</MainLayout>

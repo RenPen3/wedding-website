@@ -1,0 +1,37 @@
+---
+const links = [
+	{ href: '#details', label: 'Details' },
+	{ href: '#schedule', label: 'Schedule' },
+	{ href: '#registry', label: 'Registry' },
+	{ href: '#travel', label: 'Travel' },
+	{ href: '#faq', label: 'FAQ' },
+	{ href: '/rsvp', label: 'RSVP' },
+];
+---
+
+<header
+	class="sticky top-0 z-50 border-b border-mauve/20 bg-cream/90 backdrop-blur-md"
+>
+	<nav
+		class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-8"
+		aria-label="Primary"
+	>
+		<a
+			href="/"
+			class="font-serif text-xl tracking-wide text-plum transition-colors hover:text-mauve-dark md:text-2xl"
+		>
+			Jocelyn & René
+		</a>
+		<ul class="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 text-sm font-medium text-brown-soft">
+			{
+				links.map((l) => (
+					<li>
+						<a href={l.href} class="transition-colors hover:text-olive">
+							{l.label}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
+</header>

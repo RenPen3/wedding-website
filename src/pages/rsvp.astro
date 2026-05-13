@@ -1,0 +1,28 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import RSVPForm from '../components/RSVPForm.astro';
+import Footer from '../components/Footer.astro';
+import { getState } from '../lib/wedding-store';
+
+const { guests } = await getState();
+const slugs = guests.map((g) => g.slug);
+const initialSlug = Astro.url.searchParams.get('slug') ?? '';
+---
+
+<MainLayout title="RSVP — Jordan & Riley">
+	<Navbar />
+	<main class="bg-ivory py-16 md:py-24">
+		<div class="mx-auto max-w-xl px-6 md:px-8">
+			<h1 class="text-center font-serif text-4xl text-plum md:text-5xl">RSVP</h1>
+			<p class="mx-auto mt-4 max-w-md text-center text-brown-soft">
+				Share your reply by August 1, 2026. Your guest slug is included in your personal invitation
+				link.
+			</p>
+			<div class="mt-10">
+				<RSVPForm slugs={slugs} initialSlug={initialSlug} />
+			</div>
+		</div>
+	</main>
+	<Footer />
+</MainLayout>

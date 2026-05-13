@@ -1,0 +1,90 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { appendVisit, findGuest, getState } from '../../lib/wedding-store';
+
+export const prerender = false;
+
+const raw = Astro.params.slug ?? '';
+const slug = decodeURIComponent(raw).trim().toLowerCase();
+const state = await getState();
+const guest = findGuest(state, slug);
+const notFound = !guest;
+
+if (guest) {
+	await appendVisit(slug, Astro.request.headers.get('user-agent'));
+}
+
+const rsvp = guest ? state.rsvps.find((r) => r.slug === slug) : null;
+
+if (notFound) {
+	Astro.response.status = 404;
+}
+---
+
+<MainLayout
+	title={guest ? `Invitation — ${guest.displayName}` : 'Invitation not found'}
+>
+	<Navbar />
+	<main>
+		{
+			notFound ? (
+				<section class="bg-ivory py-24 text-center md:py-32">
+					<div class="mx-auto max-w-lg px-6">
+						<h1 class="font-serif text-4xl text-plum">We could not find this invitation</h1>
+						<p class="mt-4 text-brown-soft">
+							Check the link you were sent, or reach out to the couple for a new invite URL.
+						</p>
+						<a
+							href="/"
+							class="mt-8 inline-flex rounded-full bg-plum px-8 py-3 font-medium text-cream transition hover:bg-mauve-dark"
+						>
+							Back to home
+						</a>
+					</div>
+				</section>
+			) : (
+				<section class="relative overflow-hidden bg-plum py-20 text-cream md:py-28">
+					<div
+						class="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full bg-mauve/25 blur-3xl"
+						aria-hidden="true"
+					/>
+					<div class="relative mx-auto max-w-3xl px-6 text-center md:px-8">
+						<p class="text-sm uppercase tracking-[0.3em] text-ivory/90">You are warmly invited</p>
+						<h1 class="mt-4 font-serif text-4xl leading-tight md:text-5xl">{guest!.displayName}</h1>
+						<p class="mt-6 text-lg text-ivory/90 md:text-xl">
+							We would be honored to have you with us as we marry on{' '}
+							<strong class="font-medium text-cream">September 12, 2026</strong> at Tesoro Adobe Historic Park,
+							29350 Avenida Rancho Tesoro, Valencia, CA 91354.
+						</p>
+						<p class="mt-4 text-brown-muted">
+							This page is unique to you — we will use it to plan seating and notes.
+						</p>
+						<div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+							<a
+								href={`/rsvp?slug=${encodeURIComponent(slug)}`}
+								class="inline-flex min-w-[11rem] justify-center rounded-full bg-cream px-8 py-3 font-medium text-plum-deep transition hover:bg-ivory"
+							>
+								RSVP now
+							</a>
+							<a
+								href="/#details"
+								class="inline-flex min-w-[11rem] justify-center rounded-full border border-ivory/50 px-8 py-3 font-medium text-cream transition hover:border-cream hover:bg-white/10"
+							>
+								Wedding details
+							</a>
+						</div>
+						{rsvp && (
+							<p class="mt-10 rounded-2xl border border-ivory/20 bg-plum-deep/40 px-5 py-4 text-sm text-ivory/90">
+								We have your RSVP on file ({rsvp.attending ? 'attending' : 'not attending'}), submitted{' '}
+								{new Date(rsvp.at).toLocaleString()}. You may update it anytime via the RSVP form.
+							</p>
+						)}
+					</div>
+				</section>
+			)
+		}
+	</main>
+	<Footer />
+</MainLayout>

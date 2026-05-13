@@ -1,0 +1,44 @@
+---
+const bgImage = '/hero.jpg';
+---
+
+<section
+	class="relative flex min-h-[85vh] items-end justify-center overflow-hidden bg-plum-deep md:min-h-[90vh]"
+	aria-labelledby="hero-heading"
+>
+	<div
+		class="absolute inset-0 scale-x-[-1] bg-cover bg-center"
+		style={`background-image: url('${bgImage}');`}
+	>
+	</div>
+	<div class="absolute inset-0 bg-gradient-to-t from-plum-deep/95 via-plum-deep/55 to-plum-deep/30">
+	</div>
+	<div class="relative z-10 mx-auto max-w-4xl px-6 pb-20 pt-32 text-center md:pb-28 md:pt-40">
+		<p class="mb-3 text-sm uppercase tracking-[0.35em] text-ivory/90">Together with their families</p>
+		<h1
+			id="hero-heading"
+			class="inline-flex flex-wrap items-baseline justify-center gap-x-1.5 font-serif text-4xl font-semibold leading-tight text-cream md:gap-x-2 md:text-6xl md:leading-tight"
+		>
+			<span>Jocelyn</span>
+			<span class="text-mauve">and</span>
+			<span>René</span>
+		</h1>
+		<p class="mt-6 font-serif text-2xl text-ivory/95 md:text-3xl">September 12, 2026</p>
+		<p class="mt-2 text-lg text-ivory/85 md:text-xl">Tesoro Adobe Historic Park</p>
+		<p class="mt-1 text-base text-ivory/80 md:text-lg">29350 Avenida Rancho Tesoro, Valencia, CA 91354</p>
+		<div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+			<a
+				href="/rsvp"
+				class="inline-flex min-w-[10rem] items-center justify-center rounded-full border border-cream/40 bg-cream px-8 py-3 font-medium text-plum-deep shadow-lg transition hover:bg-ivory"
+			>
+				RSVP
+			</a>
+			<a
+				href="#details"
+				class="inline-flex min-w-[10rem] items-center justify-center rounded-full border border-ivory/50 px-8 py-3 font-medium text-cream transition hover:border-cream hover:bg-white/10"
+			>
+				Wedding details
+			</a>
+		</div>
+	</div>
+</section>
