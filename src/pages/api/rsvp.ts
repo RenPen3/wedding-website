@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { findGuest, getState, upsertRsvp } from '../../lib/wedding-store';
 
-export const prerender = false;
+export const prerender = true;
 
 export const POST: APIRoute = async ({ request }) => {
 	const contentType = request.headers.get('content-type') ?? '';

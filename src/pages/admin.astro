@@ -2,7 +2,7 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import { getState } from '../lib/wedding-store';
 
-export const prerender = false;
+export const prerender = true;
 
 const expected = import.meta.env.ADMIN_SECRET ?? 'dev-admin-secret';
 const secret = Astro.url.searchParams.get('secret') ?? '';
