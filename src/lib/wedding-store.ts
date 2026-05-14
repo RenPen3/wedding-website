@@ -1,6 +1,8 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getStore } from '@netlify/blobs';
+import weddingSeedJson from '../data/wedding-state.json';
 
 export type Guest = {
 	slug: string;
@@ -29,18 +31,70 @@ export type WeddingState = {
 	rsvps: Rsvp[];
 };
 
-const storePath = fileURLToPath(new URL('../../data/wedding-state.json', import.meta.url));
+const BLOB_STORE = 'wedding-state';
+const BLOB_KEY = 'app';
+
+const storePath = fileURLToPath(new URL('../data/wedding-state.json', import.meta.url));
 
 let writeChain: Promise<void> = Promise.resolve();
 
+let storageMode: 'blob' | 'file' | null = null;
+
+function netlifyBlobsConfigured(): boolean {
+	return (
+		process.env.NETLIFY === 'true' ||
+		Boolean(process.env.NETLIFY_BLOBS_CONTEXT) ||
+		typeof (globalThis as { netlifyBlobsContext?: unknown }).netlifyBlobsContext !== 'undefined'
+	);
+}
+
+function getSeedState(): WeddingState {
+	return structuredClone(weddingSeedJson as WeddingState);
+}
+
+function getBlobStore() {
+	return getStore({ name: BLOB_STORE, consistency: 'strong' });
+}
+
+async function resolveStorageMode(): Promise<'blob' | 'file'> {
+	if (storageMode) return storageMode;
+	if (!netlifyBlobsConfigured()) {
+		storageMode = 'file';
+		return storageMode;
+	}
+	try {
+		await getBlobStore().get(BLOB_KEY, { type: 'json' });
+		storageMode = 'blob';
+	} catch {
+		storageMode = 'file';
+	}
+	return storageMode;
+}
+
 async function readState(): Promise<WeddingState> {
-	const raw = await readFile(storePath, 'utf-8');
-	return JSON.parse(raw) as WeddingState;
+	const mode = await resolveStorageMode();
+	if (mode === 'file') {
+		const raw = await readFile(storePath, 'utf-8');
+		return JSON.parse(raw) as WeddingState;
+	}
+	const store = getBlobStore();
+	const existing = await store.get(BLOB_KEY, { type: 'json' });
+	if (existing !== null && existing !== undefined) {
+		return existing as WeddingState;
+	}
+	const initial = getSeedState();
+	await store.setJSON(BLOB_KEY, initial);
+	return initial;
 }
 
 async function writeState(state: WeddingState): Promise<void> {
-	await mkdir(dirname(storePath), { recursive: true });
-	await writeFile(storePath, JSON.stringify(state, null, '\t'), 'utf-8');
+	const mode = await resolveStorageMode();
+	if (mode === 'file') {
+		await mkdir(dirname(storePath), { recursive: true });
+		await writeFile(storePath, JSON.stringify(state, null, '\t'), 'utf-8');
+		return;
+	}
+	await getBlobStore().setJSON(BLOB_KEY, state);
 }
 
 function queueWrite(fn: (state: WeddingState) => WeddingState): Promise<void> {
@@ -60,10 +114,7 @@ export function findGuest(state: WeddingState, slug: string): Guest | undefined 
 	return state.guests.find((g) => g.slug === slug);
 }
 
-export async function appendVisit(
-	slug: string,
-	userAgent: string | null,
-): Promise<void> {
+export async function appendVisit(slug: string, userAgent: string | null): Promise<void> {
 	await queueWrite((state) => {
 		state.visits.push({
 			slug,
@@ -74,9 +125,7 @@ export async function appendVisit(
 	});
 }
 
-export async function upsertRsvp(
-	payload: Omit<Rsvp, 'at'> & { at?: string },
-): Promise<void> {
+export async function upsertRsvp(payload: Omit<Rsvp, 'at'> & { at?: string }): Promise<void> {
 	await queueWrite((state) => {
 		const at = payload.at ?? new Date().toISOString();
 		const idx = state.rsvps.findIndex((r) => r.slug === payload.slug);

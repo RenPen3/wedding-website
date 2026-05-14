@@ -1,0 +1,10 @@
+{
+	"guests": [
+		{ "slug": "alex-morgan", "displayName": "Alex Morgan" },
+		{ "slug": "jamie-lee", "displayName": "Jamie Lee" },
+		{ "slug": "taylor-reed", "displayName": "Taylor Reed" },
+		{ "slug": "casey-jordan", "displayName": "Casey Jordan" }
+	],
+	"visits": [],
+	"rsvps": []
+}

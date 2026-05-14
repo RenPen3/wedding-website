@@ -1,12 +1,8 @@
-<!-- ---
-
-
+---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
 import { appendVisit, findGuest, getState } from '../../lib/wedding-store';
-
-export const prerender = true;
 
 const raw = Astro.params.slug ?? '';
 const slug = decodeURIComponent(raw).trim().toLowerCase();
@@ -25,9 +21,7 @@ if (notFound) {
 }
 ---
 
-<MainLayout
-	title={guest ? `Invitation — ${guest.displayName}` : 'Invitation not found'}
->
+<MainLayout title={guest ? `Invitation — ${guest.displayName}` : 'Invitation not found'}>
 	<Navbar />
 	<main>
 		{
@@ -89,4 +83,4 @@ if (notFound) {
 		}
 	</main>
 	<Footer />
-</MainLayout> -->
+</MainLayout>
