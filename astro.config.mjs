@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
 	output: 'static',
-	adapter: node({ mode: 'standalone' }),
+	// adapter: node({ mode: 'standalone' }),
 	vite: {
 		plugins: [tailwindcss()],
 	},
