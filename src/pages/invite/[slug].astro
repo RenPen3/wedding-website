@@ -19,6 +19,20 @@ const rsvp = guest ? state.rsvps.find((r) => r.slug === slug) : null;
 if (notFound) {
 	Astro.response.status = 404;
 }
+
+const localeDateOpts = { dateStyle: 'medium', timeStyle: 'short' } satisfies Intl.DateTimeFormatOptions;
+
+const rsvpAtEn =
+	rsvp ?
+		new Intl.DateTimeFormat('en-US', localeDateOpts).format(new Date(rsvp.at))
+	:	null;
+const rsvpAtEs =
+	rsvp ?
+		new Intl.DateTimeFormat('es-US', localeDateOpts).format(new Date(rsvp.at))
+	:	null;
+
+const statusEn = rsvp ? (rsvp.attending ? 'attending' : 'not attending') : null;
+const statusEs = rsvp ? (rsvp.attending ? 'confirmó asistencia' : 'no podrá asistir') : null;
 ---
 
 <MainLayout title={guest ? `Invitation — ${guest.displayName}` : 'Invitation not found'}>
@@ -26,57 +40,96 @@ if (notFound) {
 	<main>
 		{
 			notFound ? (
-				<section class="bg-ivory py-24 text-center md:py-32">
+				<section class="bg-ivory py-24 text-center md:py-32" data-reveal>
 					<div class="mx-auto max-w-lg px-6">
-						<h1 class="font-serif text-4xl text-plum">We could not find this invitation</h1>
+						<h1 class="font-serif text-4xl text-plum">
+							<span data-strand="en">We could not find this invitation</span>
+							<span data-strand="es">No encontramos esta invitación</span>
+						</h1>
 						<p class="mt-4 text-brown-soft">
-							Check the link you were sent, or reach out to the couple for a new invite URL.
+							<span data-strand="en">
+								Check the link you were sent, or reach out to the couple for a new invite URL.
+							</span>
+							<span data-strand="es">
+								Verifica el enlace que recibiste o comunícate con la pareja para obtener una nueva liga de
+								invitación.
+							</span>
 						</p>
 						<a
 							href="/"
 							class="mt-8 inline-flex rounded-full bg-plum px-8 py-3 font-medium text-cream transition hover:bg-mauve-dark"
 						>
-							Back to home
+							<span data-strand="en">Back to home</span>
+							<span data-strand="es">Volver al inicio</span>
 						</a>
 					</div>
 				</section>
 			) : (
-				<section class="relative overflow-hidden bg-plum py-20 text-cream md:py-28">
+				<section class="relative overflow-hidden bg-plum py-20 text-cream md:py-28" data-reveal>
 					<div
 						class="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full bg-mauve/25 blur-3xl"
 						aria-hidden="true"
 					/>
 					<div class="relative mx-auto max-w-3xl px-6 text-center md:px-8">
-						<p class="text-sm uppercase tracking-[0.3em] text-ivory/90">You are warmly invited</p>
+						<p class="text-sm uppercase tracking-[0.3em] text-ivory/90">
+							<span data-strand="en">You are warmly invited</span>
+							<span data-strand="es">Te invitamos con todo cariño</span>
+						</p>
 						<h1 class="mt-4 font-serif text-4xl leading-tight md:text-5xl">{guest!.displayName}</h1>
 						<p class="mt-6 text-lg text-ivory/90 md:text-xl">
-							We would be honored to have you with us as we marry on{' '}
-							<strong class="font-medium text-cream">September 12, 2026</strong> at Tesoro Adobe Historic Park,
-							29350 Avenida Rancho Tesoro, Valencia, CA 91354.
+							<span data-strand="en">
+								We would be honored to have you with us as we marry on{' '}
+								<strong class="font-medium text-cream">September 12, 2026</strong>
+								at Tesoro Adobe Historic Park, 29350 Avenida Rancho Tesoro, Valencia, CA 91354.
+							</span>
+							<span data-strand="es">
+								Nos encantaría celebrar contigo cuando nos casemos el{' '}
+								<strong class="font-medium text-cream">12 de septiembre de 2026</strong>
+								en Tesoro Adobe Historic Park, 29350 Avenida Rancho Tesoro, Valencia, CA 91354.
+							</span>
 						</p>
 						<p class="mt-4 text-brown-muted">
-							This page is unique to you — we will use it to plan seating and notes.
+							<span data-strand="en">
+								This page is unique to you — we will use it to plan seating and notes.
+							</span>
+							<span data-strand="es">
+								Esta página es solo para ti — nos ayuda a organizar mesas y notas especiales.
+							</span>
 						</p>
 						<div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
 							<a
 								href={`/rsvp?slug=${encodeURIComponent(slug)}`}
 								class="inline-flex min-w-[11rem] justify-center rounded-full bg-cream px-8 py-3 font-medium text-plum-deep transition hover:bg-ivory"
 							>
-								RSVP now
+								<span data-strand="en">RSVP now</span>
+								<span data-strand="es">Confirmar RSVP</span>
 							</a>
 							<a
 								href="/#details"
 								class="inline-flex min-w-[11rem] justify-center rounded-full border border-ivory/50 px-8 py-3 font-medium text-cream transition hover:border-cream hover:bg-white/10"
 							>
-								Wedding details
+								<span data-strand="en">Wedding details</span>
+								<span data-strand="es">Detalles de la boda</span>
 							</a>
 						</div>
-						{rsvp && (
-							<p class="mt-10 rounded-2xl border border-ivory/20 bg-plum-deep/40 px-5 py-4 text-sm text-ivory/90">
-								We have your RSVP on file ({rsvp.attending ? 'attending' : 'not attending'}), submitted{' '}
-								{new Date(rsvp.at).toLocaleString()}. You may update it anytime via the RSVP form.
-							</p>
-						)}
+						{rsvp ?
+							<>
+								<p
+									class="mt-10 rounded-2xl border border-ivory/20 bg-plum-deep/40 px-5 py-4 text-sm text-ivory/90"
+									data-strand="en"
+								>
+									We have your RSVP on file ({statusEn}), submitted{' '}
+									{rsvpAtEn ?? ''}. You may update it anytime via the RSVP form.
+								</p>
+								<p
+									class="mt-10 rounded-2xl border border-ivory/20 bg-plum-deep/40 px-5 py-4 text-sm text-ivory/90"
+									data-strand="es"
+								>
+									Tenemos tu RSVP registrado ({statusEs}); enviado el{' '}
+									{rsvpAtEs ?? ''}. Puedes actualizarlo cuando quieras en el formulario RSVP.
+								</p>
+							</>
+						:	null}
 					</div>
 				</section>
 			)

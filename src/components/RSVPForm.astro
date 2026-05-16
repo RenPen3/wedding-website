@@ -15,18 +15,26 @@ const slugs =
 <div class="rounded-3xl border border-mauve/20 bg-cream/90 p-8 shadow-sm md:p-10">
 	<h2 class="font-serif text-3xl text-plum">RSVP</h2>
 	<p class="mt-2 text-brown-soft">
-		Please respond by August 1, 2026. Use the guest slug from your invitation link if you have one.
+		<span data-strand="en"
+			>Please respond by August 1, 2026. Use the guest slug from your invitation link if you have
+			one.</span
+		><span data-strand="es"
+			>Por favor responde antes del 1 de agosto de 2026. Si tienes uno, usa el identificador de tu enlace personal.</span>
 	</p>
 	<form id="rsvp-form" class="mt-8 space-y-6">
 		<div>
-			<label for="rsvp-slug" class="block text-sm font-medium text-plum">Guest slug</label>
+			<label for="rsvp-slug" class="block text-sm font-medium text-plum">
+				<span data-strand="en">Guest slug</span>
+				<span data-strand="es">Identificador de invitado</span>
+			</label>
 			<select
 				id="rsvp-slug"
 				name="slug"
 				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
 				required
 			>
-				<option value="" disabled selected={initialSlug === ''}>Select your invite</option>
+				<option value="" disabled selected={initialSlug === ''} id="rsvp-invite-placeholder"
+				></option>
 				{
 					slugs.map((s) => (
 						<option value={s} selected={initialSlug === s}>
@@ -37,7 +45,10 @@ const slugs =
 			</select>
 		</div>
 		<div>
-			<label for="rsvp-name" class="block text-sm font-medium text-plum">Full name</label>
+			<label for="rsvp-name" class="block text-sm font-medium text-plum">
+				<span data-strand="en">Full name</span>
+				<span data-strand="es">Nombre completo</span>
+			</label>
 			<input
 				type="text"
 				id="rsvp-name"
@@ -49,20 +60,32 @@ const slugs =
 			/>
 		</div>
 		<fieldset>
-			<legend class="text-sm font-medium text-plum">Will you attend?</legend>
+			<legend class="text-sm font-medium text-plum">
+				<span data-strand="en">Will you attend?</span>
+				<span data-strand="es">¿Podrás asistir?</span>
+			</legend>
 			<div class="mt-3 flex flex-wrap gap-6">
 				<label class="inline-flex cursor-pointer items-center gap-2">
 					<input type="radio" name="attending" value="yes" class="accent-olive" checked />
-					<span class="text-brown-soft">Joyfully accepts</span>
+					<span class="text-brown-soft">
+						<span data-strand="en">Joyfully accepts</span>
+						<span data-strand="es">¡Con mucho gusto asistimos!</span>
+					</span>
 				</label>
 				<label class="inline-flex cursor-pointer items-center gap-2">
 					<input type="radio" name="attending" value="no" class="accent-olive" />
-					<span class="text-brown-soft">Regretfully declines</span>
+					<span class="text-brown-soft">
+						<span data-strand="en">Regretfully declines</span>
+						<span data-strand="es">Con gran pesar declinamos</span>
+					</span>
 				</label>
 			</div>
 		</fieldset>
 		<div>
-			<label for="rsvp-count" class="block text-sm font-medium text-plum">Guests in your party</label>
+			<label for="rsvp-count" class="block text-sm font-medium text-plum">
+				<span data-strand="en">Guests in your party</span>
+				<span data-strand="es">Personas en tu grupo</span>
+			</label>
 			<input
 				type="number"
 				id="rsvp-count"
@@ -74,23 +97,32 @@ const slugs =
 			/>
 		</div>
 		<div>
-			<label for="rsvp-dietary" class="block text-sm font-medium text-plum">Dietary notes</label>
+			<label for="rsvp-dietary" class="block text-sm font-medium text-plum">
+				<span data-strand="en">Dietary notes</span>
+				<span data-strand="es">Notas dietéticas</span>
+			</label>
 			<input
 				type="text"
 				id="rsvp-dietary"
 				name="dietary"
 				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
 				placeholder="Allergies or preferences"
+				data-ph-en="Allergies or preferences"
+				data-ph-es="Alergias o preferencias"
 			/>
 		</div>
 		<div>
-			<label for="rsvp-message" class="block text-sm font-medium text-plum">Message for the couple</label>
+			<label for="rsvp-message" class="block text-sm font-medium text-plum">
+				<span data-strand="en">Message for the couple</span>
+				<span data-strand="es">Mensaje para los novios</span>
+			</label>
 			<textarea
 				id="rsvp-message"
 				name="message"
 				rows="3"
 				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				placeholder="Optional"
+				data-ph-en="Optional"
+				data-ph-es="Opcional"
 			></textarea>
 		</div>
 		<p id="rsvp-status" class="hidden text-sm" role="status"></p>
@@ -98,12 +130,47 @@ const slugs =
 			type="submit"
 			class="w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark md:w-auto"
 		>
-			Submit RSVP
+			<span data-strand="en">Submit RSVP</span>
+			<span data-strand="es">Enviar RSVP</span>
 		</button>
 	</form>
 </div>
 
 <script>
+	type Lang = 'en' | 'es';
+
+	function isEs(): boolean {
+		return document.documentElement.classList.contains('lang-es');
+	}
+
+	function lang(): Lang {
+		return isEs() ? 'es' : 'en';
+	}
+
+	function pick<T extends Record<Lang, string>>(t: T) {
+		return t[lang()];
+	}
+
+	function refreshRsvpI18n() {
+		const inviteOpt = document.querySelector<HTMLOptionElement>('#rsvp-invite-placeholder');
+		if (inviteOpt) inviteOpt.textContent = pick({
+			en: 'Select your invite',
+			es: 'Selecciona tu invitación',
+		});
+
+		const dietary = document.querySelector<HTMLInputElement>('#rsvp-dietary');
+		if (dietary) {
+			dietary.placeholder = dietary.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
+		}
+		const ta = document.querySelector<HTMLTextAreaElement>('#rsvp-message');
+		if (ta) {
+			ta.placeholder = ta.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
+		}
+	}
+
+	document.addEventListener('DOMContentLoaded', refreshRsvpI18n);
+	window.addEventListener('wedding-lang', refreshRsvpI18n as EventListener);
+
 	const form = document.getElementById('rsvp-form') as HTMLFormElement | null;
 	const statusEl = document.getElementById('rsvp-status');
 
@@ -121,7 +188,11 @@ const slugs =
 			message: String(fd.get('message') ?? ''),
 		};
 		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
-		statusEl.textContent = 'Sending…';
+
+		statusEl.textContent = pick({
+			en: 'Sending…',
+			es: 'Enviando…',
+		});
 		try {
 			const res = await fetch('/api/rsvp', {
 				method: 'POST',
@@ -131,15 +202,28 @@ const slugs =
 			const data = (await res.json()) as { ok?: boolean; error?: string };
 			if (!res.ok || !data.ok) {
 				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent = data.error ?? 'Something went wrong. Please try again.';
+				statusEl.textContent =
+					data.error ??
+					pick({
+						en: 'Something went wrong. Please try again.',
+						es: 'Algo salió mal. Por favor intenta de nuevo.',
+					});
 				return;
 			}
 			statusEl.classList.add('text-olive');
-			statusEl.textContent = 'Thank you — your RSVP has been saved.';
+			statusEl.textContent = pick({
+				en: 'Thank you — your RSVP has been saved.',
+				es: 'Gracias — hemos guardado tu RSVP.',
+			});
 			form.reset();
+			refreshRsvpI18n();
 		} catch {
 			statusEl.classList.add('text-mauve-dark');
-			statusEl.textContent = 'Network error. Please try again.';
+			statusEl.textContent = pick({
+				en: 'Network error. Please try again.',
+				es: 'Error de red. Por favor intenta de nuevo.',
+			});
 		}
 	});
+
 </script>

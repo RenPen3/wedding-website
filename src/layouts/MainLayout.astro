@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import ScrollReveal from '../components/ScrollReveal.astro';
 
 type Props = {
 	title?: string;
@@ -16,6 +17,14 @@ const {
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
+		<script is:inline>
+			try {
+				if (localStorage.getItem('wedding-lang') === 'es') {
+					document.documentElement.classList.add('lang-es');
+					document.documentElement.setAttribute('lang', 'es');
+				}
+			} catch (_) {}
+		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
@@ -30,5 +39,6 @@ const {
 	</head>
 	<body class="min-h-screen">
 		<slot />
+		<ScrollReveal />
 	</body>
 </html>

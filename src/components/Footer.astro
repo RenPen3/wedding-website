@@ -1,17 +1,74 @@
 ---
+import QRCode from 'qrcode';
+
 const year = new Date().getFullYear();
+
+const qrTargetUrl =
+	typeof import.meta.env.PUBLIC_REGISTRY_QR_URL === 'string' && import.meta.env.PUBLIC_REGISTRY_QR_URL.trim() !== ''
+		? import.meta.env.PUBLIC_REGISTRY_QR_URL.trim()
+		: 'https://www.zola.com/registry/jocelynandrene/edit';
+
+const qrSvg = await QRCode.toString(qrTargetUrl, {
+	type: 'svg',
+	errorCorrectionLevel: 'M',
+	margin: 1,
+	width: 168,
+	color: {
+		dark: '#2a1a32ff',
+		light: '#faf6f0ff',
+	},
+});
 ---
 
-<footer class="border-t border-mauve/20 bg-plum-deep py-14 text-center text-ivory/85">
+<footer class="border-t border-mauve/20 bg-plum-deep py-14 text-center text-ivory/85" data-reveal>
 	<div class="mx-auto max-w-3xl px-6">
-		<p class="font-serif text-2xl text-cream">Jocelyn & René</p>
-		<p class="mt-2 text-sm">September 12, 2026 · Tesoro Adobe Historic Park</p>
+		<p class="font-serif text-2xl text-cream md:text-3xl">Jocelyn & René</p>
+		<p class="mt-2 text-sm">
+			<span data-strand="en">September 12, 2026 · Tesoro Adobe Historic Park</span>
+			<span data-strand="es">12 de septiembre de 2026 · Tesoro Adobe Historic Park</span>
+		</p>
 		<p class="mt-1 text-sm text-ivory/75">29350 Avenida Rancho Tesoro, Valencia, CA 91354</p>
+
+		<!-- <figure class="mx-auto mt-10 max-w-[11rem]">
+			<a
+				href={qrTargetUrl}
+				class="block rounded-2xl border border-ivory/20 bg-cream/95 p-3 shadow-lg shadow-black/10 transition hover:border-cream/40 hover:bg-cream"
+				aria-describedby="qr-caption"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<span class="sr-only">
+					<span data-strand="en">Open registry on Zola</span>
+					<span data-strand="es">Abrir lista de regalos en Zola</span>
+				</span>
+				<div
+					class="[&_svg]:block [&_svg]:h-auto [&_svg]:w-full [&_svg]:max-w-full"
+					set:html={qrSvg}
+				/>
+			</a>
+			<figcaption id="qr-caption" class="mt-3 space-y-1 text-center text-xs text-ivory/70">
+				<p>
+					<span data-strand="en">Scan to open our Zola registry</span>
+					<span data-strand="es">Escanea para abrir nuestra lista en Zola</span>
+				</p>
+				<p class="break-all font-mono text-[10px] leading-snug text-ivory/55">{qrTargetUrl}</p>
+			</figcaption>
+		</figure> -->
+
 		<p class="mt-8 text-xs text-ivory/60">
-			Questions? Email <a class="underline-offset-2 hover:underline" href="mailto:hello@placeholder.wedding"
-				>hello@placeholder.wedding</a
+			<span data-strand="en"
+				>Questions? Email <a class="underline-offset-2 hover:underline" href="mailto:hello@placeholder.wedding"
+					>hello@placeholder.wedding</a
+				></span
+			><span data-strand="es"
+				>¿Preguntas? Escríbenos a <a class="underline-offset-2 hover:underline" href="mailto:hello@placeholder.wedding"
+					>hello@placeholder.wedding</a
+				></span
 			>
 		</p>
-		<p class="mt-6 text-xs text-ivory/50">© {year} Placeholder celebration. Made with love and Astro.</p>
+		<p class="mt-6 text-xs text-ivory/50">
+			<span data-strand="en">© {year} Placeholder celebration. Made with love and Astro.</span>
+			<span data-strand="es">© {year} Celebración placeholder. Hecha con cariño y Astro.</span>
+		</p>
 	</div>
 </footer>
