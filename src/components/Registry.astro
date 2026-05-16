@@ -1,4 +1,5 @@
 ---
+import { REGISTRY_URL } from '../lib/site-urls';
 ---
 
 <section id="registry" class="scroll-mt-24 bg-ivory py-20 md:py-28" data-reveal>
@@ -20,20 +21,24 @@
 		<ul class="mt-10 flex flex-col items-center gap-4">
 			<li>
 				<a
-					href="https://www.zola.com/registry/jocelynandrene/edit" target="_blank"
+					href={REGISTRY_URL}
+					target="_blank"
+					rel="noopener noreferrer"
 					class="inline-flex min-w-[14rem] justify-center rounded-full border border-mauve/30 bg-white px-8 py-3 font-medium text-plum transition hover:border-olive hover:text-olive"
 				>
-					<span data-strand="en">View placeholder registry</span>
-					<span data-strand="es">Ver lista de regalos (placeholder)</span>
+					<span data-strand="en">View our Zola registry</span>
+					<span data-strand="es">Ver nuestra lista en Zola</span>
 				</a>
 			</li>
 			<li>
 				<a
-					href="#"
+					href={REGISTRY_URL}
+					target="_blank"
+					rel="noopener noreferrer"
 					class="text-sm text-brown-muted underline-offset-4 hover:text-olive hover:underline"
 				>
-					<span data-strand="en">Honeymoon fund (coming soon)</span>
-					<span data-strand="es">Fondo de luna de miel (próximamente)</span>
+					<span data-strand="en">Honeymoon fund</span>
+					<span data-strand="es">Fondo de luna de miel</span>
 				</a>
 			</li>
 		</ul>

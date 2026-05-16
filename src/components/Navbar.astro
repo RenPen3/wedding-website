@@ -1,20 +1,32 @@
 ---
+import { REGISTRY_URL } from '../lib/site-urls';
+
 type Props = {
 	integrated?: boolean;
+};
+
+type NavLink = {
+	href: string;
+	en: string;
+	es: string;
+	external?: boolean;
 };
 
 const { integrated = false } = Astro.props;
 
 const hash = (id: string) => (integrated ? `#${id}` : `/#${id}`);
 
-const links = [
+const links: NavLink[] = [
 	{ href: hash('details'), en: 'Details', es: 'Detalles' },
 	{ href: hash('schedule'), en: 'Schedule', es: 'Itinerario' },
-	{ href: hash('registry'), en: 'Registry', es: 'Lista de regalos' },
+	{ href: REGISTRY_URL, en: 'Registry', es: 'Lista de regalos', external: true },
 	{ href: hash('travel'), en: 'Travel', es: 'Viaje' },
 	{ href: hash('faq'), en: 'FAQ', es: 'Preguntas' },
 	{ href: '/rsvp', en: 'RSVP', es: 'RSVP' },
 ];
+
+const externalLinkProps = (link: NavLink) =>
+	link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
 const linkClass = integrated
 	? 'text-ivory/90 transition-colors hover:text-cream'
@@ -54,7 +66,12 @@ const switchBtnClass = integrated
 						{
 							links.map((l) => (
 								<li class="list-none">
-									<a href={l.href} class:list={[linkClass, 'nav-link']} data-nav-link>
+									<a
+										href={l.href}
+										class:list={[linkClass, 'nav-link']}
+										data-nav-link
+										{...externalLinkProps(l)}
+									>
 										<span data-strand="en">{l.en}</span>
 										<span data-strand="es">{l.es}</span>
 									</a>
@@ -117,7 +134,7 @@ const switchBtnClass = integrated
 						{
 							links.map((l) => (
 								<li class="list-none">
-									<a href={l.href} class={linkClass}>
+									<a href={l.href} class={linkClass} {...externalLinkProps(l)}>
 										<span data-strand="en">{l.en}</span>
 										<span data-strand="es">{l.es}</span>
 									</a>

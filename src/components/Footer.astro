@@ -1,12 +1,13 @@
 ---
 import QRCode from 'qrcode';
+import { REGISTRY_URL } from '../lib/site-urls';
 
 const year = new Date().getFullYear();
 
 const qrTargetUrl =
 	typeof import.meta.env.PUBLIC_REGISTRY_QR_URL === 'string' && import.meta.env.PUBLIC_REGISTRY_QR_URL.trim() !== ''
 		? import.meta.env.PUBLIC_REGISTRY_QR_URL.trim()
-		: 'https://www.zola.com/registry/jocelynandrene/edit';
+		: REGISTRY_URL;
 
 const qrSvg = await QRCode.toString(qrTargetUrl, {
 	type: 'svg',
