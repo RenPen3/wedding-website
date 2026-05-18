@@ -1,0 +1,174 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { listGuestsForAdmin, type AdminGuestRow } from '../../lib/guests';
+import { ADMIN_COOKIE, isValidAdminSession } from '../../lib/admin-auth';
+
+const sessionCookie = Astro.cookies.get(ADMIN_COOKIE)?.value;
+const authorized = isValidAdminSession(sessionCookie);
+const loginError = Astro.url.searchParams.get('error') === 'invalid';
+
+let rows: AdminGuestRow[] = [];
+let adminError: string | null = null;
+
+if (authorized) {
+	try {
+		rows = await listGuestsForAdmin();
+	} catch (err) {
+		adminError = err instanceof Error ? err.message : 'Could not load guests';
+	}
+}
+
+function fmtDate(iso: string | null) {
+	if (!iso) return '—';
+	return new Intl.DateTimeFormat('en-US', {
+		dateStyle: 'medium',
+		timeStyle: 'short',
+	}).format(new Date(iso));
+}
+
+function rsvpLabel(status: string | null) {
+	if (status === 'yes') return 'Yes';
+	if (status === 'no') return 'No';
+	return 'Pending';
+}
+---
+
+<MainLayout
+	title="RSVP admin — Jocelyn & René"
+	description="Private guest invitation and RSVP overview."
+	showInvitationIntro={false}
+>
+	{
+		!authorized ? (
+			<div class="flex min-h-screen flex-col items-center justify-center bg-plum-deep px-6 py-20 text-cream">
+				<h1 class="font-serif text-3xl">Admin — RSVPs</h1>
+				<p class="mt-3 max-w-md text-center text-ivory/80">
+					Enter the admin password to view invitation opens and RSVP responses.
+				</p>
+				{loginError ?
+					<p class="mt-4 text-sm text-mauve/90">Incorrect password. Please try again.</p>
+				:	null}
+				<form method="post" action="/api/admin/login" class="mt-8 w-full max-w-sm">
+					<label for="admin-password" class="sr-only">
+						Admin password
+					</label>
+					<input
+						type="password"
+						id="admin-password"
+						name="password"
+						required
+						autocomplete="current-password"
+						class="w-full rounded-xl border border-ivory/25 bg-plum/40 px-4 py-3 text-cream placeholder:text-ivory/50 outline-none ring-cream/30 focus:ring-2"
+						placeholder="Password"
+					/>
+					<button
+						type="submit"
+						class="mt-4 w-full rounded-full bg-cream px-6 py-3 font-medium text-plum-deep transition hover:bg-ivory"
+					>
+						Sign in
+					</button>
+				</form>
+			</div>
+		) : (
+			<div class="min-h-screen bg-ivory pb-20 pt-12">
+				<div class="mx-auto max-w-6xl px-6 md:px-8">
+					<div class="flex flex-wrap items-end justify-between gap-4">
+						<div>
+							<h1 class="font-serif text-4xl text-plum">Invitations & RSVPs</h1>
+							<p class="mt-2 text-brown-soft">
+								Guest opens and RSVP status from Supabase. Invite links:{' '}
+								<code class="text-sm text-plum">/invite/[inviteCode]</code>
+							</p>
+						</div>
+						<p class="text-sm text-brown-muted">{rows.length} guests</p>
+					</div>
+
+					{adminError ?
+						<p class="mt-8 rounded-2xl border border-mauve/30 bg-cream px-5 py-4 text-mauve-dark">
+							{adminError}
+						</p>
+					:	null}
+
+					<div class="mt-10 overflow-x-auto rounded-2xl border border-mauve/20 bg-cream shadow-sm">
+						<table class="min-w-full text-left text-sm">
+							<thead class="border-b border-mauve/20 bg-white/80 text-xs font-semibold uppercase tracking-wider text-olive">
+								<tr>
+									<th class="px-3 py-3">Guest</th>
+									<th class="px-3 py-3">Invite code</th>
+									<th class="px-3 py-3">Opened</th>
+									<th class="px-3 py-3">First opened</th>
+									<th class="px-3 py-3">Last opened</th>
+									<th class="px-3 py-3">Opens</th>
+									<th class="px-3 py-3">RSVP</th>
+									<th class="px-3 py-3">Attending</th>
+									<th class="px-3 py-3">Submitted</th>
+									<th class="px-3 py-3">Message</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-mauve/15 text-brown-soft">
+								{rows.map((r) => (
+									<tr class="bg-white/40 hover:bg-white/70">
+										<td class="px-3 py-3 font-medium text-plum">{r.guest_name}</td>
+										<td class="px-3 py-3 font-mono text-xs">
+											<a
+												href={`/invite/${r.invite_code}`}
+												class="text-plum underline decoration-mauve/30 underline-offset-2 hover:decoration-plum"
+												target="_blank"
+												rel="noopener noreferrer"
+											>
+												{r.invite_code}
+											</a>
+										</td>
+										<td class="px-3 py-3">{r.open_count > 0 ? 'Yes' : 'No'}</td>
+										<td class="px-3 py-3 text-xs whitespace-nowrap">{fmtDate(r.opened_at)}</td>
+										<td class="px-3 py-3 text-xs whitespace-nowrap">{fmtDate(r.last_opened_at)}</td>
+										<td class="px-3 py-3">{r.open_count}</td>
+										<td class="px-3 py-3">
+											<span
+												class={
+													r.rsvp_status === 'yes'
+														? 'text-olive'
+														: r.rsvp_status === 'no'
+															? 'text-mauve-dark'
+															: 'text-brown-muted'
+												}
+											>
+												{rsvpLabel(r.rsvp_status)}
+											</span>
+										</td>
+										<td class="px-3 py-3">
+											{r.rsvp_status === 'yes' ? (r.rsvp_guest_count ?? '—') : r.rsvp_status === 'no' ? '0' : '—'}
+										</td>
+										<td class="px-3 py-3 text-xs whitespace-nowrap">
+											{fmtDate(r.rsvp_submitted_at)}
+										</td>
+										<td class="max-w-[12rem] truncate px-3 py-3 text-xs" title={r.rsvp_message ?? ''}>
+											{r.rsvp_message ?? '—'}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+
+					{
+						rows.some((r) => r.rsvp_guest_names) ? (
+							<section class="mt-10">
+								<h2 class="font-serif text-2xl text-plum">Guest names on file</h2>
+								<ul class="mt-4 space-y-2 text-sm text-brown-soft">
+									{rows
+										.filter((r) => r.rsvp_guest_names)
+										.map((r) => (
+											<li class="rounded-xl border border-mauve/15 bg-white/60 px-4 py-3">
+												<span class="font-medium text-plum">{r.guest_name}</span> — {r.rsvp_guest_names}
+											</li>
+										))}
+								</ul>
+							</section>
+						) : null
+					}
+				</div>
+			</div>
+		)
+	}
+</MainLayout>

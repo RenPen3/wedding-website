@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { findGuest, getState, upsertRsvp } from '../../lib/wedding-store';
+import { submitGuestRsvp } from '../../lib/guests';
 
 export const POST: APIRoute = async ({ request }) => {
 	const contentType = request.headers.get('content-type') ?? '';
@@ -19,39 +19,56 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	const slug = String(body.slug ?? '').trim().toLowerCase().replace(/\s+/g, '-');
-	const displayName = String(body.displayName ?? '').trim();
-	const attending = body.attending === true || body.attending === 'yes' || body.attending === 'true';
-	const guestCount = Math.max(1, Math.min(10, Number(body.guestCount) || 1));
-	const dietary = String(body.dietary ?? '').trim();
+	const inviteCode = String(body.inviteCode ?? body.slug ?? '').trim();
+	const attending =
+		body.attending === true || body.attending === 'yes' || body.attending === 'true';
+	const guestCount = Math.max(0, Math.min(20, Number(body.guestCount) || 0));
+	const guestNames = String(body.guestNames ?? body.displayName ?? '').trim();
 	const message = String(body.message ?? '').trim();
 
-	if (!slug || !displayName) {
-		return new Response(JSON.stringify({ ok: false, error: 'Missing slug or name' }), {
+	if (!inviteCode) {
+		return new Response(JSON.stringify({ ok: false, error: 'Missing invite code' }), {
 			status: 400,
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
 
-	const state = await getState();
-	if (!findGuest(state, slug)) {
-		return new Response(JSON.stringify({ ok: false, error: 'Unknown guest slug' }), {
-			status: 404,
+	if (attending && !guestNames) {
+		return new Response(JSON.stringify({ ok: false, error: 'Guest names are required' }), {
+			status: 400,
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
 
-	await upsertRsvp({
-		slug,
-		displayName,
+	const result = await submitGuestRsvp({
+		inviteCode,
 		attending,
-		guestCount,
-		dietary,
+		guestCount: attending ? Math.max(1, guestCount) : 0,
+		guestNames,
 		message,
 	});
 
-	return new Response(JSON.stringify({ ok: true }), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
-	});
+	if (!result.ok) {
+		const status = result.error === 'Invitation not found' ? 404 : 500;
+		return new Response(JSON.stringify({ ok: false, error: result.error }), {
+			status,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+
+	return new Response(
+		JSON.stringify({
+			ok: true,
+			guest: {
+				invite_code: result.guest.invite_code,
+				guest_name: result.guest.guest_name,
+				rsvp_status: result.guest.rsvp_status,
+				rsvp_submitted_at: result.guest.rsvp_submitted_at,
+			},
+		}),
+		{
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
+		}
+	);
 };
