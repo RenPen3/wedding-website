@@ -1,0 +1,19 @@
+---
+import { supabase } from '../lib/supabaseClient';
+
+const { data, error } = await supabase
+  .from('guests')
+  .select('*');
+---
+
+<html>
+  <body>
+    <h1>Supabase Test</h1>
+
+    <pre>
+      {JSON.stringify(data, null, 2)}
+    </pre>
+
+    {error && <p>{error.message}</p>}
+  </body>
+</html>
