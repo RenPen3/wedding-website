@@ -1,0 +1,270 @@
+---
+import { galleryDescription } from '../lib/gallery-copy';
+
+type Props = {
+	showHeader?: boolean;
+};
+
+const { showHeader = true } = Astro.props;
+---
+
+<section id="gallery" class="scroll-mt-20 bg-cream py-20 md:py-28" data-reveal>
+	<div class="mx-auto max-w-5xl px-6 md:px-8">
+		{
+			showHeader && (
+				<div class="text-center">
+					<h2 class="font-serif text-3xl text-plum md:text-4xl">
+						<span data-strand="en">Wedding gallery</span>
+						<span data-strand="es">Galería de la boda</span>
+					</h2>
+					<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true" />
+					<p class="mx-auto mt-6 max-w-2xl text-brown-soft">
+						<span data-strand="en">{galleryDescription.en}</span>
+						<span data-strand="es">{galleryDescription.es}</span>
+					</p>
+				</div>
+			)
+		}
+
+		<form
+			id="photo-upload-form"
+			class:list={[
+				'mx-auto max-w-lg rounded-3xl border border-mauve/20 bg-white/80 p-6 shadow-sm md:p-8',
+				showHeader ? 'mt-10' : 'mt-0',
+			]}
+			enctype="multipart/form-data"
+		>
+			<div>
+				<label for="photo-uploader-name" class="block text-sm font-medium text-plum">
+					<span data-strand="en">Your name (optional)</span>
+					<span data-strand="es">Tu nombre (opcional)</span>
+				</label>
+				<input
+					type="text"
+					id="photo-uploader-name"
+					name="uploaderName"
+					autocomplete="name"
+					class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+				/>
+			</div>
+
+			<div class="mt-5">
+				<label for="photo-file" class="block text-sm font-medium text-plum">
+					<span data-strand="en">Choose a photo</span>
+					<span data-strand="es">Elige una foto</span>
+				</label>
+				<input
+					type="file"
+					id="photo-file"
+					name="photo"
+					accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+					capture="environment"
+					required
+					class="mt-2 block w-full cursor-pointer text-sm text-brown-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-plum file:px-5 file:py-2.5 file:text-sm file:font-medium file:text-cream hover:file:bg-mauve-dark"
+				/>
+				<p class="mt-2 text-xs text-brown-muted">
+					<span data-strand="en">JPG, PNG, or WebP · up to 5 MB</span>
+					<span data-strand="es">JPG, PNG o WebP · hasta 5 MB</span>
+				</p>
+			</div>
+
+			<p id="photo-upload-preview-wrap" class="mt-5 hidden">
+				<img
+					id="photo-upload-preview"
+					alt=""
+					class="mx-auto max-h-48 rounded-2xl border border-mauve/15 object-contain"
+				/>
+			</p>
+
+			<p id="photo-upload-status" class="mt-4 hidden text-sm" role="status"></p>
+
+			<button
+				type="submit"
+				id="photo-upload-submit"
+				class="mt-6 w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark disabled:cursor-not-allowed disabled:opacity-50"
+			>
+				<span data-strand="en">Upload photo</span>
+				<span data-strand="es">Subir foto</span>
+			</button>
+		</form>
+
+		<div id="photo-gallery-wrap" class="mt-14">
+			<h3 class="text-center font-serif text-2xl text-plum">
+				<span data-strand="en">Gallery</span>
+				<span data-strand="es">Galería</span>
+			</h3>
+			<p id="photo-gallery-empty" class="mt-6 hidden text-center text-sm text-brown-muted">
+				<span data-strand="en">No photos yet — be the first to share one.</span>
+				<span data-strand="es">Aún no hay fotos — sé el primero en compartir una.</span>
+			</p>
+			<p id="photo-gallery-loading" class="mt-6 text-center text-sm text-brown-muted">
+				<span data-strand="en">Loading photos…</span>
+				<span data-strand="es">Cargando fotos…</span>
+			</p>
+			<div
+				id="photo-gallery-grid"
+				class="mt-8 hidden grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4"
+			></div>
+		</div>
+	</div>
+</section>
+
+<script>
+	type Lang = 'en' | 'es';
+
+	type GalleryPhoto = {
+		id: string;
+		url: string;
+		uploadedAt: string;
+		uploaderName: string | null;
+	};
+
+	function isEs(): boolean {
+		return document.documentElement.classList.contains('lang-es');
+	}
+
+	function lang(): Lang {
+		return isEs() ? 'es' : 'en';
+	}
+
+	function pick<T extends Record<Lang, string>>(t: T) {
+		return t[lang()];
+	}
+
+	function formatDate(iso: string) {
+		try {
+			return new Intl.DateTimeFormat(lang() === 'es' ? 'es-US' : 'en-US', {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric',
+			}).format(new Date(iso));
+		} catch {
+			return '';
+		}
+	}
+
+	async function loadGallery() {
+		const grid = document.getElementById('photo-gallery-grid');
+		const empty = document.getElementById('photo-gallery-empty');
+		const loading = document.getElementById('photo-gallery-loading');
+		if (!grid || !empty || !loading) return;
+
+		try {
+			const res = await fetch('/api/photos');
+			const data = (await res.json()) as { ok?: boolean; photos?: GalleryPhoto[] };
+			const photos = data.photos ?? [];
+
+			loading.classList.add('hidden');
+
+			if (photos.length === 0) {
+				empty.classList.remove('hidden');
+				grid.classList.add('hidden');
+				grid.innerHTML = '';
+				return;
+			}
+
+			empty.classList.add('hidden');
+			grid.classList.remove('hidden');
+			grid.innerHTML = photos
+				.map(
+					(photo) => `
+				<figure class="group overflow-hidden rounded-2xl border border-mauve/15 bg-white shadow-sm">
+					<a href="${photo.url}" target="_blank" rel="noopener noreferrer" class="block aspect-square overflow-hidden">
+						<img
+							src="${photo.url}"
+							alt="${photo.uploaderName ? `Photo by ${photo.uploaderName}` : 'Wedding photo'}"
+							loading="lazy"
+							class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+						/>
+					</a>
+					${
+						photo.uploaderName ?
+							`<figcaption class="px-3 py-2 text-xs text-brown-muted">${photo.uploaderName}</figcaption>`
+						:	''
+					}
+				</figure>`
+				)
+				.join('');
+		} catch {
+			loading.classList.add('hidden');
+			empty.classList.remove('hidden');
+			empty.innerHTML = `<span data-strand="en">Could not load photos.</span><span data-strand="es">No se pudieron cargar las fotos.</span>`;
+		}
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		const form = document.getElementById('photo-upload-form') as HTMLFormElement | null;
+		const fileInput = document.getElementById('photo-file') as HTMLInputElement | null;
+		const previewWrap = document.getElementById('photo-upload-preview-wrap');
+		const preview = document.getElementById('photo-upload-preview') as HTMLImageElement | null;
+		const statusEl = document.getElementById('photo-upload-status');
+		const submitBtn = document.getElementById('photo-upload-submit') as HTMLButtonElement | null;
+
+		fileInput?.addEventListener('change', () => {
+			const file = fileInput.files?.[0];
+			if (!file || !preview || !previewWrap) {
+				previewWrap?.classList.add('hidden');
+				return;
+			}
+			preview.src = URL.createObjectURL(file);
+			previewWrap.classList.remove('hidden');
+		});
+
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			if (!statusEl || !submitBtn) return;
+
+			const fd = new FormData(form);
+			const file = fd.get('photo');
+			if (!(file instanceof File) || file.size === 0) {
+				statusEl.classList.remove('hidden', 'text-olive');
+				statusEl.classList.add('text-mauve-dark');
+				statusEl.textContent = pick({
+					en: 'Please choose a photo first.',
+					es: 'Por favor elige una foto primero.',
+				});
+				return;
+			}
+
+			submitBtn.disabled = true;
+			statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
+			statusEl.textContent = pick({ en: 'Uploading…', es: 'Subiendo…' });
+
+			try {
+				const res = await fetch('/api/photos', { method: 'POST', body: fd });
+				const data = (await res.json()) as { ok?: boolean; error?: string };
+
+				if (!res.ok || !data.ok) {
+					statusEl.classList.add('text-mauve-dark');
+					statusEl.textContent =
+						data.error ??
+						pick({
+							en: 'Upload failed. Please try again.',
+							es: 'La subida falló. Por favor intenta de nuevo.',
+						});
+					return;
+				}
+
+				form.reset();
+				previewWrap?.classList.add('hidden');
+				if (preview) preview.removeAttribute('src');
+				statusEl.classList.add('text-olive');
+				statusEl.textContent = pick({
+					en: 'Thank you — your photo has been added.',
+					es: 'Gracias — tu foto ha sido agregada.',
+				});
+				await loadGallery();
+			} catch {
+				statusEl.classList.add('text-mauve-dark');
+				statusEl.textContent = pick({
+					en: 'Network error. Please try again.',
+					es: 'Error de red. Por favor intenta de nuevo.',
+				});
+			} finally {
+				submitBtn.disabled = false;
+			}
+		});
+
+		void loadGallery();
+	});
+</script>

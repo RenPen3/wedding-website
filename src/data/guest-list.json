@@ -1,0 +1,8 @@
+[
+	{ "name": "Ray Cano", "maxGuests": 3 },
+	{ "name": "Sandra Cano", "maxGuests": 2 },
+	{ "name": "Pedro Perez Jr.", "maxGuests": 3 },
+	{ "name": "Maby Ramos", "maxGuests": 3 },
+	{ "name": "Joseph Ramos", "maxGuests": 2.5 },
+	{ "name": "Blanca Medina", "maxGuests": 3 }
+]

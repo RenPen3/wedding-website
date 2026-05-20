@@ -1,75 +1,75 @@
 ---
-const items = [
-	{
-		time: '3:30 PM',
-		title: { en: 'Guest arrival', es: 'Llegada de invitados' },
-		detail: { en: 'Welcome drinks on the terrace', es: 'Bebidas de bienvenida en la terraza' },
-	},
-	{
-		time: '4:30 PM',
-		title: { en: 'Ceremony', es: 'Ceremonia' },
-		detail: { en: 'Outdoor lawn overlooking the river', es: 'Césped al aire libre con vistas al río' },
-	},
-	{
-		time: '5:15 PM',
-		title: { en: 'Cocktail hour', es: 'Cóctel' },
-		detail: { en: 'Garden canapés and sparkling wine', es: 'Pasaboches en el jardín y espumoso' },
-	},
-	{
-		time: '6:30 PM',
-		title: { en: 'Reception', es: 'Recepción' },
-		detail: { en: 'Dinner and toasts in the barn', es: 'Cena y brindis en el granero' },
-	},
-	{
-		time: '8:30 PM',
-		title: { en: 'Dancing', es: 'Baile' },
-		detail: { en: 'Open floor until the stars come out', es: '¡A bailar hasta que salgan las estrellas!' },
-	},
-	{
-		time: '11:00 PM',
-		title: { en: 'Send-off', es: 'Despedida' },
-		detail: { en: 'Sparkler exit by the oak tree', es: 'Salida con bengalas junto al roble' },
-	},
-];
----
+// const items = [
+// 	{
+// 		time: '3:30 PM',
+// 		title: { en: 'Guest arrival', es: 'Llegada de invitados' },
+// 		detail: { en: 'Welcome drinks on the terrace', es: 'Bebidas de bienvenida en la terraza' },
+// 	},
+// 	{
+// 		time: '4:30 PM',
+// 		title: { en: 'Ceremony', es: 'Ceremonia' },
+// 		detail: { en: 'Outdoor lawn overlooking the river', es: 'Césped al aire libre con vistas al río' },
+// 	},
+// 	{
+// 		time: '5:15 PM',
+// 		title: { en: 'Cocktail hour', es: 'Cóctel' },
+// 		detail: { en: 'Garden canapés and sparkling wine', es: 'Pasaboches en el jardín y espumoso' },
+// 	},
+// 	{
+// 		time: '6:30 PM',
+// 		title: { en: 'Reception', es: 'Recepción' },
+// 		detail: { en: 'Dinner and toasts in the barn', es: 'Cena y brindis en el granero' },
+// 	},
+// 	{
+// 		time: '8:30 PM',
+// 		title: { en: 'Dancing', es: 'Baile' },
+// 		detail: { en: 'Open floor until the stars come out', es: '¡A bailar hasta que salgan las estrellas!' },
+// 	},
+// 	{
+// 		time: '11:00 PM',
+// 		title: { en: 'Send-off', es: 'Despedida' },
+// 		detail: { en: 'Sparkler exit by the oak tree', es: 'Salida con bengalas junto al roble' },
+// 	},
+// ];
+// ---
 
-<section id="schedule" class="scroll-mt-24 bg-cream py-20 md:py-28" data-reveal>
-	<div class="mx-auto max-w-3xl px-6 md:px-8">
-		<h2 class="text-center font-serif text-3xl text-plum md:text-4xl">
-			<span data-strand="en">Day-of schedule</span>
-			<span data-strand="es">Programa del día</span>
-		</h2>
-		<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true"></div>
-		<ol class="mt-14" data-reveal-stagger>
-			{
-				items.map((item, i) => (
-					<li class="relative flex gap-5 pb-12 last:pb-0 md:gap-7">
-						<div class="relative flex w-5 shrink-0 flex-col items-center md:w-6">
-							<span
-								class="relative z-10 mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 border-mauve bg-cream"
-								aria-hidden="true"
-							/>
-							{i < items.length - 1 ? (
-								<span
-									class="absolute left-1/2 top-[1.125rem] bottom-0 w-px -translate-x-1/2 bg-mauve/25"
-									aria-hidden="true"
-								/>
-							) : null}
-						</div>
-						<div class="min-w-0 flex-1 pt-0.5">
-							<p class="text-sm font-semibold uppercase tracking-wider text-olive">{item.time}</p>
-							<h3 class="mt-1 font-serif text-2xl text-plum">
-								<span data-strand="en">{item.title.en}</span>
-								<span data-strand="es">{item.title.es}</span>
-							</h3>
-							<p class="mt-1 text-brown-soft">
-								<span data-strand="en">{item.detail.en}</span>
-								<span data-strand="es">{item.detail.es}</span>
-							</p>
-						</div>
-					</li>
-				))
-			}
-		</ol>
-	</div>
-</section>
+// <section id="schedule" class="scroll-mt-24 bg-cream py-20 md:py-28" data-reveal>
+// 	<div class="mx-auto max-w-3xl px-6 md:px-8">
+// 		<h2 class="text-center font-serif text-3xl text-plum md:text-4xl">
+// 			<span data-strand="en">Day-of schedule</span>
+// 			<span data-strand="es">Programa del día</span>
+// 		</h2>
+// 		<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true"></div>
+// 		<ol class="mt-14" data-reveal-stagger>
+// 			{
+// 				items.map((item, i) => (
+// 					<li class="relative flex gap-5 pb-12 last:pb-0 md:gap-7">
+// 						<div class="relative flex w-5 shrink-0 flex-col items-center md:w-6">
+// 							<span
+// 								class="relative z-10 mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 border-mauve bg-cream"
+// 								aria-hidden="true"
+// 							/>
+// 							{i < items.length - 1 ? (
+// 								<span
+// 									class="absolute left-1/2 top-[1.125rem] bottom-0 w-px -translate-x-1/2 bg-mauve/25"
+// 									aria-hidden="true"
+// 								/>
+// 							) : null}
+// 						</div>
+// 						<div class="min-w-0 flex-1 pt-0.5">
+// 							<p class="text-sm font-semibold uppercase tracking-wider text-olive">{item.time}</p>
+// 							<h3 class="mt-1 font-serif text-2xl text-plum">
+// 								<span data-strand="en">{item.title.en}</span>
+// 								<span data-strand="es">{item.title.es}</span>
+// 							</h3>
+// 							<p class="mt-1 text-brown-soft">
+// 								<span data-strand="en">{item.detail.en}</span>
+// 								<span data-strand="es">{item.detail.es}</span>
+// 							</p>
+// 						</div>
+// 					</li>
+// 				))
+// 			}
+// 		</ol>
+// 	</div>
+// </section>

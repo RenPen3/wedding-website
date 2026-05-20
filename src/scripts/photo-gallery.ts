@@ -1,0 +1,268 @@
+export type GalleryVariant = 'preview' | 'full';
+
+export type GalleryPhoto = {
+	id: string;
+	url: string;
+	uploadedAt: string;
+	uploaderName: string | null;
+};
+
+type Lang = 'en' | 'es';
+
+const TOKEN_STORAGE_KEY = 'wedding-uploaded-photos';
+
+function isEs(): boolean {
+	return document.documentElement.classList.contains('lang-es');
+}
+
+function lang(): Lang {
+	return isEs() ? 'es' : 'en';
+}
+
+function pick<T extends Record<Lang, string>>(t: T) {
+	return t[lang()];
+}
+
+function readTokens(): Record<string, string> {
+	try {
+		return JSON.parse(localStorage.getItem(TOKEN_STORAGE_KEY) ?? '{}') as Record<string, string>;
+	} catch {
+		return {};
+	}
+}
+
+function saveUploadToken(photoId: string, token: string) {
+	const tokens = readTokens();
+	tokens[photoId] = token;
+	localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
+}
+
+function getUploadToken(photoId: string): string | null {
+	return readTokens()[photoId] ?? null;
+}
+
+function removeUploadToken(photoId: string) {
+	const tokens = readTokens();
+	delete tokens[photoId];
+	localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
+}
+
+function escapeHtml(value: string) {
+	return value
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
+function renderPhotoCard(photo: GalleryPhoto, variant: GalleryVariant) {
+	const canDelete = variant === 'full' && Boolean(getUploadToken(photo.id));
+	const alt = photo.uploaderName ? `Photo by ${photo.uploaderName}` : 'Wedding photo';
+
+	return `
+		<figure class="group relative overflow-hidden rounded-2xl border border-mauve/15 bg-white shadow-sm">
+			<a href="${photo.url}" target="_blank" rel="noopener noreferrer" class="block aspect-square overflow-hidden">
+				<img
+					src="${photo.url}"
+					alt="${escapeHtml(alt)}"
+					loading="lazy"
+					class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+				/>
+			</a>
+			${
+				canDelete ?
+					`<button
+						type="button"
+						class="photo-delete-btn absolute right-2 top-2 rounded-full bg-plum/85 px-3 py-1.5 text-xs font-medium text-cream opacity-0 shadow-sm transition hover:bg-plum group-hover:opacity-100 focus:opacity-100"
+						data-photo-id="${photo.id}"
+					>
+						${pick({ en: 'Remove', es: 'Eliminar' })}
+					</button>`
+				:	''
+			}
+			${
+				photo.uploaderName ?
+					`<figcaption class="px-3 py-2 text-xs text-brown-muted">${escapeHtml(photo.uploaderName)}</figcaption>`
+				:	''
+			}
+		</figure>`;
+}
+
+async function loadGallery(options: { variant: GalleryVariant; limit?: number }) {
+	const grid = document.getElementById('photo-gallery-grid');
+	const empty = document.getElementById('photo-gallery-empty');
+	const loading = document.getElementById('photo-gallery-loading');
+	if (!grid || !empty || !loading) return;
+
+	try {
+		const query = options.limit ? `?limit=${options.limit}` : '';
+		const res = await fetch(`/api/photos${query}`);
+		const data = (await res.json()) as { ok?: boolean; photos?: GalleryPhoto[] };
+		const photos = data.photos ?? [];
+
+		loading.classList.add('hidden');
+
+		if (photos.length === 0) {
+			empty.classList.remove('hidden');
+			grid.classList.add('hidden');
+			grid.innerHTML = '';
+			return;
+		}
+
+		empty.classList.add('hidden');
+		grid.classList.remove('hidden');
+		grid.innerHTML = photos.map((photo) => renderPhotoCard(photo, options.variant)).join('');
+
+		grid.querySelectorAll<HTMLButtonElement>('.photo-delete-btn').forEach((btn) => {
+			btn.addEventListener('click', async (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				const photoId = btn.dataset.photoId;
+				if (!photoId) return;
+
+				const token = getUploadToken(photoId);
+				if (!token) return;
+
+				const confirmed = window.confirm(
+					pick({
+						en: 'Remove this photo from the gallery?',
+						es: '¿Eliminar esta foto de la galería?',
+					})
+				);
+				if (!confirmed) return;
+
+				btn.disabled = true;
+				try {
+					const res = await fetch(`/api/photos/${photoId}`, {
+						method: 'DELETE',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ token }),
+					});
+					const result = (await res.json()) as { ok?: boolean; error?: string };
+
+					if (!res.ok || !result.ok) {
+						window.alert(
+							result.error ??
+								pick({
+									en: 'Could not remove this photo.',
+									es: 'No se pudo eliminar esta foto.',
+								})
+						);
+						btn.disabled = false;
+						return;
+					}
+
+					removeUploadToken(photoId);
+					await loadGallery(options);
+				} catch {
+					window.alert(
+						pick({
+							en: 'Network error. Please try again.',
+							es: 'Error de red. Por favor intenta de nuevo.',
+						})
+					);
+					btn.disabled = false;
+				}
+			});
+		});
+	} catch {
+		loading.classList.add('hidden');
+		empty.classList.remove('hidden');
+		empty.innerHTML =
+			'<span data-strand="en">Could not load photos.</span><span data-strand="es">No se pudieron cargar las fotos.</span>';
+	}
+}
+
+function initUploadForm(onUploaded: () => Promise<void>) {
+	const form = document.getElementById('photo-upload-form') as HTMLFormElement | null;
+	if (!form) return;
+
+	const fileInput = document.getElementById('photo-file') as HTMLInputElement | null;
+	const previewWrap = document.getElementById('photo-upload-preview-wrap');
+	const preview = document.getElementById('photo-upload-preview') as HTMLImageElement | null;
+	const statusEl = document.getElementById('photo-upload-status');
+	const submitBtn = document.getElementById('photo-upload-submit') as HTMLButtonElement | null;
+
+	fileInput?.addEventListener('change', () => {
+		const file = fileInput.files?.[0];
+		if (!file || !preview || !previewWrap) {
+			previewWrap?.classList.add('hidden');
+			return;
+		}
+		preview.src = URL.createObjectURL(file);
+		previewWrap.classList.remove('hidden');
+	});
+
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		if (!statusEl || !submitBtn) return;
+
+		const fd = new FormData(form);
+		const file = fd.get('photo');
+		if (!(file instanceof File) || file.size === 0) {
+			statusEl.classList.remove('hidden', 'text-olive');
+			statusEl.classList.add('text-mauve-dark');
+			statusEl.textContent = pick({
+				en: 'Please choose a photo first.',
+				es: 'Por favor elige una foto primero.',
+			});
+			return;
+		}
+
+		submitBtn.disabled = true;
+		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
+		statusEl.textContent = pick({ en: 'Uploading…', es: 'Subiendo…' });
+
+		try {
+			const res = await fetch('/api/photos', { method: 'POST', body: fd });
+			const data = (await res.json()) as {
+				ok?: boolean;
+				error?: string;
+				photo?: GalleryPhoto & { uploadToken?: string };
+			};
+
+			if (!res.ok || !data.ok || !data.photo) {
+				statusEl.classList.add('text-mauve-dark');
+				statusEl.textContent =
+					data.error ??
+					pick({
+						en: 'Upload failed. Please try again.',
+						es: 'La subida falló. Por favor intenta de nuevo.',
+					});
+				return;
+			}
+
+			if (data.photo.uploadToken) {
+				saveUploadToken(data.photo.id, data.photo.uploadToken);
+			}
+
+			form.reset();
+			previewWrap?.classList.add('hidden');
+			if (preview) preview.removeAttribute('src');
+			statusEl.classList.add('text-olive');
+			statusEl.textContent = pick({
+				en: 'Thank you — your photo has been added.',
+				es: 'Gracias — tu foto ha sido agregada.',
+			});
+			await onUploaded();
+		} catch {
+			statusEl.classList.add('text-mauve-dark');
+			statusEl.textContent = pick({
+				en: 'Network error. Please try again.',
+				es: 'Error de red. Por favor intenta de nuevo.',
+			});
+		} finally {
+			submitBtn.disabled = false;
+		}
+	});
+}
+
+export function initPhotoGallery(options: { variant: GalleryVariant; limit?: number }) {
+	const reload = () => loadGallery(options);
+
+	if (options.variant === 'full') {
+		initUploadForm(reload);
+	}
+
+	void reload();
+}

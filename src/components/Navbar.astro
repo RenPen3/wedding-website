@@ -61,7 +61,13 @@ const switchBtnClass = integrated
 				aria-labelledby="primary-nav-label"
 			>
 				<div class="relative grid w-full grid-cols-1 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-x-4 sm:gap-y-0">
-					<div class="hidden sm:col-start-1 sm:row-start-1 sm:block" aria-hidden="true" />
+					<a
+						href="/"
+						class="nav-brand pointer-events-none invisible hidden items-center opacity-0 transition-[opacity,visibility,color] duration-300 sm:col-start-1 sm:row-start-1 sm:flex sm:justify-self-start font-serif text-lg tracking-wide text-cream md:text-xl"
+						data-nav-brand
+					>
+						Jocelyn & René
+					</a>
 					<ul class="col-start-1 row-start-2 flex list-none flex-wrap items-center justify-center gap-x-10 gap-y-2 p-0 text-center text-sm font-medium sm:col-start-2 sm:row-start-1 md:gap-x-11">
 						{
 							links.map((l) => (
@@ -336,5 +342,16 @@ const switchBtnClass = integrated
 
 	[data-nav-integrated].is-scrolled .lang-btn[aria-pressed='true'] {
 		color: rgb(250 246 240);
+	}
+
+	[data-nav-integrated].is-scrolled [data-nav-brand] {
+		visibility: visible;
+		opacity: 1;
+		pointer-events: auto;
+		color: rgb(61 38 69);
+	}
+
+	[data-nav-integrated].is-scrolled [data-nav-brand]:hover {
+		color: rgb(107 115 73);
 	}
 </style>
