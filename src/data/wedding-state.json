@@ -1,9 +1,10 @@
 {
 	"guests": [
-		{ "slug": "alex-morgan", "displayName": "Alex Morgan" },
-		{ "slug": "jamie-lee", "displayName": "Jamie Lee" },
-		{ "slug": "taylor-reed", "displayName": "Taylor Reed" },
-		{ "slug": "casey-jordan", "displayName": "Casey Jordan" }
+		{ "slug": "Ray", "displayName": "Ray", "maxGuests": 3 },
+		{ "slug": "Pedro", "displayName": "Pedro", "maxGuests": 3 },
+		{ "slug": "Maby", "displayName": "Maby", "maxGuests": 3 },
+		{ "slug": "Joseph", "displayName": "Joseph", "maxGuests": 2.5 },
+		{ "slug": "Roberto", "displayName": "Roberto", "maxGuests": 2 }
 	],
 	"visits": [],
 	"rsvps": []

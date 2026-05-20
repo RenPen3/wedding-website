@@ -9,6 +9,7 @@ const authorized = secret === expected;
 let rows: {
 	slug: string;
 	displayName: string;
+	maxGuests: number;
 	visitCount: number;
 	lastVisit: string | null;
 	rsvp: import('../lib/wedding-store').Rsvp | null;
@@ -30,6 +31,7 @@ if (authorized) {
 		return {
 			slug: g.slug,
 			displayName: g.displayName,
+			maxGuests: g.maxGuests,
 			visitCount: v?.count ?? 0,
 			lastVisit: v?.last ?? null,
 			rsvp,
@@ -70,6 +72,7 @@ if (authorized) {
 								<tr>
 									<th class="px-4 py-3">Guest</th>
 									<th class="px-4 py-3">Slug</th>
+									<th class="px-4 py-3">Max guests</th>
 									<th class="px-4 py-3">Visits</th>
 									<th class="px-4 py-3">Last visit</th>
 									<th class="px-4 py-3">RSVP</th>
@@ -81,6 +84,7 @@ if (authorized) {
 									<tr class="bg-white/40 hover:bg-white/70">
 										<td class="px-4 py-3 font-medium text-plum">{r.displayName}</td>
 										<td class="px-4 py-3 font-mono text-xs">{r.slug}</td>
+										<td class="px-4 py-3">{r.maxGuests}</td>
 										<td class="px-4 py-3">{r.visitCount}</td>
 										<td class="px-4 py-3 text-xs">
 											{r.lastVisit ? new Date(r.lastVisit).toLocaleString() : '—'}

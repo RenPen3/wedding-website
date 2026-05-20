@@ -7,6 +7,7 @@ import weddingSeedJson from '../data/wedding-state.json';
 export type Guest = {
 	slug: string;
 	displayName: string;
+	maxGuests: number;
 };
 
 export type Visit = {
@@ -49,7 +50,7 @@ function netlifyBlobsConfigured(): boolean {
 }
 
 function getSeedState(): WeddingState {
-	return structuredClone(weddingSeedJson as WeddingState);
+	return normalizeState(structuredClone(weddingSeedJson as WeddingState));
 }
 
 function getBlobStore() {
@@ -71,18 +72,33 @@ async function resolveStorageMode(): Promise<'blob' | 'file'> {
 	return storageMode;
 }
 
+function normalizeGuest(g: Guest & { maxGuests?: number }): Guest {
+	return {
+		slug: g.slug,
+		displayName: g.displayName,
+		maxGuests: typeof g.maxGuests === 'number' && g.maxGuests >= 1 ? Math.floor(g.maxGuests) : 1,
+	};
+}
+
+function normalizeState(state: WeddingState): WeddingState {
+	return {
+		...state,
+		guests: state.guests.map((g) => normalizeGuest(g as Guest & { maxGuests?: number })),
+	};
+}
+
 async function readState(): Promise<WeddingState> {
 	const mode = await resolveStorageMode();
 	if (mode === 'file') {
 		const raw = await readFile(storePath, 'utf-8');
-		return JSON.parse(raw) as WeddingState;
+		return normalizeState(JSON.parse(raw) as WeddingState);
 	}
 	const store = getBlobStore();
 	const existing = await store.get(BLOB_KEY, { type: 'json' });
 	if (existing !== null && existing !== undefined) {
-		return existing as WeddingState;
+		return normalizeState(existing as WeddingState);
 	}
-	const initial = getSeedState();
+	const initial = normalizeState(getSeedState());
 	await store.setJSON(BLOB_KEY, initial);
 	return initial;
 }
@@ -111,7 +127,19 @@ export async function getState(): Promise<WeddingState> {
 }
 
 export function findGuest(state: WeddingState, slug: string): Guest | undefined {
-	return state.guests.find((g) => g.slug === slug);
+	const guest = state.guests.find((g) => g.slug === slug);
+	return guest ? normalizeGuest(guest) : undefined;
+}
+
+export function validateGuestCount(guest: Guest, attending: boolean, guestCount: number): string | null {
+	if (!attending) return null;
+	if (!Number.isInteger(guestCount) || guestCount < 1) {
+		return 'Guest count must be at least 1.';
+	}
+	if (guestCount > guest.maxGuests) {
+		return `Guest count cannot exceed ${guest.maxGuests}.`;
+	}
+	return null;
 }
 
 export async function appendVisit(slug: string, userAgent: string | null): Promise<void> {

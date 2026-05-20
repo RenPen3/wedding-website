@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { findGuest, getState, upsertRsvp } from '../../lib/wedding-store';
+import { findGuest, getState, upsertRsvp, validateGuestCount } from '../../lib/wedding-store';
 
 export const POST: APIRoute = async ({ request }) => {
 	const contentType = request.headers.get('content-type') ?? '';
@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
 	const slug = String(body.slug ?? '').trim().toLowerCase().replace(/\s+/g, '-');
 	const displayName = String(body.displayName ?? '').trim();
 	const attending = body.attending === true || body.attending === 'yes' || body.attending === 'true';
-	const guestCount = Math.max(1, Math.min(10, Number(body.guestCount) || 1));
+	const rawGuestCount = Number(body.guestCount);
 	const dietary = String(body.dietary ?? '').trim();
 	const message = String(body.message ?? '').trim();
 
@@ -34,9 +34,19 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	const state = await getState();
-	if (!findGuest(state, slug)) {
+	const guest = findGuest(state, slug);
+	if (!guest) {
 		return new Response(JSON.stringify({ ok: false, error: 'Unknown guest slug' }), {
 			status: 404,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+
+	const guestCount = attending ? rawGuestCount : 1;
+	const countError = validateGuestCount(guest, attending, guestCount);
+	if (countError) {
+		return new Response(JSON.stringify({ ok: false, error: countError }), {
+			status: 400,
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}

@@ -5,8 +5,7 @@ import RSVPForm from '../components/RSVPForm.astro';
 import Footer from '../components/Footer.astro';
 import { getState } from '../lib/wedding-store';
 
-const { guests } = await getState();
-const slugs = guests.map((g) => g.slug);
+const { guests, rsvps } = await getState();
 const initialSlug = Astro.url.searchParams.get('slug') ?? '';
 ---
 
@@ -24,7 +23,7 @@ const initialSlug = Astro.url.searchParams.get('slug') ?? '';
 					invitado.</span>
 			</p>
 			<div class="mt-10">
-				<RSVPForm slugs={slugs} initialSlug={initialSlug} />
+				<RSVPForm guests={guests} rsvps={rsvps} initialSlug={initialSlug} />
 			</div>
 		</div>
 	</main>
