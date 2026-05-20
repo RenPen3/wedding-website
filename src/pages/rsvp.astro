@@ -1,15 +1,10 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
-import Footer from '../components/Footer.astro';
 import RSVPForm from '../components/RSVPForm.astro';
+import Footer from '../components/Footer.astro';
 
-<<<<<<< HEAD
-const { guests, rsvps } = await getState();
-const initialSlug = Astro.url.searchParams.get('slug') ?? '';
-=======
-const initialCode = Astro.url.searchParams.get('code') ?? Astro.url.searchParams.get('slug') ?? '';
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
+const initialName = Astro.url.searchParams.get('name') ?? '';
 ---
 
 <MainLayout title="RSVP — Jocelyn & René">
@@ -18,19 +13,16 @@ const initialCode = Astro.url.searchParams.get('code') ?? Astro.url.searchParams
 		<div class="mx-auto max-w-xl px-6 md:px-8" data-reveal>
 			<h1 class="text-center font-serif text-4xl text-plum md:text-5xl">RSVP</h1>
 			<p class="mx-auto mt-4 max-w-md text-center text-brown-soft">
-				<span data-strand="en">
-					Share your reply by August 1, 2026. Use the invite code from your personal invitation link.
-				</span>
-				<span data-strand="es">
-					Comparte tu respuesta antes del 1 de agosto de 2026. Usa el código de tu enlace personal.
-				</span>
+				<span data-strand="en"
+					>Share your reply by August 1, 2026. Enter your name exactly as it appears on your
+					invitation.</span
+				>
+				<span data-strand="es"
+					>Comparte tu respuesta antes del 1 de agosto de 2026. Ingresa tu nombre tal como aparece en
+					tu invitación.</span>
 			</p>
 			<div class="mt-10">
-<<<<<<< HEAD
-				<RSVPForm guests={guests} rsvps={rsvps} initialSlug={initialSlug} />
-=======
-				<RSVPForm inviteCode={initialCode} />
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
+				<RSVPForm initialName={initialName} />
 			</div>
 		</div>
 	</main>

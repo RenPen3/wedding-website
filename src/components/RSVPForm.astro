@@ -1,53 +1,9 @@
 ---
-<<<<<<< HEAD
-import type { Guest, Rsvp } from '../lib/wedding-store';
-
 type Props = {
-	guests: Guest[];
-	rsvps?: Rsvp[];
-	initialSlug?: string;
+	initialName?: string;
 };
 
-const { guests, rsvps = [], initialSlug = '' } = Astro.props;
-
-const guestConfig = {
-	guests: guests.map((g) => ({
-		slug: g.slug,
-		displayName: g.displayName,
-		maxGuests: g.maxGuests,
-	})),
-	rsvps: rsvps.map((r) => ({
-		slug: r.slug,
-		guestCount: r.guestCount,
-		attending: r.attending,
-		displayName: r.displayName,
-		dietary: r.dietary,
-		message: r.message,
-	})),
-	initialSlug,
-};
-=======
-import type { GuestRecord } from '../lib/guests';
-
-type Props = {
-	inviteCode?: string;
-	guestName?: string;
-	lockInvite?: boolean;
-	existingRsvp?: GuestRecord | null;
-};
-
-const {
-	inviteCode = '',
-	guestName = '',
-	lockInvite = false,
-	existingRsvp = null,
-} = Astro.props;
-
-const attendingDefault = existingRsvp?.rsvp_status === 'no' ? 'no' : 'yes';
-const guestCountDefault = existingRsvp?.rsvp_guest_count ?? 1;
-const guestNamesDefault = existingRsvp?.rsvp_guest_names ?? guestName;
-const messageDefault = existingRsvp?.rsvp_message ?? '';
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
+const { initialName = '' } = Astro.props;
 ---
 
 <div class="rounded-3xl border border-mauve/20 bg-cream/90 p-8 shadow-sm md:p-10">
@@ -57,253 +13,137 @@ const messageDefault = existingRsvp?.rsvp_message ?? '';
 		<span data-strand="es">Por favor responde antes del 1 de agosto de 2026.</span>
 	</p>
 
-	{
-		lockInvite ? (
-			<p class="mt-3 text-sm text-olive">
-				<span data-strand="en">
-					Responding for <strong class="text-plum">{guestName}</strong>
-				</span>
-				<span data-strand="es">
-					Confirmando para <strong class="text-plum">{guestName}</strong>
-				</span>
-			</p>
-		) : (
-			<p class="mt-3 text-sm text-brown-muted">
-				<span data-strand="en">Enter the invite code from your personal invitation link.</span>
-				<span data-strand="es">Ingresa el código de tu enlace de invitación personal.</span>
-			</p>
-		)
-	}
-
 	<form id="rsvp-form" class="mt-8 space-y-6">
-<<<<<<< HEAD
-		<script type="application/json" id="rsvp-guest-config" set:html={JSON.stringify(guestConfig)} />
 		<div>
-			<label for="rsvp-slug" class="block text-sm font-medium text-plum">
-				<span data-strand="en">Guest slug</span>
-				<span data-strand="es">Identificador de invitado</span>
-			</label>
-			<select
-				id="rsvp-slug"
-				name="slug"
-				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				required
-			>
-				<option value="" disabled selected={initialSlug === ''} id="rsvp-invite-placeholder"></option>
-				{
-					guests.map((g) => (
-						<option value={g.slug} selected={initialSlug === g.slug}>
-							{g.displayName}
-						</option>
-					))
-				}
-			</select>
-		</div>
-		<div>
-			<label for="rsvp-name" class="block text-sm font-medium text-plum">
-				<span data-strand="en">Full name</span>
-				<span data-strand="es">Nombre completo</span>
+			<label for="rsvp-guest-name" class="block text-sm font-medium text-plum">
+				<span data-strand="en">Your name</span>
+				<span data-strand="es">Tu nombre</span>
 			</label>
 			<input
 				type="text"
-				id="rsvp-name"
-				name="displayName"
+				id="rsvp-guest-name"
+				name="name"
 				required
 				autocomplete="name"
+				value={initialName}
 				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				placeholder="Jordan Ellis"
+				placeholder="Full name as it appears on your invitation"
+				data-ph-en="Full name as it appears on your invitation"
+				data-ph-es="Nombre completo como aparece en tu invitación"
 			/>
+			<p id="rsvp-name-status" class="mt-2 hidden text-sm" role="status"></p>
 		</div>
-=======
-		{
-			lockInvite ? (
-				<input type="hidden" name="inviteCode" value={inviteCode} />
-			) : (
-				<div>
-					<label for="rsvp-invite-code" class="block text-sm font-medium text-plum">
-						<span data-strand="en">Invite code</span>
-						<span data-strand="es">Código de invitación</span>
+
+		<div id="rsvp-form-body" class="hidden space-y-6">
+			<fieldset>
+				<legend class="text-sm font-medium text-plum">
+					<span data-strand="en">Will you be attending?</span>
+					<span data-strand="es">¿Podrás asistir?</span>
+				</legend>
+				<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
+					<label class="inline-flex cursor-pointer items-center gap-2">
+						<input type="radio" name="attending" value="yes" class="accent-olive" checked />
+						<span class="text-brown-soft">
+							<span data-strand="en">Joyfully accepts</span>
+							<span data-strand="es">Con alegría acepto</span>
+						</span>
 					</label>
-					<input
-						type="text"
-						id="rsvp-invite-code"
-						name="inviteCode"
-						required
-						autocomplete="off"
-						spellcheck="false"
-						value={inviteCode}
-						class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 font-mono text-sm text-plum-deep outline-none ring-olive/40 focus:ring-2"
-						placeholder="a7x92k"
-					/>
+					<label class="inline-flex cursor-pointer items-center gap-2">
+						<input type="radio" name="attending" value="no" class="accent-olive" />
+						<span class="text-brown-soft">
+							<span data-strand="en">Regretfully declines</span>
+							<span data-strand="es">Lamentablemente declino</span>
+						</span>
+					</label>
 				</div>
-			)
-		}
+			</fieldset>
 
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
-		<fieldset>
-			<legend class="text-sm font-medium text-plum">
-				<span data-strand="en">Will you attend?</span>
-				<span data-strand="es">¿Podrás asistir?</span>
-			</legend>
-			<div class="mt-3 flex flex-wrap gap-6">
-				<label class="inline-flex cursor-pointer items-center gap-2">
-					<input
-						type="radio"
-						name="attending"
-						value="yes"
-						class="accent-olive"
-						checked={attendingDefault === 'yes'}
-					/>
-					<span class="text-brown-soft">
-						<span data-strand="en">Yes</span>
-						<span data-strand="es">Sí</span>
-					</span>
-				</label>
-				<label class="inline-flex cursor-pointer items-center gap-2">
-					<input
-						type="radio"
-						name="attending"
-						value="no"
-						class="accent-olive"
-						checked={attendingDefault === 'no'}
-					/>
-					<span class="text-brown-soft">
-						<span data-strand="en">No</span>
-						<span data-strand="es">No</span>
-					</span>
-				</label>
-			</div>
-		</fieldset>
-<<<<<<< HEAD
-		<div id="rsvp-party-wrap">
-			<label for="rsvp-count-display" class="block text-sm font-medium text-plum">
-				<span data-strand="en">Guests in your party</span>
-				<span data-strand="es">Personas en tu grupo</span>
-			</label>
-			<p id="rsvp-party-hint" class="mt-1 text-sm text-brown-muted" role="status"></p>
-			<div class="mt-3 flex max-w-[12rem] items-center gap-3">
-				<button
-					type="button"
-					id="rsvp-count-decrease"
-					class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mauve/30 bg-white text-lg font-medium text-plum transition hover:border-olive hover:text-olive disabled:cursor-not-allowed disabled:opacity-40"
-					aria-label="Decrease guest count"
-				>
-					−
-				</button>
-				<input
-					type="text"
-					id="rsvp-count-display"
-					class="w-full rounded-xl border border-mauve/25 bg-white px-3 py-2.5 text-center font-serif text-xl tabular-nums text-plum-deep"
-					readonly
-					tabindex="-1"
-					aria-live="polite"
-					aria-atomic="true"
-				/>
-				<button
-					type="button"
-					id="rsvp-count-increase"
-					class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mauve/30 bg-white text-lg font-medium text-plum transition hover:border-olive hover:text-olive disabled:cursor-not-allowed disabled:opacity-40"
-					aria-label="Increase guest count"
-				>
-					+
-				</button>
-			</div>
-			<input type="hidden" id="rsvp-count" name="guestCount" value="1" />
-		</div>
-		<div>
-			<label for="rsvp-dietary" class="block text-sm font-medium text-plum">
-				<span data-strand="en">Dietary notes</span>
-				<span data-strand="es">Notas dietéticas</span>
-			</label>
-			<input
-				type="text"
-				id="rsvp-dietary"
-				name="dietary"
-				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				placeholder="Allergies or preferences"
-				data-ph-en="Allergies or preferences"
-				data-ph-es="Alergias o preferencias"
-			/>
-=======
+			<div id="rsvp-attending-fields" class="space-y-6">
+				<div id="rsvp-party-wrap">
+					<label class="block text-sm font-medium text-plum">
+						<span data-strand="en">Number of guests attending</span>
+						<span data-strand="es">Número de invitados</span>
+					</label>
+					<p id="rsvp-party-hint" class="mt-1 text-sm text-brown-muted"></p>
+					<div class="mt-3 flex items-center gap-3">
+						<button
+							type="button"
+							id="rsvp-count-decrease"
+							class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mauve/25 bg-white text-lg text-plum transition hover:border-plum disabled:cursor-not-allowed disabled:opacity-40"
+							aria-label="Decrease guest count"
+						>
+							−
+						</button>
+						<input
+							type="text"
+							id="rsvp-count-display"
+							readonly
+							tabindex="-1"
+							aria-live="polite"
+							class="w-14 rounded-xl border border-mauve/25 bg-white px-2 py-3 text-center text-plum-deep"
+						/>
+						<button
+							type="button"
+							id="rsvp-count-increase"
+							class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mauve/25 bg-white text-lg text-plum transition hover:border-plum disabled:cursor-not-allowed disabled:opacity-40"
+							aria-label="Increase guest count"
+						>
+							+
+						</button>
+						<input type="hidden" id="rsvp-count" name="guestCount" value="1" />
+					</div>
+				</div>
 
-		<div id="rsvp-attending-fields">
+				<div>
+					<label class="block text-sm font-medium text-plum">
+						<span data-strand="en">Guest names</span>
+						<span data-strand="es">Nombres de invitados</span>
+					</label>
+					<div id="rsvp-guest-names-fields" class="mt-3 space-y-3"></div>
+				</div>
+			</div>
+
 			<div>
-				<label for="rsvp-count" class="block text-sm font-medium text-plum">
-					<span data-strand="en">Total guests attending</span>
-					<span data-strand="es">Total de invitados</span>
-				</label>
-				<input
-					type="number"
-					id="rsvp-count"
-					name="guestCount"
-					min="1"
-					max="20"
-					value={guestCountDefault}
-					class="mt-2 w-full max-w-[8rem] rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				/>
-			</div>
-			<div class="mt-6">
-				<label for="rsvp-guest-names" class="block text-sm font-medium text-plum">
-					<span data-strand="en">Guest names</span>
-					<span data-strand="es">Nombres de invitados</span>
+				<label for="rsvp-message" class="block text-sm font-medium text-plum">
+					<span data-strand="en">Message for the bride and groom (optional)</span>
+					<span data-strand="es">Mensaje para los novios (opcional)</span>
 				</label>
 				<textarea
-					id="rsvp-guest-names"
-					name="guestNames"
-					rows="2"
-					required
+					id="rsvp-message"
+					name="message"
+					rows="3"
 					class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-					placeholder={guestName || 'Full names as they should appear'}
-					data-ph-en="Full names as they should appear"
-					data-ph-es="Nombres completos como deben aparecer"
-				>
-					{guestNamesDefault}
-				</textarea>
+					data-ph-en="Share a note with us…"
+					data-ph-es="Comparte una nota con nosotros…"
+				></textarea>
 			</div>
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
-		</div>
 
-		<div>
-			<label for="rsvp-message" class="block text-sm font-medium text-plum">
-				<span data-strand="en">Message for the couple (optional)</span>
-				<span data-strand="es">Mensaje para los novios (opcional)</span>
-			</label>
-			<textarea
-				id="rsvp-message"
-				name="message"
-				rows="3"
-				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				data-ph-en="Optional"
-				data-ph-es="Opcional"
+			<p id="rsvp-status" class="hidden text-sm" role="status"></p>
+			<button
+				type="submit"
+				class="w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark md:w-auto"
 			>
-				{messageDefault}
-			</textarea>
+				<span data-strand="en">Submit RSVP</span>
+				<span data-strand="es">Enviar RSVP</span>
+			</button>
 		</div>
-
-		<p id="rsvp-status" class="hidden text-sm" role="status"></p>
-		<button
-			type="submit"
-			class="w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark md:w-auto"
-		>
-			<span data-strand="en">Submit RSVP</span>
-			<span data-strand="es">Enviar RSVP</span>
-		</button>
 	</form>
 </div>
 
 <script>
 	type Lang = 'en' | 'es';
 
-	type GuestRow = { slug: string; displayName: string; maxGuests: number };
-	type RsvpRow = {
-		slug: string;
-		guestCount: number;
+	type LookupRsvp = {
 		attending: boolean;
-		displayName: string;
-		dietary: string;
+		guestCount: number;
+		guestNames: string[];
 		message: string;
 	};
-	type GuestConfig = { guests: GuestRow[]; rsvps: RsvpRow[]; initialSlug: string };
+
+	let matchedGuestName = '';
+	let currentMax = 1;
+	let currentCount = 1;
+	let uiReady = false;
 
 	function isEs(): boolean {
 		return document.documentElement.classList.contains('lang-es');
@@ -317,208 +157,277 @@ const messageDefault = existingRsvp?.rsvp_message ?? '';
 		return t[lang()];
 	}
 
-	function readConfig(): GuestConfig {
-		const el = document.getElementById('rsvp-guest-config');
-		if (!el?.textContent) {
-			return { guests: [], rsvps: [], initialSlug: '' };
-		}
-		return JSON.parse(el.textContent) as GuestConfig;
-	}
-
 	function clampCount(value: number, maxGuests: number) {
 		return Math.min(maxGuests, Math.max(1, value));
 	}
 
-	function defaultCountForGuest(slug: string, maxGuests: number, rsvps: RsvpRow[]) {
-		const existing = rsvps.find((r) => r.slug === slug);
-		if (existing?.attending) {
-			return clampCount(existing.guestCount, maxGuests);
-		}
-		return maxGuests;
+	function isAttending() {
+		return (
+			document.querySelector<HTMLInputElement>('input[name="attending"][value="yes"]')?.checked ??
+			true
+		);
 	}
 
-	let guestUiReady = false;
-	let reapplyGuestSelection: (() => void) | null = null;
-	let refreshPartyHint: (() => void) | null = null;
+	function renderGuestNameFields(count: number, existing: string[] = []) {
+		const container = document.getElementById('rsvp-guest-names-fields');
+		if (!container) return;
 
-	function initGuestCountUI() {
-		if (guestUiReady) {
-			reapplyGuestSelection?.();
-			return;
+		const prev = Array.from(container.querySelectorAll<HTMLInputElement>('input')).map(
+			(el) => el.value
+		);
+		container.innerHTML = '';
+
+		for (let i = 0; i < count; i++) {
+			const label = document.createElement('label');
+			label.className = 'block';
+			label.htmlFor = `rsvp-guest-name-${i}`;
+
+			const labelText = document.createElement('span');
+			labelText.className = 'text-xs font-medium text-brown-muted';
+			labelText.textContent = pick({
+				en: `Guest ${i + 1}`,
+				es: `Invitado ${i + 1}`,
+			});
+
+			const input = document.createElement('input');
+			input.type = 'text';
+			input.id = `rsvp-guest-name-${i}`;
+			input.name = 'guestNameField';
+			input.required = true;
+			input.autocomplete = i === 0 ? 'name' : 'off';
+			input.className =
+				'mt-1 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2';
+			input.value =
+				existing[i] ?? prev[i] ?? (i === 0 && matchedGuestName ? matchedGuestName : '');
+
+			label.append(labelText, input);
+			container.append(label);
 		}
+	}
 
-		const config = readConfig();
-		const slugSelect = document.getElementById('rsvp-slug') as HTMLSelectElement | null;
+	function collectGuestNames(): string[] {
+		const container = document.getElementById('rsvp-guest-names-fields');
+		if (!container) return [];
+		return Array.from(container.querySelectorAll<HTMLInputElement>('input')).map((el) =>
+			el.value.trim()
+		);
+	}
+
+	function syncFormUI() {
 		const partyWrap = document.getElementById('rsvp-party-wrap');
+		const attendingFields = document.getElementById('rsvp-attending-fields');
 		const hint = document.getElementById('rsvp-party-hint');
 		const display = document.getElementById('rsvp-count-display') as HTMLInputElement | null;
 		const hidden = document.getElementById('rsvp-count') as HTMLInputElement | null;
 		const decrease = document.getElementById('rsvp-count-decrease') as HTMLButtonElement | null;
 		const increase = document.getElementById('rsvp-count-increase') as HTMLButtonElement | null;
-		const nameInput = document.getElementById('rsvp-name') as HTMLInputElement | null;
-		const dietaryInput = document.getElementById('rsvp-dietary') as HTMLInputElement | null;
-		const messageInput = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
-		const attendingRadios = document.querySelectorAll<HTMLInputElement>('input[name="attending"]');
 
-		if (!slugSelect || !partyWrap || !hint || !display || !hidden || !decrease || !increase) return;
-
-		let currentMax = 1;
-		let currentCount = 1;
-
-		function isAttending() {
-			return (
-				document.querySelector<HTMLInputElement>('input[name="attending"][value="yes"]')?.checked ??
-				true
-			);
+		if (!partyWrap || !attendingFields || !hint || !display || !hidden || !decrease || !increase) {
+			return;
 		}
 
-		function selectedGuest(): GuestRow | undefined {
-			return config.guests.find((g) => g.slug === slugSelect.value);
+		const attending = isAttending();
+		attendingFields.hidden = !attending;
+		partyWrap.hidden = !attending;
+
+		if (!attending) {
+			hidden.value = '0';
+			return;
 		}
 
-		function updateHint() {
-			const max = currentMax;
-			hint.textContent =
-				max === 1 ?
-					pick({
-						en: 'Your invitation includes 1 guest.',
-						es: 'Tu invitación incluye 1 invitado.',
-					})
-				:	pick({
-						en: `You may RSVP for up to ${max} guests.`,
-						es: `Puedes confirmar hasta ${max} invitados.`,
-					});
-		}
+		currentCount = clampCount(currentCount, currentMax);
+		display.value = String(currentCount);
+		hidden.value = String(currentCount);
+		decrease.disabled = currentCount <= 1;
+		increase.disabled = currentCount >= currentMax;
 
-		function syncControls() {
-			const attending = isAttending();
-			partyWrap.hidden = !attending;
-			if (!attending) {
-				hidden.value = '1';
-				return;
-			}
-
-			currentCount = clampCount(currentCount, currentMax);
-			display.value = String(currentCount);
-			hidden.value = String(currentCount);
-			decrease.disabled = currentCount <= 1;
-			increase.disabled = currentCount >= currentMax;
-			updateHint();
-		}
-
-		function applyGuestSelection() {
-			const guest = selectedGuest();
-			if (!guest) {
-				currentMax = 1;
-				currentCount = 1;
-				syncControls();
-				return;
-			}
-
-			currentMax = guest.maxGuests;
-			currentCount = defaultCountForGuest(guest.slug, guest.maxGuests, config.rsvps);
-
-			const existing = config.rsvps.find((r) => r.slug === guest.slug);
-			if (existing) {
-				if (nameInput && existing.displayName) nameInput.value = existing.displayName;
-				if (dietaryInput) dietaryInput.value = existing.dietary ?? '';
-				if (messageInput) messageInput.value = existing.message ?? '';
-				attendingRadios.forEach((radio) => {
-					radio.checked = existing.attending ? radio.value === 'yes' : radio.value === 'no';
+		hint.textContent =
+			currentMax === 1 ?
+				pick({
+					en: 'Your invitation includes 1 guest.',
+					es: 'Tu invitación incluye 1 invitado.',
+				})
+			:	pick({
+					en: `Your invitation includes ${currentMax} guests.`,
+					es: `Tu invitación incluye ${currentMax} invitados.`,
 				});
-			} else if (nameInput && !nameInput.value) {
-				nameInput.value = guest.displayName;
-			}
 
-			syncControls();
-		}
-
-		reapplyGuestSelection = applyGuestSelection;
-		refreshPartyHint = updateHint;
-
-		slugSelect.addEventListener('change', applyGuestSelection);
-		attendingRadios.forEach((radio) => radio.addEventListener('change', syncControls));
-
-		decrease.addEventListener('click', () => {
-			if (!isAttending()) return;
-			currentCount = clampCount(currentCount - 1, currentMax);
-			syncControls();
-		});
-
-		increase.addEventListener('click', () => {
-			if (!isAttending()) return;
-			currentCount = clampCount(currentCount + 1, currentMax);
-			syncControls();
-		});
-
-		if (config.initialSlug) {
-			slugSelect.value = config.initialSlug;
-		}
-		applyGuestSelection();
-		guestUiReady = true;
+		renderGuestNameFields(currentCount);
 	}
 
-	function refreshRsvpI18n() {
-<<<<<<< HEAD
-		const inviteOpt = document.querySelector<HTMLOptionElement>('#rsvp-invite-placeholder');
-		if (inviteOpt) {
-			inviteOpt.textContent = pick({
-				en: 'Select your invite',
-				es: 'Selecciona tu invitación',
-			});
+	function showFormBody(show: boolean) {
+		const body = document.getElementById('rsvp-form-body');
+		if (body) body.classList.toggle('hidden', !show);
+	}
+
+	function setNameStatus(type: 'found' | 'not-found' | 'loading' | 'hidden', message = '') {
+		const el = document.getElementById('rsvp-name-status');
+		if (!el) return;
+
+		if (type === 'hidden') {
+			el.classList.add('hidden');
+			return;
 		}
 
-		const dietary = document.querySelector<HTMLInputElement>('#rsvp-dietary');
-		if (dietary) {
-			dietary.placeholder = dietary.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
-=======
-		const guestNames = document.querySelector<HTMLTextAreaElement>('#rsvp-guest-names');
-		if (guestNames && guestNames.dataset) {
-			guestNames.placeholder = guestNames.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
+		el.classList.remove('hidden', 'text-olive', 'text-mauve-dark', 'text-brown-muted');
+		if (type === 'found') el.classList.add('text-olive');
+		else if (type === 'not-found') el.classList.add('text-mauve-dark');
+		else el.classList.add('text-brown-muted');
+		el.textContent = message;
+	}
+
+	function applyExistingRsvp(rsvp: LookupRsvp | null, maxGuests: number) {
+		if (!rsvp) {
+			currentCount = maxGuests;
+			syncFormUI();
+			return;
 		}
-		const message = document.querySelector<HTMLTextAreaElement>('#rsvp-message');
+
+		if (rsvp.attending) {
+			document.querySelector<HTMLInputElement>('input[name="attending"][value="yes"]')!.checked = true;
+			currentCount = clampCount(rsvp.guestCount, maxGuests);
+		} else {
+			document.querySelector<HTMLInputElement>('input[name="attending"][value="no"]')!.checked = true;
+		}
+
+		const messageInput = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
+		if (messageInput && rsvp.message) messageInput.value = rsvp.message;
+
+		syncFormUI();
+		if (rsvp.attending && rsvp.guestNames?.length) {
+			renderGuestNameFields(currentCount, rsvp.guestNames);
+		}
+	}
+
+	async function lookupGuest(name: string) {
+		const trimmed = name.trim();
+		if (!trimmed) {
+			showFormBody(false);
+			setNameStatus('hidden');
+			return;
+		}
+
+		setNameStatus(
+			'loading',
+			pick({ en: 'Looking up your invitation…', es: 'Buscando tu invitación…' })
+		);
+
+		try {
+			const res = await fetch(`/api/guest-lookup?name=${encodeURIComponent(trimmed)}`);
+			const data = (await res.json()) as {
+				ok?: boolean;
+				guest?: { name: string; maxGuests: number };
+				rsvp?: LookupRsvp | null;
+			};
+
+			if (!res.ok || !data.ok || !data.guest) {
+				showFormBody(false);
+				setNameStatus(
+					'not-found',
+					pick({
+						en: 'We could not find that name. Please check the spelling and try again.',
+						es: 'No encontramos ese nombre. Por favor verifica la ortografía e intenta de nuevo.',
+					})
+				);
+				return;
+			}
+
+			matchedGuestName = data.guest.name;
+			currentMax = Math.max(1, data.guest.maxGuests);
+			currentCount = currentMax;
+
+			const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
+			if (nameInput && nameInput.value.trim() !== data.guest.name) {
+				nameInput.value = data.guest.name;
+			}
+
+			showFormBody(true);
+			setNameStatus(
+				'found',
+				currentMax === 1 ?
+					pick({
+						en: `Welcome, ${data.guest.name}! Your invitation includes 1 guest.`,
+						es: `¡Bienvenido/a, ${data.guest.name}! Tu invitación incluye 1 invitado.`,
+					})
+				:	pick({
+						en: `Welcome, ${data.guest.name}! Your invitation includes ${currentMax} guests.`,
+						es: `¡Bienvenido/a, ${data.guest.name}! Tu invitación incluye ${currentMax} invitados.`,
+					})
+			);
+
+			applyExistingRsvp(data.rsvp ?? null, currentMax);
+		} catch {
+			showFormBody(false);
+			setNameStatus(
+				'not-found',
+				pick({
+					en: 'Something went wrong. Please try again.',
+					es: 'Algo salió mal. Por favor intenta de nuevo.',
+				})
+			);
+		}
+	}
+
+	function initUI() {
+		if (uiReady) {
+			syncFormUI();
+			return;
+		}
+
+		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
+		const decrease = document.getElementById('rsvp-count-decrease');
+		const increase = document.getElementById('rsvp-count-increase');
+		const attendingRadios = document.querySelectorAll<HTMLInputElement>('input[name="attending"]');
+
+		let lookupTimer: ReturnType<typeof setTimeout> | undefined;
+		nameInput?.addEventListener('input', () => {
+			clearTimeout(lookupTimer);
+			lookupTimer = setTimeout(() => lookupGuest(nameInput.value), 450);
+		});
+
+		nameInput?.addEventListener('blur', () => {
+			clearTimeout(lookupTimer);
+			void lookupGuest(nameInput.value);
+		});
+
+		decrease?.addEventListener('click', () => {
+			if (!isAttending()) return;
+			currentCount = clampCount(currentCount - 1, currentMax);
+			syncFormUI();
+		});
+
+		increase?.addEventListener('click', () => {
+			if (!isAttending()) return;
+			currentCount = clampCount(currentCount + 1, currentMax);
+			syncFormUI();
+		});
+
+		attendingRadios.forEach((radio) => radio.addEventListener('change', syncFormUI));
+
+		if (nameInput?.value.trim()) {
+			void lookupGuest(nameInput.value);
+		}
+
+		uiReady = true;
+	}
+
+	function refreshI18n() {
+		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
+		if (nameInput?.dataset) {
+			nameInput.placeholder = nameInput.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
+		}
+		const message = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
 		if (message?.dataset) {
 			message.placeholder = message.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
 		}
-
-		initGuestCountUI();
-		refreshPartyHint?.();
-	}
-
-<<<<<<< HEAD
-	document.addEventListener('DOMContentLoaded', refreshRsvpI18n);
-	window.addEventListener('wedding-lang', () => {
-		const inviteOpt = document.querySelector<HTMLOptionElement>('#rsvp-invite-placeholder');
-		if (inviteOpt) {
-			inviteOpt.textContent = pick({
-				en: 'Select your invite',
-				es: 'Selecciona tu invitación',
-			});
-		}
-		refreshPartyHint?.();
-	});
-=======
-	function syncAttendingFields() {
-		const attending = document.querySelector<HTMLInputElement>('input[name="attending"]:checked');
-		const fields = document.getElementById('rsvp-attending-fields');
-		const count = document.getElementById('rsvp-count') as HTMLInputElement | null;
-		const names = document.getElementById('rsvp-guest-names') as HTMLTextAreaElement | null;
-		const isYes = attending?.value === 'yes';
-		if (fields) fields.toggleAttribute('hidden', !isYes);
-		if (count) count.required = isYes;
-		if (names) names.required = isYes;
+		syncFormUI();
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {
-		refreshRsvpI18n();
-		syncAttendingFields();
-		document.querySelectorAll('input[name="attending"]').forEach((el) => {
-			el.addEventListener('change', syncAttendingFields);
-		});
+		initUI();
+		refreshI18n();
 	});
-	window.addEventListener('wedding-lang', refreshRsvpI18n as EventListener);
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
+	window.addEventListener('wedding-lang', refreshI18n as EventListener);
 
 	const form = document.getElementById('rsvp-form') as HTMLFormElement | null;
 	const statusEl = document.getElementById('rsvp-status');
@@ -527,74 +436,58 @@ const messageDefault = existingRsvp?.rsvp_message ?? '';
 		e.preventDefault();
 		if (!statusEl) return;
 
-<<<<<<< HEAD
-		const config = readConfig();
-=======
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
-		const fd = new FormData(form);
-		const slug = String(fd.get('slug') ?? '');
-		const attending = fd.get('attending') === 'yes';
-		const guest = config.guests.find((g) => g.slug === slug);
-		let guestCount = Number(fd.get('guestCount') ?? 1);
+		const name = matchedGuestName || String(new FormData(form).get('name') ?? '').trim();
+		const attending = isAttending();
+		let guestCount = Number(
+			(document.getElementById('rsvp-count') as HTMLInputElement | null)?.value ?? 1
+		);
+		const guestNames = attending ? collectGuestNames() : [];
+		const message = String(new FormData(form).get('message') ?? '').trim();
 
-		if (guest && attending) {
-			if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > guest.maxGuests) {
-				statusEl.classList.remove('hidden', 'text-olive');
-				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent = pick({
-					en: 'Please choose a valid guest count.',
-					es: 'Por favor elige un número válido de invitados.',
-				});
-				return;
-			}
-		} else if (!attending) {
-			guestCount = 1;
-		}
-
-		const payload = {
-<<<<<<< HEAD
-			slug,
-			displayName: String(fd.get('displayName') ?? ''),
-			attending,
-			guestCount,
-			dietary: String(fd.get('dietary') ?? ''),
-			message: String(fd.get('message') ?? ''),
-		};
-
-		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
-		statusEl.textContent = pick({
-			en: 'Sending…',
-			es: 'Enviando…',
-		});
-=======
-			inviteCode: String(fd.get('inviteCode') ?? '').trim().toLowerCase(),
-			attending,
-			guestCount: attending ? Number(fd.get('guestCount') ?? 1) : 0,
-			guestNames: String(fd.get('guestNames') ?? '').trim(),
-			message: String(fd.get('message') ?? '').trim(),
-		};
-
-		if (!payload.inviteCode) {
-			statusEl.classList.remove('hidden');
+		if (!name) {
+			statusEl.classList.remove('hidden', 'text-olive');
 			statusEl.classList.add('text-mauve-dark');
 			statusEl.textContent = pick({
-				en: 'Invite code is required.',
-				es: 'Se requiere el código de invitación.',
+				en: 'Please enter your name first.',
+				es: 'Por favor ingresa tu nombre primero.',
 			});
 			return;
 		}
 
+		if (attending) {
+			if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > currentMax) {
+				statusEl.classList.remove('hidden', 'text-olive');
+				statusEl.classList.add('text-mauve-dark');
+				statusEl.textContent = pick({
+					en: `Please choose between 1 and ${currentMax} guests.`,
+					es: `Por favor elige entre 1 y ${currentMax} invitados.`,
+				});
+				return;
+			}
+			if (guestNames.length !== guestCount || guestNames.some((n) => !n)) {
+				statusEl.classList.remove('hidden', 'text-olive');
+				statusEl.classList.add('text-mauve-dark');
+				statusEl.textContent = pick({
+					en: 'Please provide a name for each guest.',
+					es: 'Por favor proporciona un nombre para cada invitado.',
+				});
+				return;
+			}
+		} else {
+			guestCount = 0;
+		}
+
 		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
 		statusEl.textContent = pick({ en: 'Sending…', es: 'Enviando…' });
->>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
 
 		try {
 			const res = await fetch('/api/rsvp', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload),
+				body: JSON.stringify({ name, attending, guestCount, guestNames, message }),
 			});
 			const data = (await res.json()) as { ok?: boolean; error?: string };
+
 			if (!res.ok || !data.ok) {
 				statusEl.classList.add('text-mauve-dark');
 				statusEl.textContent =
@@ -605,6 +498,7 @@ const messageDefault = existingRsvp?.rsvp_message ?? '';
 					});
 				return;
 			}
+
 			statusEl.classList.add('text-olive');
 			statusEl.textContent = pick({
 				en: 'Thank you — your RSVP has been saved.',

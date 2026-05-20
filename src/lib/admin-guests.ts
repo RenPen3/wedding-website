@@ -7,6 +7,7 @@ export type GuestRow = {
 	email: string | null;
 	phone: string | null;
 	invite_code: string;
+	max_guests: number | null;
 	invited_count: number | null;
 	opened_at: string | null;
 	last_opened_at: string | null;
@@ -43,7 +44,7 @@ export async function fetchAllGuests(): Promise<GuestRow[]> {
 	const { data, error } = await supabase
 		.from('guests')
 		.select(
-			'id, first_name, last_name, email, phone, invite_code, invited_count, opened_at, last_opened_at, open_count, rsvp_status, total_attending, guest_names, message, created_at, updated_at'
+			'id, first_name, last_name, email, phone, invite_code, max_guests, invited_count, opened_at, last_opened_at, open_count, rsvp_status, total_attending, guest_names, message, created_at, updated_at'
 		)
 		.order('created_at', { ascending: false });
 

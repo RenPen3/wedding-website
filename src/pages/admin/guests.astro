@@ -288,7 +288,7 @@ const SESSION_KEY = 'wedding_admin_token';
 				return `<tr>
 					<td data-label="Guest">
 						<p class="font-medium text-plum">${escapeHtml(guestName(g))}</p>
-						<p class="mt-0.5 text-xs text-brown-muted">Invited: ${g.invited_count ?? '—'}</p>
+						<p class="mt-0.5 text-xs text-brown-muted">Max guests: ${g.max_guests ?? g.invited_count ?? '—'}</p>
 					</td>
 					<td data-label="Contact">
 						<p class="text-xs">${escapeHtml(g.email ?? '—')}</p>

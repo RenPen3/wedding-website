@@ -9,6 +9,7 @@ export type GuestRecord = {
 	last_name?: string | null;
 	email?: string | null;
 	phone?: string | null;
+	max_guests: number;
 	opened_at?: string | null;
 	last_opened_at?: string | null;
 	open_count?: number | null;
@@ -31,6 +32,27 @@ function normalizeInviteCode(raw: string): string {
 	return decodeURIComponent(raw).trim().toLowerCase();
 }
 
+export function normalizeMaxGuests(row: Record<string, unknown>): number {
+	const raw = row.max_guests ?? row.invited_count;
+	const n = Number(raw);
+	return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+}
+
+export function validateGuestCount(
+	maxGuests: number,
+	attending: boolean,
+	guestCount: number
+): string | null {
+	if (!attending) return null;
+	if (!Number.isInteger(guestCount) || guestCount < 1) {
+		return 'Guest count must be at least 1.';
+	}
+	if (guestCount > maxGuests) {
+		return `Guest count cannot exceed ${maxGuests}.`;
+	}
+	return null;
+}
+
 function toGuestRecord(row: Record<string, unknown>): GuestRecord {
 	const first = (row.first_name as string | null) ?? null;
 	const last = (row.last_name as string | null) ?? null;
@@ -44,6 +66,7 @@ function toGuestRecord(row: Record<string, unknown>): GuestRecord {
 		last_name: last,
 		email: (row.email as string | null) ?? null,
 		phone: (row.phone as string | null) ?? null,
+		max_guests: normalizeMaxGuests(row),
 		opened_at: (row.opened_at as string | null) ?? null,
 		last_opened_at: (row.last_opened_at as string | null) ?? null,
 		open_count: row.open_count != null ? Number(row.open_count) : null,
@@ -60,6 +83,23 @@ function toGuestRecord(row: Record<string, unknown>): GuestRecord {
 			(row.rsvp_submitted_at as string | null) ??
 			(row.rsvp_status ? ((row.updated_at as string | null) ?? null) : null),
 	};
+}
+
+export async function lookupGuestByInviteCode(inviteCode: string): Promise<GuestRecord | null> {
+	const code = normalizeInviteCode(inviteCode);
+	if (!code) return null;
+
+	const { data: guest, error } = await supabase
+		.from('guests')
+		.select('*')
+		.eq('invite_code', code)
+		.single();
+
+	if (error || !guest) {
+		return null;
+	}
+
+	return toGuestRecord(guest as Record<string, unknown>);
 }
 
 export async function trackInvitationOpen(inviteCode: string): Promise<GuestRecord | null> {
@@ -114,9 +154,16 @@ export async function submitGuestRsvp(
 		return { ok: false, error: 'Invitation not found' };
 	}
 
+	const maxGuests = normalizeMaxGuests(guest as Record<string, unknown>);
+	const guestCount = payload.attending ? payload.guestCount : 0;
+	const countError = validateGuestCount(maxGuests, payload.attending, guestCount);
+	if (countError) {
+		return { ok: false, error: countError };
+	}
+
 	const now = new Date().toISOString();
 	const rsvp_status = payload.attending ? 'yes' : 'no';
-	const total_attending = payload.attending ? Math.max(1, payload.guestCount) : 0;
+	const total_attending = payload.attending ? guestCount : 0;
 
 	const { data: updated, error: updateError } = await supabase
 		.from('guests')
@@ -136,7 +183,6 @@ export async function submitGuestRsvp(
 		return { ok: false, error: 'Could not save RSVP' };
 	}
 
-	// Log response history when table exists (ignore if not migrated yet)
 	await supabase.from('rsvp_responses').insert({
 		guest_id: guest.id,
 		invite_code: code,

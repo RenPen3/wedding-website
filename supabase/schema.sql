@@ -9,6 +9,7 @@ create table if not exists public.guests (
 	id uuid primary key default gen_random_uuid(),
 	invite_code text not null unique,
 	guest_name text not null,
+	max_guests integer not null default 1 check (max_guests >= 1),
 	opened_at timestamptz,
 	last_opened_at timestamptz,
 	open_count integer not null default 0,
@@ -92,6 +93,8 @@ begin
 		v_guest.invite_code,
 		'guest_name',
 		v_guest.guest_name,
+		'max_guests',
+		v_guest.max_guests,
 		'opened_at',
 		v_guest.opened_at,
 		'last_opened_at',
@@ -130,6 +133,7 @@ declare
 	v_guest public.guests%rowtype;
 	v_code text;
 	v_count integer;
+	v_max integer;
 	v_status text;
 begin
 	v_code := lower(trim(p_invite_code));
@@ -142,7 +146,14 @@ begin
 		raise exception 'INVITE_NOT_FOUND';
 	end if;
 
-	v_count := greatest(1, least(coalesce(p_guest_count, 1), 20));
+	v_max := greatest(1, coalesce(v_guest.max_guests, 1));
+
+	if p_attending then
+		v_count := greatest(1, least(coalesce(p_guest_count, 1), v_max));
+	else
+		v_count := 0;
+	end if;
+
 	v_status := case when p_attending then 'yes' else 'no' end;
 
 	update public.guests g
