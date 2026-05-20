@@ -1,15 +1,18 @@
 ---
 import '../styles/global.css';
 import ScrollReveal from '../components/ScrollReveal.astro';
+import InvitationIntro from '../components/InvitationIntro.astro';
 
 type Props = {
 	title?: string;
 	description?: string;
+	showInvitationIntro?: boolean;
 };
 
 const {
 	title = 'Jocelyn & René — September Wedding',
 	description = 'Join us for our wedding celebration.',
+	showInvitationIntro = true,
 } = Astro.props;
 ---
 
@@ -22,6 +25,13 @@ const {
 				if (localStorage.getItem('wedding-lang') === 'es') {
 					document.documentElement.classList.add('lang-es');
 					document.documentElement.setAttribute('lang', 'es');
+				}
+			} catch (_) {}
+		</script>
+		<script is:inline>
+			try {
+				if (sessionStorage.getItem('wedding-invitation-opened') === '1') {
+					document.documentElement.classList.add('invitation-intro-seen');
 				}
 			} catch (_) {}
 		</script>
@@ -38,6 +48,7 @@ const {
 		/>
 	</head>
 	<body class="min-h-screen">
+		{showInvitationIntro && <InvitationIntro />}
 		<slot />
 		<ScrollReveal />
 	</body>

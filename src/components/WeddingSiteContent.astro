@@ -1,0 +1,51 @@
+---
+import Hero from './Hero.astro';
+import Countdown from './Countdown.astro';
+import WeddingDetails from './WeddingDetails.astro';
+import Schedule from './Schedule.astro';
+import Registry from './Registry.astro';
+import TravelInfo from './TravelInfo.astro';
+import FAQ from './FAQ.astro';
+import RSVPForm from './RSVPForm.astro';
+import type { GuestRecord } from '../lib/guests';
+
+type Props = {
+	guest?: GuestRecord | null;
+};
+
+const { guest = null } = Astro.props;
+const inviteCode = guest?.invite_code ?? '';
+const guestName = guest?.guest_name ?? '';
+---
+
+<Hero />
+<Countdown />
+<WeddingDetails />
+<Schedule />
+<section id="rsvp" class="scroll-mt-24 bg-plum-deep py-20 text-cream md:py-28" data-reveal>
+	<div class="mx-auto max-w-xl px-6 md:px-8">
+		<h2 class="text-center font-serif text-3xl md:text-4xl">
+			<span data-strand="en">Kindly respond</span>
+			<span data-strand="es">Confirma tu asistencia</span>
+		</h2>
+		<p class="mx-auto mt-3 max-w-md text-center text-ivory/80">
+			<span data-strand="en">
+				We cannot wait to celebrate with you. Please submit one RSVP per invitation.
+			</span>
+			<span data-strand="es">
+				No vemos la hora de celebrar contigo. Por favor envía una confirmación por invitación.
+			</span>
+		</p>
+		<div class="mt-10">
+			<RSVPForm
+				inviteCode={inviteCode}
+				guestName={guestName}
+				lockInvite={Boolean(guest)}
+				existingRsvp={guest}
+			/>
+		</div>
+	</div>
+</section>
+<Registry />
+<TravelInfo />
+<FAQ />

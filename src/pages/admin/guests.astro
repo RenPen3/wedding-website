@@ -1,0 +1,570 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const INVITE_BASE = 'https://jayandren.netlify.app/invite/';
+const SESSION_KEY = 'wedding_admin_token';
+---
+
+<MainLayout
+	title="Guest admin — Jocelyn & René"
+	description="Private guest invitation and RSVP dashboard."
+	showInvitationIntro={false}
+>
+	<div id="admin-guests-app" class="admin-guests min-h-screen bg-ivory">
+		<!-- Password gate -->
+		<div
+			id="admin-login"
+			class="flex min-h-screen flex-col items-center justify-center px-6 py-20"
+		>
+			<div class="w-full max-w-sm rounded-3xl border border-mauve/20 bg-cream p-8 shadow-sm">
+				<h1 class="font-serif text-3xl text-plum">Guest admin</h1>
+				<p class="mt-2 text-sm text-brown-soft">Enter the admin password to view invitation data.</p>
+				<form id="admin-login-form" class="mt-8 space-y-4">
+					<div>
+						<label for="admin-password" class="block text-sm font-medium text-plum">Password</label>
+						<input
+							type="password"
+							id="admin-password"
+							name="password"
+							required
+							autocomplete="current-password"
+							class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+						/>
+					</div>
+					<p id="admin-login-error" class="hidden text-sm text-mauve-dark" role="alert"></p>
+					<button
+						type="submit"
+						class="w-full rounded-full bg-plum px-6 py-3 font-medium text-cream transition hover:bg-mauve-dark"
+					>
+						Sign in
+					</button>
+				</form>
+			</div>
+		</div>
+
+		<!-- Dashboard -->
+		<div id="admin-dashboard" class="hidden pb-20 pt-10 md:pt-12">
+			<div class="mx-auto max-w-7xl px-4 md:px-8">
+				<header class="flex flex-wrap items-end justify-between gap-4 border-b border-mauve/15 pb-6">
+					<div>
+						<h1 class="font-serif text-4xl text-plum">Guest invitations</h1>
+						<p class="mt-1 text-sm text-brown-soft">
+							Tracking opens and RSVPs · <span id="guest-count-label">—</span> guests
+						</p>
+					</div>
+					<button
+						type="button"
+						id="admin-sign-out"
+						class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+					>
+						Sign out
+					</button>
+				</header>
+
+				<p id="admin-load-error" class="mt-6 hidden rounded-2xl border border-mauve/30 bg-cream px-5 py-4 text-mauve-dark"></p>
+				<p id="admin-loading" class="mt-8 text-brown-soft">Loading guests…</p>
+
+				<!-- Summary cards -->
+				<div id="admin-stats" class="mt-8 hidden grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+					<div class="admin-stat-card">
+						<p class="admin-stat-card__label">Total guests</p>
+						<p class="admin-stat-card__value" data-stat="total">0</p>
+					</div>
+					<div class="admin-stat-card">
+						<p class="admin-stat-card__label">Opened</p>
+						<p class="admin-stat-card__value text-olive" data-stat="opened">0</p>
+					</div>
+					<div class="admin-stat-card">
+						<p class="admin-stat-card__label">Not opened</p>
+						<p class="admin-stat-card__value text-brown-soft" data-stat="notOpened">0</p>
+					</div>
+					<div class="admin-stat-card">
+						<p class="admin-stat-card__label">RSVP yes</p>
+						<p class="admin-stat-card__value text-olive" data-stat="rsvpAttending">0</p>
+					</div>
+					<div class="admin-stat-card">
+						<p class="admin-stat-card__label">RSVP no</p>
+						<p class="admin-stat-card__value text-mauve-dark" data-stat="rsvpDeclined">0</p>
+					</div>
+					<div class="admin-stat-card">
+						<p class="admin-stat-card__label">Pending RSVP</p>
+						<p class="admin-stat-card__value text-brown-muted" data-stat="rsvpPending">0</p>
+					</div>
+					<div class="admin-stat-card col-span-2 sm:col-span-1">
+						<p class="admin-stat-card__label">Total attending</p>
+						<p class="admin-stat-card__value text-plum" data-stat="totalAttending">0</p>
+					</div>
+				</div>
+
+				<!-- Filters -->
+				<div id="admin-filters" class="mt-8 hidden flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+					<div class="flex-1">
+						<label for="admin-search" class="block text-sm font-medium text-plum">Search</label>
+						<input
+							type="search"
+							id="admin-search"
+							placeholder="Name, email, or invite code…"
+							class="mt-2 w-full max-w-md rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+						/>
+					</div>
+					<div>
+						<label for="admin-rsvp-filter" class="block text-sm font-medium text-plum">RSVP filter</label>
+						<select
+							id="admin-rsvp-filter"
+							class="mt-2 w-full min-w-[10rem] rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2 lg:w-auto"
+						>
+							<option value="all">All</option>
+							<option value="pending">Pending</option>
+							<option value="attending">Attending</option>
+							<option value="declined">Not attending</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- Table -->
+				<div id="admin-table-wrap" class="mt-6 hidden overflow-x-auto rounded-2xl border border-mauve/20 bg-cream shadow-sm">
+					<table class="admin-table min-w-full text-left text-sm">
+						<thead>
+							<tr>
+								<th>Guest</th>
+								<th>Contact</th>
+								<th>Invite</th>
+								<th>Opens</th>
+								<th>RSVP</th>
+								<th>Attending</th>
+								<th>Details</th>
+								<th>Updated</th>
+							</tr>
+						</thead>
+						<tbody id="admin-table-body"></tbody>
+					</table>
+					<p id="admin-empty" class="hidden px-6 py-12 text-center text-brown-soft">
+						No guests match your filters.
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</MainLayout>
+
+<script define:vars={{ INVITE_BASE, SESSION_KEY }}>
+	const loginEl = document.getElementById('admin-login');
+	const dashboardEl = document.getElementById('admin-dashboard');
+	const loginForm = document.getElementById('admin-login-form');
+	const loginError = document.getElementById('admin-login-error');
+	const signOutBtn = document.getElementById('admin-sign-out');
+	const loadingEl = document.getElementById('admin-loading');
+	const loadErrorEl = document.getElementById('admin-load-error');
+	const statsEl = document.getElementById('admin-stats');
+	const filtersEl = document.getElementById('admin-filters');
+	const tableWrap = document.getElementById('admin-table-wrap');
+	const tableBody = document.getElementById('admin-table-body');
+	const emptyEl = document.getElementById('admin-empty');
+	const searchInput = document.getElementById('admin-search');
+	const rsvpFilter = document.getElementById('admin-rsvp-filter');
+	const guestCountLabel = document.getElementById('guest-count-label');
+
+	/** @type {Array<Record<string, unknown>>} */
+	let allGuests = [];
+
+	function getToken() {
+		return sessionStorage.getItem(SESSION_KEY);
+	}
+
+	function setToken(token) {
+		sessionStorage.setItem(SESSION_KEY, token);
+	}
+
+	function clearToken() {
+		sessionStorage.removeItem(SESSION_KEY);
+	}
+
+	function showLogin() {
+		loginEl?.classList.remove('hidden');
+		dashboardEl?.classList.add('hidden');
+	}
+
+	function showDashboard() {
+		loginEl?.classList.add('hidden');
+		dashboardEl?.classList.remove('hidden');
+	}
+
+	function guestName(g) {
+		const name = [g.first_name, g.last_name].filter(Boolean).join(' ').trim();
+		return name || g.email || g.invite_code;
+	}
+
+	function normalizeRsvp(status) {
+		if (!status) return 'pending';
+		const s = String(status).toLowerCase();
+		if (s === 'yes' || s === 'attending' || s === 'accepted') return 'attending';
+		if (s === 'no' || s === 'declined' || s === 'not_attending' || s === 'not attending') {
+			return 'declined';
+		}
+		return 'pending';
+	}
+
+	function hasOpened(g) {
+		return (g.open_count ?? 0) > 0 || Boolean(g.opened_at);
+	}
+
+	function fmtDate(iso) {
+		if (!iso) return '—';
+		return new Intl.DateTimeFormat('en-US', {
+			dateStyle: 'medium',
+			timeStyle: 'short',
+		}).format(new Date(iso));
+	}
+
+	function badge(text, variant) {
+		return `<span class="admin-badge admin-badge--${variant}">${text}</span>`;
+	}
+
+	function openBadge(g) {
+		return hasOpened(g) ? badge('Opened', 'opened') : badge('Not opened', 'muted');
+	}
+
+	function rsvpBadge(g) {
+		const s = normalizeRsvp(g.rsvp_status);
+		if (s === 'attending') return badge('Attending', 'attending');
+		if (s === 'declined') return badge('Not attending', 'declined');
+		return badge('Pending', 'pending');
+	}
+
+	function updateStats(stats) {
+		if (!stats) return;
+		document.querySelectorAll('[data-stat]').forEach((el) => {
+			const key = el.getAttribute('data-stat');
+			if (key && key in stats) el.textContent = String(stats[key]);
+		});
+	}
+
+	function getFilteredGuests() {
+		const q = (searchInput?.value ?? '').trim().toLowerCase();
+		const rsvp = rsvpFilter?.value ?? 'all';
+
+		return allGuests.filter((g) => {
+			const rsvpNorm = normalizeRsvp(g.rsvp_status);
+			if (rsvp !== 'all' && rsvpNorm !== rsvp) return false;
+
+			if (!q) return true;
+			const haystack = [
+				g.first_name,
+				g.last_name,
+				g.email,
+				g.invite_code,
+				g.guest_names,
+			]
+				.filter(Boolean)
+				.join(' ')
+				.toLowerCase();
+			return haystack.includes(q);
+		});
+	}
+
+	function renderTable() {
+		const guests = getFilteredGuests();
+		if (!tableBody) return;
+
+		if (guestCountLabel) {
+			guestCountLabel.textContent = String(allGuests.length);
+		}
+
+		if (guests.length === 0) {
+			tableBody.innerHTML = '';
+			emptyEl?.classList.remove('hidden');
+			return;
+		}
+
+		emptyEl?.classList.add('hidden');
+
+		tableBody.innerHTML = guests
+			.map((g) => {
+				const inviteUrl = `${INVITE_BASE}${encodeURIComponent(g.invite_code)}`;
+				const rsvp = normalizeRsvp(g.rsvp_status);
+				const attending =
+					rsvp === 'attending' ? String(g.total_attending ?? '—') : rsvp === 'declined' ? '0' : '—';
+
+				return `<tr>
+					<td data-label="Guest">
+						<p class="font-medium text-plum">${escapeHtml(guestName(g))}</p>
+						<p class="mt-0.5 text-xs text-brown-muted">Invited: ${g.invited_count ?? '—'}</p>
+					</td>
+					<td data-label="Contact">
+						<p class="text-xs">${escapeHtml(g.email ?? '—')}</p>
+						<p class="mt-0.5 text-xs text-brown-muted">${escapeHtml(g.phone ?? '—')}</p>
+					</td>
+					<td data-label="Invite">
+						<p class="font-mono text-xs text-plum">${escapeHtml(g.invite_code)}</p>
+						<button type="button" class="admin-copy mt-2" data-url="${escapeHtml(inviteUrl)}">Copy link</button>
+					</td>
+					<td data-label="Opens">
+						<div class="flex flex-wrap gap-1">${openBadge(g)}</div>
+						<p class="mt-1 text-xs text-brown-soft">Count: ${g.open_count ?? 0}</p>
+						<p class="text-xs text-brown-muted">First: ${fmtDate(g.opened_at)}</p>
+						<p class="text-xs text-brown-muted">Last: ${fmtDate(g.last_opened_at)}</p>
+					</td>
+					<td data-label="RSVP">${rsvpBadge(g)}</td>
+					<td data-label="Attending" class="font-medium">${attending}</td>
+					<td data-label="Details">
+						<p class="text-xs text-brown-soft max-w-[14rem] truncate" title="${escapeHtml(g.guest_names ?? '')}">${escapeHtml(g.guest_names ?? '—')}</p>
+						<p class="mt-1 text-xs text-brown-muted max-w-[14rem] truncate" title="${escapeHtml(g.message ?? '')}">${escapeHtml(g.message ?? '—')}</p>
+					</td>
+					<td data-label="Updated">
+						<p class="text-xs whitespace-nowrap">${fmtDate(g.updated_at ?? g.created_at)}</p>
+						<p class="text-xs text-brown-muted">Created: ${fmtDate(g.created_at)}</p>
+					</td>
+				</tr>`;
+			})
+			.join('');
+
+		tableBody.querySelectorAll('.admin-copy').forEach((btn) => {
+			btn.addEventListener('click', async () => {
+				const url = btn.getAttribute('data-url');
+				if (!url) return;
+				try {
+					await navigator.clipboard.writeText(url);
+					btn.textContent = 'Copied!';
+					setTimeout(() => {
+						btn.textContent = 'Copy link';
+					}, 2000);
+				} catch {
+					btn.textContent = 'Copy failed';
+				}
+			});
+		});
+	}
+
+	function escapeHtml(str) {
+		return String(str ?? '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	async function loadGuests() {
+		const token = getToken();
+		if (!token) {
+			showLogin();
+			return;
+		}
+
+		showDashboard();
+		loadingEl?.classList.remove('hidden');
+		loadErrorEl?.classList.add('hidden');
+
+		try {
+			const res = await fetch('/api/admin/guests', {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			const data = await res.json();
+
+			if (res.status === 401) {
+				clearToken();
+				showLogin();
+				return;
+			}
+
+			if (!res.ok || !data.ok) {
+				throw new Error(data.error ?? 'Failed to load guests');
+			}
+
+			allGuests = data.guests ?? [];
+			updateStats(data.stats);
+			loadingEl?.classList.add('hidden');
+			statsEl?.classList.remove('hidden');
+			filtersEl?.classList.remove('hidden');
+			tableWrap?.classList.remove('hidden');
+			renderTable();
+		} catch (err) {
+			loadingEl?.classList.add('hidden');
+			if (loadErrorEl) {
+				loadErrorEl.textContent =
+					err instanceof Error ? err.message : 'Could not load guest data.';
+				loadErrorEl.classList.remove('hidden');
+			}
+		}
+	}
+
+	loginForm?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		loginError?.classList.add('hidden');
+		const password = new FormData(loginForm).get('password');
+
+		try {
+			const res = await fetch('/api/admin/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ password }),
+			});
+			const data = await res.json();
+
+			if (!res.ok || !data.ok) {
+				if (loginError) {
+					loginError.textContent = data.error ?? 'Incorrect password';
+					loginError.classList.remove('hidden');
+				}
+				return;
+			}
+
+			setToken(data.token);
+			loginForm.reset();
+			await loadGuests();
+		} catch {
+			if (loginError) {
+				loginError.textContent = 'Network error. Please try again.';
+				loginError.classList.remove('hidden');
+			}
+		}
+	});
+
+	signOutBtn?.addEventListener('click', () => {
+		clearToken();
+		allGuests = [];
+		showLogin();
+	});
+
+	searchInput?.addEventListener('input', renderTable);
+	rsvpFilter?.addEventListener('change', renderTable);
+
+	if (getToken()) {
+		loadGuests();
+	} else {
+		showLogin();
+	}
+</script>
+
+<style>
+	.admin-stat-card {
+		border-radius: 1rem;
+		border: 1px solid rgb(155 123 142 / 0.2);
+		background: var(--color-cream);
+		padding: 0.75rem 1rem;
+		box-shadow: 0 1px 3px rgb(42 26 50 / 0.06);
+	}
+
+	.admin-stat-card__label {
+		font-size: 0.75rem;
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--color-brown-soft);
+	}
+
+	.admin-stat-card__value {
+		margin-top: 0.25rem;
+		font-family: var(--font-serif);
+		font-size: 1.5rem;
+		color: var(--color-plum);
+	}
+
+	.admin-badge {
+		display: inline-flex;
+		border-radius: 9999px;
+		padding: 0.125rem 0.625rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+	}
+
+	.admin-badge--opened,
+	.admin-badge--attending {
+		background: rgb(107 115 73 / 0.15);
+		color: var(--color-olive);
+	}
+
+	.admin-badge--declined {
+		background: rgb(155 123 142 / 0.15);
+		color: var(--color-mauve-dark);
+	}
+
+	.admin-badge--pending {
+		background: rgb(160 139 114 / 0.15);
+		color: var(--color-brown-soft);
+	}
+
+	.admin-badge--muted {
+		background: rgb(155 123 142 / 0.1);
+		color: var(--color-brown-muted);
+	}
+
+	.admin-copy {
+		border-radius: 9999px;
+		border: 1px solid rgb(155 123 142 / 0.25);
+		background: #fff;
+		padding: 0.25rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--color-plum);
+		cursor: pointer;
+		transition:
+			border-color 0.2s,
+			background-color 0.2s;
+	}
+
+	.admin-copy:hover {
+		border-color: var(--color-plum);
+		background: var(--color-ivory);
+	}
+
+	.admin-table thead {
+		border-bottom: 1px solid rgb(155 123 142 / 0.2);
+		background: rgb(255 255 255 / 0.8);
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-olive);
+	}
+
+	.admin-table th {
+		padding: 0.75rem;
+		white-space: nowrap;
+	}
+
+	.admin-table td {
+		padding: 1rem 0.75rem;
+		vertical-align: top;
+		color: var(--color-brown-soft);
+	}
+
+	.admin-table tbody tr {
+		background: rgb(255 255 255 / 0.4);
+		border-top: 1px solid rgb(155 123 142 / 0.15);
+		transition: background-color 0.2s;
+	}
+
+	.admin-table tbody tr:hover {
+		background: rgb(255 255 255 / 0.7);
+	}
+
+	@media (max-width: 1023px) {
+		.admin-table thead {
+			display: none;
+		}
+
+		.admin-table tbody tr {
+			display: block;
+			margin-bottom: 1rem;
+			border-radius: 0.75rem;
+			border: 1px solid rgb(155 123 142 / 0.15);
+			padding: 1rem;
+		}
+
+		.admin-table td {
+			display: block;
+			padding: 0.5rem 0;
+		}
+
+		.admin-table td::before {
+			content: attr(data-label);
+			display: block;
+			margin-bottom: 0.25rem;
+			font-size: 0.75rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: var(--color-olive);
+		}
+	}
+</style>

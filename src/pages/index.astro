@@ -1,23 +1,20 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
-import Hero from '../components/Hero.astro';
-import Countdown from '../components/Countdown.astro';
-import WeddingDetails from '../components/WeddingDetails.astro';
-import Schedule from '../components/Schedule.astro';
-import RSVPForm from '../components/RSVPForm.astro';
-import Registry from '../components/Registry.astro';
-import TravelInfo from '../components/TravelInfo.astro';
-import FAQ from '../components/FAQ.astro';
 import Footer from '../components/Footer.astro';
+<<<<<<< HEAD
 import { getState } from '../lib/wedding-store';
 
 const { guests, rsvps } = await getState();
+=======
+import WeddingSiteContent from '../components/WeddingSiteContent.astro';
+>>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
 ---
 
 <MainLayout>
 	<Navbar integrated />
 	<main>
+<<<<<<< HEAD
 		<Hero />
 		<Countdown />
 		<WeddingDetails />
@@ -41,6 +38,9 @@ const { guests, rsvps } = await getState();
 		<Registry />
 		<TravelInfo />
 		<FAQ />
+=======
+		<WeddingSiteContent />
+>>>>>>> 7ed0930f2726406b0eaa5117afcb8e99203a0224
 	</main>
 	<Footer />
 </MainLayout>

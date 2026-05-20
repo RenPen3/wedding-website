@@ -1,0 +1,78 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import InviteWelcome from '../../components/InviteWelcome.astro';
+import WeddingSiteContent from '../../components/WeddingSiteContent.astro';
+import { trackInvitationOpen } from '../../lib/guests';
+
+const raw = Astro.params.inviteCode ?? '';
+let guest = null;
+let loadError = false;
+
+try {
+	guest = await trackInvitationOpen(raw);
+} catch (err) {
+	console.error('[invite page]', err);
+	loadError = true;
+}
+
+const notFound = !guest && !loadError;
+const title = guest
+	? `Invitation — ${guest.guest_name}`
+	: loadError
+		? 'Invitation — unavailable'
+		: 'Invitation not found';
+
+if (notFound) {
+	Astro.response.status = 404;
+}
+---
+
+<MainLayout title={title}>
+	<Navbar integrated />
+	<main>
+		{
+			loadError ? (
+				<section class="bg-ivory py-24 text-center md:py-32" data-reveal>
+					<div class="mx-auto max-w-lg px-6">
+						<h1 class="font-serif text-4xl text-plum">
+							<span data-strand="en">Unable to load invitation</span>
+							<span data-strand="es">No se pudo cargar la invitación</span>
+						</h1>
+						<p class="mt-4 text-brown-soft">
+							<span data-strand="en">Please try again in a moment.</span>
+							<span data-strand="es">Por favor intenta de nuevo en un momento.</span>
+						</p>
+					</div>
+				</section>
+			) : notFound ? (
+				<section class="bg-ivory py-24 text-center md:py-32" data-reveal>
+					<div class="mx-auto max-w-lg px-6">
+						<h1 class="font-serif text-4xl text-plum">
+							<span data-strand="en">Invitation not found</span>
+							<span data-strand="es">Invitación no encontrada</span>
+						</h1>
+						<p class="mt-4 text-brown-soft">
+							<span data-strand="en">Please check your link.</span>
+							<span data-strand="es">Por favor verifica tu enlace.</span>
+						</p>
+						<a
+							href="/"
+							class="mt-8 inline-flex rounded-full bg-plum px-8 py-3 font-medium text-cream transition hover:bg-mauve-dark"
+						>
+							<span data-strand="en">Back to home</span>
+							<span data-strand="es">Volver al inicio</span>
+						</a>
+					</div>
+				</section>
+			) : (
+				<>
+					<InviteWelcome guest={guest!} />
+					<WeddingSiteContent guest={guest!} />
+				</>
+			)
+		}
+	</main>
+	<Footer />
+</MainLayout>
