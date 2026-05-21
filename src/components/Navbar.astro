@@ -32,6 +32,10 @@ const linkClass = integrated
 	? 'text-ivory/90 transition-colors hover:text-cream'
 	: 'text-brown-soft transition-colors hover:text-olive';
 
+const mobileLinkClass = integrated
+	? 'text-plum transition-colors hover:text-olive'
+	: 'text-plum-deep transition-colors hover:text-olive';
+
 const switchShellClass = integrated
 	? 'border-ivory/35 bg-plum-deep/45 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08)] ring-ivory/15'
 	: 'border-mauve/25 bg-white/70 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.65)] ring-mauve/10';
@@ -39,6 +43,16 @@ const switchShellClass = integrated
 const switchBtnClass = integrated
 	? 'text-ivory/80 hover:text-cream aria-[pressed=true]:text-plum-deep'
 	: 'text-brown-soft hover:text-plum-deep aria-[pressed=true]:text-cream';
+
+const headerClass = integrated
+	? 'fixed inset-x-0 top-0 z-50 w-full pt-5 transition-[background-color,box-shadow,border-color,padding] duration-300 ease-out md:pt-6'
+	: 'sticky top-0 z-50 border-b border-mauve/20 bg-cream/90 backdrop-blur-md';
+
+const navPaddingClass = integrated ? 'px-5 md:px-8' : 'px-5 py-4 md:px-8 md:py-5';
+
+const brandClass = integrated
+	? 'font-serif text-lg tracking-wide text-cream md:text-xl'
+	: 'font-serif text-lg tracking-wide text-plum md:text-xl';
 ---
 
 <span id="primary-nav-label" class="sr-only">
@@ -49,150 +63,250 @@ const switchBtnClass = integrated
 	<span data-strand="en">Site language</span>
 	<span data-strand="es">Idioma del sitio</span>
 </span>
+<span id="mobile-menu-label" class="sr-only">
+	<span data-strand="en">Open menu</span>
+	<span data-strand="es">Abrir menú</span>
+</span>
+<span id="mobile-menu-close-label" class="sr-only">
+	<span data-strand="en">Close menu</span>
+	<span data-strand="es">Cerrar menú</span>
+</span>
 
-{
-	integrated ? (
-		<header
-			class="fixed inset-x-0 top-0 z-50 w-full pt-5 transition-[background-color,box-shadow,border-color,padding] duration-300 ease-out md:pt-6"
-			data-nav-integrated
+<header
+	class={headerClass}
+	{...(integrated ? { 'data-nav-integrated': '' } : {})}
+>
+	<nav
+		class:list={['mx-auto flex w-full max-w-6xl flex-col items-center', navPaddingClass]}
+		aria-labelledby="primary-nav-label"
+	>
+		<!-- Mobile bar -->
+		<div class="flex w-full items-center justify-between gap-4 md:hidden">
+			<a
+				href="/"
+				class:list={[
+					brandClass,
+					integrated &&
+						'nav-brand pointer-events-none invisible opacity-0 transition-[opacity,visibility,color] duration-300',
+				]}
+				data-nav-brand
+			>
+				Jocelyn & René
+			</a>
+			<button
+				type="button"
+				class="mobile-menu-toggle inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mauve/25 bg-white/80 text-plum shadow-sm transition hover:border-mauve/40 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum/30"
+				data-mobile-menu-toggle
+				aria-expanded="false"
+				aria-controls="mobile-menu-panel"
+				aria-labelledby="mobile-menu-label"
+			>
+				<span class="mobile-menu-toggle__icon" aria-hidden="true">
+					<span class="mobile-menu-toggle__bar"></span>
+					<span class="mobile-menu-toggle__bar"></span>
+					<span class="mobile-menu-toggle__bar"></span>
+				</span>
+			</button>
+		</div>
+
+		<!-- Desktop nav -->
+		<div
+			class="relative hidden w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-4 md:grid"
 		>
-			<nav
-				class="mx-auto flex w-full max-w-6xl flex-col items-center px-5 md:px-8"
-				aria-labelledby="primary-nav-label"
+			<a
+				href="/"
+				class:list={[
+					brandClass,
+					'justify-self-start',
+					integrated &&
+						'nav-brand pointer-events-none invisible hidden opacity-0 transition-[opacity,visibility,color] duration-300 sm:flex',
+				]}
+				data-nav-brand
 			>
-				<div class="relative grid w-full grid-cols-1 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-x-4 sm:gap-y-0">
-					<a
-						href="/"
-						class="nav-brand pointer-events-none invisible hidden items-center opacity-0 transition-[opacity,visibility,color] duration-300 sm:col-start-1 sm:row-start-1 sm:flex sm:justify-self-start font-serif text-lg tracking-wide text-cream md:text-xl"
-						data-nav-brand
+				Jocelyn & René
+			</a>
+			<ul class="flex list-none flex-wrap items-center justify-center gap-x-10 gap-y-2 p-0 text-center text-sm font-medium md:gap-x-11">
+				{
+					links.map((l) => (
+						<li class="list-none">
+							<a
+								href={l.href}
+								class:list={[linkClass, integrated && 'nav-link']}
+								data-nav-link={integrated ? '' : undefined}
+								{...externalLinkProps(l)}
+							>
+								<span data-strand="en">{l.en}</span>
+								<span data-strand="es">{l.es}</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+			<div
+				class="justify-self-end [&:focus-within]:z-10"
+				aria-labelledby="language-control-label"
+			>
+				<div
+					class:list={[
+						'language-switch relative isolate inline-flex h-9 w-[7.125rem] shrink-0 rounded-full border backdrop-blur-sm ring-1 transition-[background-color,border-color,box-shadow] duration-300 [&:focus-within]:ring-2',
+						integrated
+							? '[&:focus-within]:ring-ivory/30'
+							: '[&:focus-within]:ring-plum-deep/20',
+						switchShellClass,
+					]}
+					role="group"
+					data-language-switch
+				>
+					<span
+						class:list={[
+							'pointer-events-none absolute left-[6px] top-1 bottom-1 z-0 w-[calc(50%-10px)] rounded-full transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform',
+							integrated
+								? 'lang-knob bg-cream shadow-inner shadow-black/20'
+								: 'bg-plum-deep/93 shadow-inner shadow-black/15',
+						]}
+						aria-hidden="true"
+						data-lang-knob
+						data-shifted="false"
+					/>
+					<button
+						type="button"
+						data-lang="en"
+						class:list={[
+							'lang-btn relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.22em] outline-none transition-colors focus-visible:ring-2',
+							integrated ? 'focus-visible:ring-cream/50' : 'focus-visible:ring-plum-deep/30',
+							switchBtnClass,
+						]}
+						aria-pressed="true"
+						aria-label="English">EN</button
 					>
-						Jocelyn & René
-					</a>
-					<ul class="col-start-1 row-start-2 flex list-none flex-wrap items-center justify-center gap-x-10 gap-y-2 p-0 text-center text-sm font-medium sm:col-start-2 sm:row-start-1 md:gap-x-11">
-						{
-							links.map((l) => (
-								<li class="list-none">
-									<a
-										href={l.href}
-										class:list={[linkClass, 'nav-link']}
-										data-nav-link
-										{...externalLinkProps(l)}
-									>
-										<span data-strand="en">{l.en}</span>
-										<span data-strand="es">{l.es}</span>
-									</a>
-								</li>
-							))
-						}
-					</ul>
+					<button
+						type="button"
+						data-lang="es"
+						class:list={[
+							'lang-btn relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.2em] outline-none transition-colors focus-visible:ring-2',
+							integrated ? 'focus-visible:ring-cream/50' : 'focus-visible:ring-plum-deep/30',
+							switchBtnClass,
+						]}
+						aria-pressed="false"
+						aria-label="Español">ES</button
+					>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Mobile menu overlay -->
+	<div
+		class="mobile-menu fixed inset-0 z-[60] md:hidden"
+		data-mobile-menu
+		aria-hidden="true"
+	>
+		<div
+			class="mobile-menu__backdrop absolute inset-0 bg-plum-deep/40 backdrop-blur-[2px]"
+			data-mobile-menu-backdrop
+			aria-hidden="true"
+		></div>
+		<div
+			id="mobile-menu-panel"
+			class="mobile-menu__panel absolute inset-y-0 right-0 flex w-[min(100%,20rem)] flex-col bg-cream shadow-[-8px_0_32px_rgb(42_26_50_/_0.12)]"
+			data-mobile-menu-panel
+			tabindex="-1"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="primary-nav-label"
+		>
+			<div class="flex items-center justify-between border-b border-mauve/15 px-5 py-4">
+				<p class="font-serif text-xl text-plum">
+					<span data-strand="en">Menu</span>
+					<span data-strand="es">Menú</span>
+				</p>
+				<button
+					type="button"
+					class="inline-flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:bg-mauve/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum/30"
+					data-mobile-menu-close
+					aria-labelledby="mobile-menu-close-label"
+				>
+					<svg
+						class="h-5 w-5"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.75"
+						aria-hidden="true"
+					>
+						<path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"></path>
+					</svg>
+				</button>
+			</div>
+			<nav class="flex flex-1 flex-col overflow-y-auto px-5 py-6">
+				<ul class="flex list-none flex-col gap-1 p-0">
+					{
+						links.map((l, i) => (
+							<li class="list-none mobile-menu__item" style={`--item-index: ${i}`}>
+								<a
+									href={l.href}
+									class:list={[
+										mobileLinkClass,
+										'block rounded-xl px-3 py-3.5 font-serif text-2xl tracking-wide',
+									]}
+									data-mobile-nav-link
+									{...externalLinkProps(l)}
+								>
+									<span data-strand="en">{l.en}</span>
+									<span data-strand="es">{l.es}</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+				<div
+					class="mobile-menu__footer mt-auto border-t border-mauve/15 pt-6"
+					aria-labelledby="language-control-label"
+				>
+					<p class="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-brown-muted">
+						<span data-strand="en">Language</span>
+						<span data-strand="es">Idioma</span>
+					</p>
 					<div
-						class="col-start-1 row-start-1 flex justify-end sm:col-start-3 sm:row-start-1 sm:justify-self-end [&:focus-within]:z-10"
-						aria-labelledby="language-control-label"
+						class:list={[
+							'language-switch relative isolate inline-flex h-9 w-[7.125rem] shrink-0 rounded-full border backdrop-blur-sm ring-1 [&:focus-within]:ring-2 [&:focus-within]:ring-plum-deep/20',
+							switchShellClass,
+						]}
+						role="group"
+						data-language-switch
 					>
-						<div
-							id="language-switch"
+						<span
+							class="pointer-events-none absolute left-[6px] top-1 bottom-1 z-0 w-[calc(50%-10px)] rounded-full bg-plum-deep/93 shadow-inner shadow-black/15 transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+							aria-hidden="true"
+							data-lang-knob
+							data-shifted="false"
+						/>
+						<button
+							type="button"
+							data-lang="en"
 							class:list={[
-								'language-switch relative isolate inline-flex h-9 w-[7.125rem] shrink-0 rounded-full border backdrop-blur-sm ring-1 transition-[background-color,border-color,box-shadow] duration-300 [&:focus-within]:ring-2 [&:focus-within]:ring-ivory/30',
-								switchShellClass,
+								'lang-btn relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.22em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-plum-deep/30',
+								switchBtnClass,
 							]}
-							role="group"
+							aria-pressed="true"
+							aria-label="English">EN</button
 						>
-							<span
-								class="lang-knob pointer-events-none absolute left-[6px] top-1 bottom-1 z-0 w-[calc(50%-10px)] rounded-full bg-cream shadow-inner shadow-black/20 transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
-								aria-hidden="true"
-								data-lang-knob
-								data-shifted="false"
-							/>
-							<button
-								type="button"
-								data-lang="en"
-								class:list={[
-									'lang-btn relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.22em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cream/50',
-									switchBtnClass,
-								]}
-								aria-pressed="true"
-								aria-label="English">EN</button
-							>
-							<button
-								type="button"
-								data-lang="es"
-								class:list={[
-									'lang-btn relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.2em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cream/50',
-									switchBtnClass,
-								]}
-								aria-pressed="false"
-								aria-label="Español">ES</button
-							>
-						</div>
+						<button
+							type="button"
+							data-lang="es"
+							class:list={[
+								'lang-btn relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.2em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-plum-deep/30',
+								switchBtnClass,
+							]}
+							aria-pressed="false"
+							aria-label="Español">ES</button
+						>
 					</div>
 				</div>
 			</nav>
-		</header>
-	) : (
-		<header class="sticky top-0 z-50 border-b border-mauve/20 bg-cream/90 backdrop-blur-md">
-			<nav
-				class="mx-auto flex w-full max-w-6xl flex-col items-center px-5 py-4 md:px-8 md:py-5"
-				aria-labelledby="primary-nav-label"
-			>
-				<div class="relative grid w-full grid-cols-1 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-x-4 sm:gap-y-0">
-					<div class="hidden sm:col-start-1 sm:row-start-1 sm:block" aria-hidden="true" />
-					<ul class="col-start-1 row-start-2 flex list-none flex-wrap items-center justify-center gap-x-10 gap-y-2 p-0 text-center text-sm font-medium sm:col-start-2 sm:row-start-1 md:gap-x-11">
-						{
-							links.map((l) => (
-								<li class="list-none">
-									<a href={l.href} class={linkClass} {...externalLinkProps(l)}>
-										<span data-strand="en">{l.en}</span>
-										<span data-strand="es">{l.es}</span>
-									</a>
-								</li>
-							))
-						}
-					</ul>
-					<div
-						class="col-start-1 row-start-1 flex justify-end sm:col-start-3 sm:row-start-1 sm:justify-self-end [&:focus-within]:z-10"
-						aria-labelledby="language-control-label"
-					>
-						<div
-							id="language-switch"
-							class:list={[
-								'relative isolate inline-flex h-9 w-[7.125rem] shrink-0 rounded-full border backdrop-blur-sm ring-1 [&:focus-within]:ring-2 [&:focus-within]:ring-plum-deep/20',
-								switchShellClass,
-							]}
-							role="group"
-						>
-							<span
-								class="pointer-events-none absolute left-[6px] top-1 bottom-1 z-0 w-[calc(50%-10px)] rounded-full bg-plum-deep/93 shadow-inner shadow-black/15 transition-[transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
-								aria-hidden="true"
-								data-lang-knob
-								data-shifted="false"
-							/>
-							<button
-								type="button"
-								data-lang="en"
-								class:list={[
-									'relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.22em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-plum-deep/30',
-									switchBtnClass,
-								]}
-								aria-pressed="true"
-								aria-label="English">EN</button
-							>
-							<button
-								type="button"
-								data-lang="es"
-								class:list={[
-									'relative z-[1] flex min-h-9 min-w-0 flex-1 items-center justify-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-[0.2em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-plum-deep/30',
-									switchBtnClass,
-								]}
-								aria-pressed="false"
-								aria-label="Español">ES</button
-							>
-						</div>
-					</div>
-				</div>
-			</nav>
-		</header>
-	)
-}
+		</div>
+	</div>
+</header>
 
 <script>
 	const STORAGE_KEY = 'wedding-lang';
@@ -226,34 +340,93 @@ const switchBtnClass = integrated
 			/* ignore */
 		}
 
-		document.querySelectorAll<HTMLButtonElement>('#language-switch [data-lang]').forEach((btn) => {
-			const pressed = btn.dataset.lang === lang;
-			btn.setAttribute('aria-pressed', String(pressed));
-		});
+		document.querySelectorAll<HTMLButtonElement>('[data-language-switch] [data-lang]').forEach(
+			(btn) => {
+				const pressed = btn.dataset.lang === lang;
+				btn.setAttribute('aria-pressed', String(pressed));
+			},
+		);
 
 		setKnobPosition(lang);
 		broadcastLang(lang);
 	}
 
-	document.addEventListener('DOMContentLoaded', () => {
-		const root = document.getElementById('language-switch');
+	function initLanguageSwitches() {
+		document.querySelectorAll<HTMLElement>('[data-language-switch]').forEach((root) => {
+			root.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const lang = btn.dataset.lang;
+					if (lang !== 'en' && lang !== 'es') return;
+					const next: Lang = lang;
+					if (next !== getLang()) applyLang(next);
+				});
 
-		root?.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				const lang = btn.dataset.lang;
-				if (lang !== 'en' && lang !== 'es') return;
-				const next: Lang = lang;
-				if (next !== getLang()) applyLang(next);
-			});
-
-			btn.addEventListener('keydown', (e) => {
-				if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-				e.preventDefault();
-				const other: Lang = btn.dataset.lang === 'en' ? 'es' : 'en';
-				if (other !== getLang()) applyLang(other);
-				root.querySelector<HTMLButtonElement>(`button[data-lang="${other}"]`)?.focus();
+				btn.addEventListener('keydown', (e) => {
+					if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+					e.preventDefault();
+					const other: Lang = btn.dataset.lang === 'en' ? 'es' : 'en';
+					if (other !== getLang()) applyLang(other);
+					root.querySelector<HTMLButtonElement>(`button[data-lang="${other}"]`)?.focus();
+				});
 			});
 		});
+	}
+
+	function initMobileMenu() {
+		const menu = document.querySelector<HTMLElement>('[data-mobile-menu]');
+		const toggle = document.querySelector<HTMLButtonElement>('[data-mobile-menu-toggle]');
+		const closeBtn = document.querySelector<HTMLButtonElement>('[data-mobile-menu-close]');
+		const backdrop = document.querySelector<HTMLElement>('[data-mobile-menu-backdrop]');
+		const panel = document.querySelector<HTMLElement>('[data-mobile-menu-panel]');
+		const navLinks = document.querySelectorAll<HTMLAnchorElement>('[data-mobile-nav-link]');
+
+		if (!menu || !toggle || !panel) return;
+
+		let closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+		const open = () => {
+			clearTimeout(closeTimer);
+			menu.classList.add('is-open');
+			menu.setAttribute('aria-hidden', 'false');
+			toggle.setAttribute('aria-expanded', 'true');
+			document.body.classList.add('mobile-menu-open');
+			panel.focus();
+		};
+
+		const close = () => {
+			menu.classList.remove('is-open');
+			toggle.setAttribute('aria-expanded', 'false');
+			document.body.classList.remove('mobile-menu-open');
+			closeTimer = setTimeout(() => {
+				if (!menu.classList.contains('is-open')) {
+					menu.setAttribute('aria-hidden', 'true');
+				}
+			}, 380);
+		};
+
+		toggle.addEventListener('click', () => {
+			if (menu.classList.contains('is-open')) close();
+			else open();
+		});
+
+		closeBtn?.addEventListener('click', close);
+		backdrop?.addEventListener('click', close);
+
+		navLinks.forEach((link) => link.addEventListener('click', close));
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && menu.classList.contains('is-open')) close();
+		});
+
+		window.addEventListener('resize', () => {
+			if (window.matchMedia('(min-width: 768px)').matches && menu.classList.contains('is-open')) {
+				close();
+			}
+		});
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		initLanguageSwitches();
 
 		let stored: Lang = 'en';
 		try {
@@ -263,6 +436,7 @@ const switchBtnClass = integrated
 		}
 
 		applyLang(stored);
+		initMobileMenu();
 
 		const integratedNav = document.querySelector<HTMLElement>('[data-nav-integrated]');
 		if (integratedNav) {
@@ -292,6 +466,111 @@ const switchBtnClass = integrated
 <style is:inline>
 	[data-lang-knob][data-shifted='true'] {
 		transform: translate3d(calc(100% + 13px), 0, 0);
+	}
+
+	/* Mobile menu toggle icon */
+	.mobile-menu-toggle__icon {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 5px;
+		width: 18px;
+		height: 14px;
+	}
+
+	.mobile-menu-toggle__bar {
+		display: block;
+		height: 1.5px;
+		width: 100%;
+		border-radius: 1px;
+		background-color: currentColor;
+		transition:
+			transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.25s ease,
+			width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+		transform-origin: center;
+	}
+
+	.mobile-menu-toggle[aria-expanded='true'] .mobile-menu-toggle__bar:nth-child(1) {
+		transform: translateY(6.5px) rotate(45deg);
+	}
+
+	.mobile-menu-toggle[aria-expanded='true'] .mobile-menu-toggle__bar:nth-child(2) {
+		opacity: 0;
+		width: 0;
+	}
+
+	.mobile-menu-toggle[aria-expanded='true'] .mobile-menu-toggle__bar:nth-child(3) {
+		transform: translateY(-6.5px) rotate(-45deg);
+	}
+
+	/* Mobile menu entrance / outro */
+	.mobile-menu {
+		pointer-events: none;
+		visibility: hidden;
+	}
+
+	.mobile-menu__backdrop {
+		opacity: 0;
+		transition: opacity 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.mobile-menu__panel {
+		transform: translate3d(100%, 0, 0);
+		transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+		will-change: transform;
+	}
+
+	.mobile-menu__item {
+		opacity: 0;
+		transform: translate3d(1rem, 0, 0);
+		transition:
+			opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+			transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+		transition-delay: calc(0.05s + var(--item-index, 0) * 0.04s);
+	}
+
+	.mobile-menu__footer {
+		opacity: 0;
+		transform: translate3d(0, 0.75rem, 0);
+		transition:
+			opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+			transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+		transition-delay: 0.22s;
+	}
+
+	.mobile-menu.is-open {
+		pointer-events: auto;
+		visibility: visible;
+	}
+
+	.mobile-menu.is-open .mobile-menu__backdrop {
+		opacity: 1;
+	}
+
+	.mobile-menu.is-open .mobile-menu__panel {
+		transform: translate3d(0, 0, 0);
+	}
+
+	.mobile-menu.is-open .mobile-menu__item,
+	.mobile-menu.is-open .mobile-menu__footer {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+
+	body.mobile-menu-open {
+		overflow: hidden;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.mobile-menu__backdrop,
+		.mobile-menu__panel,
+		.mobile-menu__item,
+		.mobile-menu__footer,
+		.mobile-menu-toggle__bar {
+			transition-duration: 0.01ms !important;
+			transition-delay: 0ms !important;
+		}
 	}
 
 	[data-nav-integrated].is-scrolled {
@@ -353,5 +632,27 @@ const switchBtnClass = integrated
 
 	[data-nav-integrated].is-scrolled [data-nav-brand]:hover {
 		color: rgb(107 115 73);
+	}
+
+	/* Integrated hero: show brand in mobile bar once scrolled */
+	[data-nav-integrated].is-scrolled .mobile-menu-toggle {
+		border-color: rgb(155 123 142 / 0.25);
+	}
+
+	@media (max-width: 767px) {
+		[data-nav-integrated]:not(.is-scrolled) [data-nav-brand] {
+			visibility: hidden;
+			opacity: 0;
+			pointer-events: none;
+			width: 0;
+			overflow: hidden;
+		}
+
+		[data-nav-integrated].is-scrolled [data-nav-brand] {
+			visibility: visible;
+			opacity: 1;
+			pointer-events: auto;
+			width: auto;
+		}
 	}
 </style>
