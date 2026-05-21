@@ -18,7 +18,6 @@ const hash = (id: string) => (integrated ? `#${id}` : `/#${id}`);
 
 const links: NavLink[] = [
 	{ href: hash('details'), en: 'Details', es: 'Detalles' },
-	{ href: hash('schedule'), en: 'Schedule', es: 'Itinerario' },
 	{ href: REGISTRY_URL, en: 'Registry', es: 'Lista de regalos', external: true },
 	{ href: '/gallery', en: 'Gallery', es: 'Galería' },
 	{ href: hash('faq'), en: 'FAQ', es: 'Preguntas' },
@@ -72,6 +71,7 @@ const brandClass = integrated
 	<span data-strand="es">Cerrar menú</span>
 </span>
 
+<div data-site-navbar>
 <header
 	class={headerClass}
 	{...(integrated ? { 'data-nav-integrated': '' } : {})}
@@ -194,10 +194,11 @@ const brandClass = integrated
 			</div>
 		</div>
 	</nav>
+</header>
 
-	<!-- Mobile menu overlay -->
+	<!-- Outside sticky/fixed header so the overlay covers the full viewport -->
 	<div
-		class="mobile-menu fixed inset-0 z-[60] md:hidden"
+		class="mobile-menu fixed inset-0 z-[100] md:hidden"
 		data-mobile-menu
 		aria-hidden="true"
 	>
@@ -306,7 +307,7 @@ const brandClass = integrated
 			</nav>
 		</div>
 	</div>
-</header>
+</div>
 
 <script>
 	const STORAGE_KEY = 'wedding-lang';
@@ -373,55 +374,57 @@ const brandClass = integrated
 	}
 
 	function initMobileMenu() {
-		const menu = document.querySelector<HTMLElement>('[data-mobile-menu]');
-		const toggle = document.querySelector<HTMLButtonElement>('[data-mobile-menu-toggle]');
-		const closeBtn = document.querySelector<HTMLButtonElement>('[data-mobile-menu-close]');
-		const backdrop = document.querySelector<HTMLElement>('[data-mobile-menu-backdrop]');
-		const panel = document.querySelector<HTMLElement>('[data-mobile-menu-panel]');
-		const navLinks = document.querySelectorAll<HTMLAnchorElement>('[data-mobile-nav-link]');
+		document.querySelectorAll<HTMLElement>('[data-site-navbar]').forEach((navbar) => {
+			const menu = navbar.querySelector<HTMLElement>('[data-mobile-menu]');
+			const toggle = navbar.querySelector<HTMLButtonElement>('[data-mobile-menu-toggle]');
+			const closeBtn = navbar.querySelector<HTMLButtonElement>('[data-mobile-menu-close]');
+			const backdrop = navbar.querySelector<HTMLElement>('[data-mobile-menu-backdrop]');
+			const panel = navbar.querySelector<HTMLElement>('[data-mobile-menu-panel]');
+			const navLinks = navbar.querySelectorAll<HTMLAnchorElement>('[data-mobile-nav-link]');
 
-		if (!menu || !toggle || !panel) return;
+			if (!menu || !toggle || !panel) return;
 
-		let closeTimer: ReturnType<typeof setTimeout> | undefined;
+			let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
-		const open = () => {
-			clearTimeout(closeTimer);
-			menu.classList.add('is-open');
-			menu.setAttribute('aria-hidden', 'false');
-			toggle.setAttribute('aria-expanded', 'true');
-			document.body.classList.add('mobile-menu-open');
-			panel.focus();
-		};
+			const open = () => {
+				clearTimeout(closeTimer);
+				menu.classList.add('is-open');
+				menu.setAttribute('aria-hidden', 'false');
+				toggle.setAttribute('aria-expanded', 'true');
+				document.body.classList.add('mobile-menu-open');
+				panel.focus();
+			};
 
-		const close = () => {
-			menu.classList.remove('is-open');
-			toggle.setAttribute('aria-expanded', 'false');
-			document.body.classList.remove('mobile-menu-open');
-			closeTimer = setTimeout(() => {
-				if (!menu.classList.contains('is-open')) {
-					menu.setAttribute('aria-hidden', 'true');
+			const close = () => {
+				menu.classList.remove('is-open');
+				toggle.setAttribute('aria-expanded', 'false');
+				document.body.classList.remove('mobile-menu-open');
+				closeTimer = setTimeout(() => {
+					if (!menu.classList.contains('is-open')) {
+						menu.setAttribute('aria-hidden', 'true');
+					}
+				}, 380);
+			};
+
+			toggle.addEventListener('click', () => {
+				if (menu.classList.contains('is-open')) close();
+				else open();
+			});
+
+			closeBtn?.addEventListener('click', close);
+			backdrop?.addEventListener('click', close);
+
+			navLinks.forEach((link) => link.addEventListener('click', close));
+
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape' && menu.classList.contains('is-open')) close();
+			});
+
+			window.addEventListener('resize', () => {
+				if (window.matchMedia('(min-width: 768px)').matches && menu.classList.contains('is-open')) {
+					close();
 				}
-			}, 380);
-		};
-
-		toggle.addEventListener('click', () => {
-			if (menu.classList.contains('is-open')) close();
-			else open();
-		});
-
-		closeBtn?.addEventListener('click', close);
-		backdrop?.addEventListener('click', close);
-
-		navLinks.forEach((link) => link.addEventListener('click', close));
-
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape' && menu.classList.contains('is-open')) close();
-		});
-
-		window.addEventListener('resize', () => {
-			if (window.matchMedia('(min-width: 768px)').matches && menu.classList.contains('is-open')) {
-				close();
-			}
+			});
 		});
 	}
 

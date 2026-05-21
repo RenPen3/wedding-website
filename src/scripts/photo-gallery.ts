@@ -73,8 +73,9 @@ function renderPhotoCard(photo: GalleryPhoto, variant: GalleryVariant) {
 				canDelete ?
 					`<button
 						type="button"
-						class="photo-delete-btn absolute right-2 top-2 rounded-full bg-plum/85 px-3 py-1.5 text-xs font-medium text-cream opacity-0 shadow-sm transition hover:bg-plum group-hover:opacity-100 focus:opacity-100"
+						class="photo-delete-btn absolute right-2 top-2 rounded-full bg-plum/90 px-3 py-1.5 text-xs font-medium text-cream shadow-sm transition hover:bg-plum focus:opacity-100 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
 						data-photo-id="${photo.id}"
+						aria-label="${pick({ en: 'Remove photo', es: 'Eliminar foto' })}"
 					>
 						${pick({ en: 'Remove', es: 'Eliminar' })}
 					</button>`

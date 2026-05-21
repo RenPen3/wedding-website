@@ -1,5 +1,6 @@
 ---
-const bgImage = '/hero.jpg';
+const desktopBgImage = '/hero.jpg';
+const mobileBgImage = '/hero_img2.jpg';
 ---
 
 <section
@@ -8,8 +9,13 @@ const bgImage = '/hero.jpg';
 >
 	<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
 		<div
-			class="absolute inset-0 bg-cover bg-center"
-			style={`background-image: url('${bgImage}'); transform: scaleX(-1) scale(1.08); transform-origin: center center;`}
+			class="absolute inset-0 hidden bg-cover bg-center md:block"
+			style={`background-image: url('${desktopBgImage}'); transform: scaleX(-1) scale(1.08); transform-origin: center center;`}
+		>
+		</div>
+		<div
+			class="absolute inset-0 origin-center -scale-x-100 scale-[1.08] bg-cover bg-center md:hidden"
+			style={`background-image: url('${mobileBgImage}');`}
 		>
 		</div>
 		<div class="absolute inset-0 bg-gradient-to-b from-plum-deep/70 via-plum-deep/45 to-plum-deep/90"></div>
@@ -29,7 +35,7 @@ const bgImage = '/hero.jpg';
 			data-reveal-child
 			style="--reveal-delay: 100ms"
 		>
-			Jocelyn & René
+			Jocelyn <span class="couple-amp">&</span> René
 		</h1>
 		<p class="mt-8 font-serif text-2xl text-ivory/95 md:text-3xl" data-reveal-child style="--reveal-delay: 200ms">
 			<span data-strand="en">September 12, 2026</span>
