@@ -13,6 +13,12 @@ const { initialName = '' } = Astro.props;
 		<span data-strand="es">Por favor responde antes del 1 de agosto de 2026.</span>
 	</p>
 
+	<div id="rsvp-success" class="mt-8 hidden space-y-6" aria-live="polite">
+		<p class="font-serif text-2xl text-plum md:text-3xl" id="rsvp-success-heading"></p>
+		<div id="rsvp-success-names" class="space-y-3 rounded-2xl border border-mauve/15 bg-white/60 px-5 py-4"></div>
+		<p id="rsvp-success-message" class="text-brown-soft leading-relaxed"></p>
+	</div>
+
 	<form id="rsvp-form" class="mt-8 space-y-6">
 		<div>
 			<label for="rsvp-guest-name" class="block text-sm font-medium text-plum">
@@ -144,6 +150,14 @@ const { initialName = '' } = Astro.props;
 	let currentMax = 1;
 	let currentCount = 1;
 	let uiReady = false;
+
+	type SubmittedRsvp = {
+		name: string;
+		attending: boolean;
+		guestNames: string[];
+	};
+
+	let submittedRsvp: SubmittedRsvp | null = null;
 
 	function isEs(): boolean {
 		return document.documentElement.classList.contains('lang-es');
@@ -411,6 +425,76 @@ const { initialName = '' } = Astro.props;
 		uiReady = true;
 	}
 
+	function renderSuccessView(rsvp: SubmittedRsvp) {
+		const form = document.getElementById('rsvp-form');
+		const success = document.getElementById('rsvp-success');
+		const heading = document.getElementById('rsvp-success-heading');
+		const namesEl = document.getElementById('rsvp-success-names');
+		const messageEl = document.getElementById('rsvp-success-message');
+		if (!form || !success || !heading || !namesEl || !messageEl) return;
+
+		submittedRsvp = rsvp;
+		form.classList.add('hidden');
+		success.classList.remove('hidden');
+
+		heading.textContent = pick({ en: 'Thank you!', es: '¡Gracias!' });
+
+		namesEl.innerHTML = '';
+		const mainLabel = document.createElement('p');
+		mainLabel.className = 'text-xs font-medium uppercase tracking-wide text-brown-muted';
+		mainLabel.textContent = pick({ en: 'You', es: 'Tú' });
+		namesEl.append(mainLabel);
+
+		const mainName = document.createElement('p');
+		mainName.className = 'font-serif text-xl text-plum';
+		mainName.textContent = rsvp.name;
+		namesEl.append(mainName);
+
+		if (rsvp.attending) {
+			const mainKey = rsvp.name.trim().toLowerCase();
+			const partyGuests = rsvp.guestNames.filter((g) => g.trim().toLowerCase() !== mainKey);
+
+			if (partyGuests.length > 0) {
+				const partyLabel = document.createElement('p');
+				partyLabel.className = 'mt-4 text-xs font-medium uppercase tracking-wide text-brown-muted';
+				partyLabel.textContent =
+					partyGuests.length === 1 ?
+						pick({ en: 'Guest attending with you', es: 'Invitado que asiste contigo' })
+					:	pick({ en: 'Guests attending with you', es: 'Invitados que asisten contigo' });
+				namesEl.append(partyLabel);
+
+				const partyList = document.createElement('ul');
+				partyList.className = 'mt-1 space-y-1 font-serif text-lg text-plum';
+				for (const guest of partyGuests) {
+					const li = document.createElement('li');
+					li.textContent = guest;
+					partyList.append(li);
+				}
+				namesEl.append(partyList);
+			} else if (rsvp.guestNames.length === 1) {
+				const soloLabel = document.createElement('p');
+				soloLabel.className = 'mt-2 text-sm text-brown-soft';
+				soloLabel.textContent = pick({
+					en: 'We have you down for the celebration.',
+					es: 'Te tenemos confirmado/a para la celebración.',
+				});
+				namesEl.append(soloLabel);
+			}
+		}
+
+		if (rsvp.attending) {
+			messageEl.textContent = pick({
+				en: `We're so grateful you replied, ${rsvp.name}. We can't wait to celebrate with you!`,
+				es: `Gracias por responder, ${rsvp.name}. ¡No podemos esperar a celebrar contigo!`,
+			});
+		} else {
+			messageEl.textContent = pick({
+				en: `Thank you for letting us know, ${rsvp.name}. We'll miss you, and we're sending love your way.`,
+				es: `Gracias por avisarnos, ${rsvp.name}. Te extrañaremos y te enviamos cariño.`,
+			});
+		}
+	}
+
 	function refreshI18n() {
 		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
 		if (nameInput?.dataset) {
@@ -420,7 +504,11 @@ const { initialName = '' } = Astro.props;
 		if (message?.dataset) {
 			message.placeholder = message.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
 		}
-		syncFormUI();
+		if (submittedRsvp) {
+			renderSuccessView(submittedRsvp);
+		} else {
+			syncFormUI();
+		}
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {
@@ -499,11 +587,7 @@ const { initialName = '' } = Astro.props;
 				return;
 			}
 
-			statusEl.classList.add('text-olive');
-			statusEl.textContent = pick({
-				en: 'Thank you — your RSVP has been saved.',
-				es: 'Gracias — hemos guardado tu RSVP.',
-			});
+			renderSuccessView({ name, attending, guestNames });
 		} catch {
 			statusEl.classList.add('text-mauve-dark');
 			statusEl.textContent = pick({
