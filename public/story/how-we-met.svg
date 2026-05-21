@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="How We Met placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d2645"/>
+      <stop offset="100%" stop-color="#6f4f63"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <text x="800" y="460" text-anchor="middle" fill="#faf6f0" font-family="Georgia, serif" font-size="42" opacity="0.9">How We Met</text>
+</svg>

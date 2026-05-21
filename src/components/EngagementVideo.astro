@@ -1,0 +1,42 @@
+---
+import { engagementVideo } from '../lib/our-story';
+
+const vimeoSrc = `https://player.vimeo.com/video/${engagementVideo.vimeoId}?badge=0&autopause=0&player_id=0&app_id=58479`;
+---
+
+<section
+	class="bg-cream py-16 md:py-24"
+	aria-labelledby="engagement-video-heading"
+	data-reveal
+>
+	<div class="mx-auto max-w-4xl px-6 md:px-8">
+		<div class="text-center">
+			<h2 id="engagement-video-heading" class="font-serif text-3xl text-plum md:text-4xl">
+				<span data-strand="en">{engagementVideo.title.en}</span>
+				<span data-strand="es">{engagementVideo.title.es}</span>
+			</h2>
+			<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true"></div>
+			<p class="mx-auto mt-5 max-w-xl text-brown-soft">
+				<span data-strand="en">{engagementVideo.subtitle.en}</span>
+				<span data-strand="es">{engagementVideo.subtitle.es}</span>
+			</p>
+		</div>
+
+		<div
+			class="engagement-video relative mt-10 overflow-hidden rounded-3xl border border-mauve/20 bg-plum-deep shadow-lg md:mt-12"
+		>
+			<div class="relative aspect-video w-full">
+				<iframe
+					src={vimeoSrc}
+					class="absolute inset-0 h-full w-full border-0"
+					allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+					referrerpolicy="strict-origin-when-cross-origin"
+					title={engagementVideo.iframeTitle}
+					allowfullscreen
+				></iframe>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script is:inline src="https://player.vimeo.com/api/player.js" defer></script>

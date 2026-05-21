@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Engagement video poster placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a1a32"/>
+      <stop offset="100%" stop-color="#3d2645"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <circle cx="800" cy="450" r="72" fill="none" stroke="#faf6f0" stroke-width="4" opacity="0.85"/>
+  <polygon points="780,410 780,490 850,450" fill="#faf6f0" opacity="0.9"/>
+</svg>
