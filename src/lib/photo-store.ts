@@ -159,7 +159,10 @@ const { error: insertError } = await supabase.from('wedding_photos').insert({
 
 if (insertError) {
 	console.error('Supabase database insert error:', insertError);
-	return { ok: false, error: 'Could not save photo record. Please try again.' };
+	return {
+		ok: false,
+		error: `Database error: ${insertError.message}`
+	};
 }
 
 	await (writeChain = writeChain.then(async () => {
