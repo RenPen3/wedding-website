@@ -1,3 +1,4 @@
+import { supabase } from '../db/supabase';
 import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -132,16 +133,34 @@ export async function savePhoto(
 		uploadToken: randomUUID(),
 	};
 
-	const mode = await resolveStorageMode();
-	if (mode === 'file') {
-		await mkdir(galleryDir, { recursive: true });
-		const ext = extensionForMime(mimeType);
-		await writeFile(join(galleryDir, `${photo.id}.${ext}`), buffer);
-	} else {
-		await getBlobStore().set(`photo-${photo.id}`, buffer, {
-			metadata: { mimeType },
-		});
-	}
+const ext = extensionForMime(mimeType);
+const filePath = `guest-uploads/${photo.id}.${ext}`;
+
+const { error: uploadError } = await supabase.storage
+	.from('wedding-uploads')
+	.upload(filePath, buffer, {
+		contentType: mimeType,
+		upsert: false,
+	});
+
+if (uploadError) {
+	console.error('Supabase storage upload error:', uploadError);
+	return { ok: false, error: 'Could not upload photo. Please try again.' };
+}
+
+const { error: insertError } = await supabase.from('wedding_photos').insert({
+	guest_name: uploaderName?.trim() || null,
+	file_path: filePath,
+	file_name: `${photo.id}.${ext}`,
+	file_type: mimeType,
+	file_size: buffer.byteLength,
+	synced_to_nas: false,
+});
+
+if (insertError) {
+	console.error('Supabase database insert error:', insertError);
+	return { ok: false, error: 'Could not save photo record. Please try again.' };
+}
 
 	await (writeChain = writeChain.then(async () => {
 		const records = await readRecords();
