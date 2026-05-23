@@ -181,20 +181,24 @@ export async function getPhoto(
 	const record = records.find((r) => r.id === id);
 	if (!record) return null;
 
-	const mode = await resolveStorageMode();
-	if (mode === 'file') {
-		const ext = extensionForMime(record.mimeType);
-		try {
-			const buffer = await readFile(join(galleryDir, `${id}.${ext}`));
-			return { buffer, mimeType: record.mimeType };
-		} catch {
-			return null;
-		}
+	const ext = extensionForMime(record.mimeType);
+	const filePath = `guest-uploads/${id}.${ext}`;
+
+	const { data, error } = await supabase.storage
+		.from('wedding-uploads')
+		.download(filePath);
+
+	if (error || !data) {
+		console.error('Supabase image download error:', error);
+		return null;
 	}
 
-	const data = await getBlobStore().get(`photo-${id}`, { type: 'arrayBuffer' });
-	if (!data) return null;
-	return { buffer: Buffer.from(data), mimeType: record.mimeType };
+	const arrayBuffer = await data.arrayBuffer();
+
+	return {
+		buffer: Buffer.from(arrayBuffer),
+		mimeType: record.mimeType,
+	};
 }
 
 export async function deletePhoto(
