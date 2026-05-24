@@ -242,10 +242,13 @@ export async function deletePhoto(
 			})
 			.eq('id', id);
 
-		if (updateError) {
-			console.error('Supabase delete request update error:', updateError);
-			return { ok: false as const, error: 'Could not remove photo. Please try again.' };
-		}
+			if (updateError) {
+				console.error('Supabase delete request update error:', updateError);
+				return {
+					ok: false as const,
+					error: `Delete update error: ${updateError.message}`,
+				};
+			}
 
 		await writeRecords(records.filter((r) => r.id !== id));
 
