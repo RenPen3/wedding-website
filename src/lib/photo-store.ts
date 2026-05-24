@@ -213,26 +213,40 @@ export async function deletePhoto(
 	return (writeChain = writeChain.then(async () => {
 		const records = await readRecords();
 		const record = records.find((r) => r.id === id);
+
 		if (!record) {
 			return { ok: false as const, error: 'Photo not found.' };
 		}
+
 		if (!record.uploadToken || record.uploadToken !== token) {
 			return { ok: false as const, error: 'You can only remove photos you uploaded.' };
 		}
 
-		const mode = await resolveStorageMode();
-		if (mode === 'file') {
-			const ext = extensionForMime(record.mimeType);
-			try {
-				await unlink(join(galleryDir, `${id}.${ext}`));
-			} catch {
-				// File may already be missing
-			}
-		} else {
-			await getBlobStore().delete(`photo-${id}`);
+		const ext = extensionForMime(record.mimeType);
+		const filePath = `guest-uploads/${id}.${ext}`;
+
+		const { error: storageError } = await supabase.storage
+			.from('wedding-uploads')
+			.remove([filePath]);
+
+		if (storageError) {
+			console.error('Supabase storage delete error:', storageError);
+		}
+
+		const { error: updateError } = await supabase
+			.from('wedding_photos')
+			.update({
+				delete_requested: true,
+			})
+			.eq('id', id);
+
+		if (updateError) {
+			console.error('Supabase delete request update error:', updateError);
+			return { ok: false as const, error: 'Could not remove photo. Please try again.' };
 		}
 
 		await writeRecords(records.filter((r) => r.id !== id));
+
 		return { ok: true as const };
 	}));
 }
