@@ -1,14 +1,49 @@
 ---
 import { REGISTRY_URL } from '../lib/site-urls';
+
+type Props = {
+	homeStyle?: boolean;
+};
+
+const { homeStyle = false } = Astro.props;
 ---
 
-<section id="registry" class="scroll-mt-24 bg-ivory py-20 md:py-28" data-reveal>
-	<div class="mx-auto max-w-3xl px-6 text-center md:px-8">
+<section
+	id="registry"
+	class:list={[
+		'scroll-mt-24 py-20 md:py-28',
+		homeStyle ?
+			'relative overflow-hidden bg-gradient-to-br from-mauve/30 via-ivory to-cream'
+		:	'bg-ivory',
+	]}
+	data-reveal
+>
+	{
+		homeStyle && (
+			<div
+				class="pointer-events-none absolute -right-20 top-10 h-56 w-56 rounded-full bg-plum/10 blur-3xl"
+				aria-hidden="true"
+			/>
+		)
+	}
+	<div
+		class:list={[
+			'mx-auto max-w-3xl px-6 text-center md:px-8',
+			homeStyle &&
+				'relative rounded-[2rem] border border-white/60 bg-white/55 px-8 py-12 shadow-[0_8px_40px_rgb(61_38_69_/_0.08)] backdrop-blur-sm md:px-14 md:py-14',
+		]}
+	>
 		<h2 class="font-serif text-3xl text-plum md:text-4xl">
 			<span data-strand="en">Registry</span>
 			<span data-strand="es">Lista de regalos</span>
 		</h2>
-		<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true"></div>
+		<div
+			class:list={[
+				'mx-auto mt-4 h-px w-24',
+				homeStyle ? 'bg-mauve/70' : 'bg-mauve/60',
+			]}
+			aria-hidden="true"
+		></div>
 		<p class="mt-8 text-lg leading-relaxed text-brown-soft">
 			<span data-strand="en"
 				>Your presence is our greatest gift. If you wish to honor us with a present, we have curated a
@@ -24,7 +59,12 @@ import { REGISTRY_URL } from '../lib/site-urls';
 					href={REGISTRY_URL}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="inline-flex min-w-[14rem] justify-center rounded-full border border-mauve/30 bg-white px-8 py-3 font-medium text-plum transition hover:border-olive hover:text-olive"
+					class:list={[
+						'inline-flex min-w-[14rem] justify-center rounded-full px-8 py-3 font-medium transition',
+						homeStyle ?
+							'border border-plum/20 bg-plum text-cream shadow-md hover:bg-mauve-dark'
+						:	'border border-mauve/30 bg-white text-plum hover:border-olive hover:text-olive',
+					]}
 				>
 					<span data-strand="en">View our Zola registry</span>
 					<span data-strand="es">Ver nuestra lista en Zola</span>

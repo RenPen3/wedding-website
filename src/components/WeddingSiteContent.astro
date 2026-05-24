@@ -2,7 +2,6 @@
 import Hero from './Hero.astro';
 import Countdown from './Countdown.astro';
 import WeddingDetails from './WeddingDetails.astro';
-import Schedule from './Schedule.astro';
 import Registry from './Registry.astro';
 import FAQ from './FAQ.astro';
 import RSVPForm from './RSVPForm.astro';
@@ -12,7 +11,6 @@ import PhotoGallery from './PhotoGallery.astro';
 <Hero />
 <Countdown />
 <WeddingDetails />
-<Schedule />
 <section id="rsvp" class="scroll-mt-24 bg-plum-deep py-20 text-cream md:py-28" data-reveal>
 	<div class="mx-auto max-w-xl px-6 md:px-8">
 		<h2 class="text-center font-serif text-3xl md:text-4xl">
@@ -32,6 +30,6 @@ import PhotoGallery from './PhotoGallery.astro';
 		</div>
 	</div>
 </section>
-<Registry />
-<PhotoGallery />
-<FAQ />
+<Registry homeStyle />
+<PhotoGallery teaser homeStyle />
+<FAQ homeStyle />
