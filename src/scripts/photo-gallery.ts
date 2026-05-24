@@ -73,11 +73,13 @@ function renderPhotoCard(photo: GalleryPhoto, variant: GalleryVariant) {
 				canDelete ?
 					`<button
 						type="button"
-						class="photo-delete-btn absolute right-2 top-2 rounded-full bg-plum/90 px-3 py-1.5 text-xs font-medium text-cream shadow-sm transition hover:bg-plum focus:opacity-100 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+						class="photo-delete-btn absolute right-1.5 top-1.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-plum/90 text-cream shadow-md ring-2 ring-white/60 transition hover:bg-plum focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum/40 max-sm:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
 						data-photo-id="${photo.id}"
 						aria-label="${pick({ en: 'Remove photo', es: 'Eliminar foto' })}"
 					>
-						${pick({ en: 'Remove', es: 'Eliminar' })}
+						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
+							<path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"></path>
+						</svg>
 					</button>`
 				:	''
 			}

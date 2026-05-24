@@ -149,6 +149,7 @@ if (uploadError) {
 }
 
 const { error: insertError } = await supabase.from('wedding_photos').insert({
+	id: photo.id,
 	guest_name: uploaderName?.trim() || null,
 	file_path: filePath,
 	file_name: `${photo.id}.${ext}`,
