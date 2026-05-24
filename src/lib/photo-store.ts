@@ -156,6 +156,8 @@ const { error: insertError } = await supabase.from('wedding_photos').insert({
 	file_type: mimeType,
 	file_size: buffer.byteLength,
 	synced_to_nas: false,
+	delete_requested: false,
+	deleted_from_nas: false
 });
 
 if (insertError) {
