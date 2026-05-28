@@ -3,116 +3,193 @@ import { galleryDescription } from '../lib/gallery-copy';
 
 type Props = {
 	showHeader?: boolean;
+	/** Homepage teaser: title links to /gallery, no upload form or photo grid */
+	teaser?: boolean;
+	homeStyle?: boolean;
 };
 
+<<<<<<< HEAD
 const { showHeader = true } = Astro.props;
+=======
+const { showHeader = true, teaser = false, homeStyle = false } = Astro.props;
+>>>>>>> 60c234b1d8daf13fdb37532be3033b4ddc0331a8
 ---
 
-<section id="gallery" class="scroll-mt-20 bg-cream py-20 md:py-28" data-reveal>
-	<div class="mx-auto max-w-5xl px-6 md:px-8">
+<section
+	id="gallery"
+	class:list={[
+		'scroll-mt-20 py-20 md:py-28',
+		homeStyle ?
+			'relative overflow-hidden bg-gradient-to-b from-olive/15 via-[#f0f2e8] to-ivory'
+		:	'bg-cream',
+	]}
+	data-reveal
+>
+	{
+		homeStyle && (
+			<>
+				<div
+					class="pointer-events-none absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-olive/15 blur-3xl"
+					aria-hidden="true"
+				/>
+				<div
+					class="pointer-events-none absolute right-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-olive/35 to-transparent"
+					aria-hidden="true"
+				/>
+			</>
+		)
+	}
+	<div
+		class:list={[
+			'relative mx-auto max-w-5xl px-6 md:px-8',
+			homeStyle && teaser && 'rounded-[2rem] border border-olive/20 bg-white/50 px-6 py-10 backdrop-blur-sm md:px-10 md:py-12',
+		]}
+	>
 		{
 			showHeader && (
 				<div class="text-center">
 					<h2 class="font-serif text-3xl text-plum md:text-4xl">
-						<span data-strand="en">Wedding gallery</span>
-						<span data-strand="es">Galería de la boda</span>
+						{teaser ? (
+							<a
+								href="/gallery"
+								class:list={[
+									'inline-block transition-colors hover:text-olive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum/30 focus-visible:ring-offset-2',
+									homeStyle ? 'focus-visible:ring-offset-ivory' : 'focus-visible:ring-offset-cream',
+								]}
+							>
+								<span data-strand="en">Wedding gallery</span>
+								<span data-strand="es">Galería de la boda</span>
+							</a>
+						) : (
+							<>
+								<span data-strand="en">Wedding gallery</span>
+								<span data-strand="es">Galería de la boda</span>
+							</>
+						)}
 					</h2>
-					<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true" />
+					<div
+						class:list={[
+							'mx-auto mt-4 h-px w-24',
+							homeStyle ? 'bg-olive/50' : 'bg-mauve/60',
+						]}
+						aria-hidden="true"
+					/>
 					<p class="mx-auto mt-6 max-w-2xl text-brown-soft">
 						<span data-strand="en">{galleryDescription.en}</span>
 						<span data-strand="es">{galleryDescription.es}</span>
 					</p>
+					{teaser && (
+						<a
+							href="/gallery"
+							class:list={[
+								'mt-8 inline-flex items-center justify-center rounded-full px-8 py-3 font-medium transition',
+								homeStyle ?
+									'border border-olive/30 bg-olive text-cream shadow-sm hover:bg-olive-soft'
+								:	'border border-plum/25 bg-white text-plum hover:border-olive hover:text-olive',
+							]}
+						>
+							<span data-strand="en">View gallery</span>
+							<span data-strand="es">Ver galería</span>
+						</a>
+					)}
 				</div>
 			)
 		}
 
-		<form
-			id="photo-upload-form"
-			class:list={[
-				'mx-auto max-w-lg rounded-3xl border border-mauve/20 bg-white/80 p-6 shadow-sm md:p-8',
-				showHeader ? 'mt-10' : 'mt-0',
-			]}
-			enctype="multipart/form-data"
-		>
-			<div>
-				<label for="photo-uploader-name" class="block text-sm font-medium text-plum">
-					<span data-strand="en">Your name (optional)</span>
-					<span data-strand="es">Tu nombre (opcional)</span>
-				</label>
-				<input
-					type="text"
-					id="photo-uploader-name"
-					name="uploaderName"
-					autocomplete="name"
-					class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				/>
-			</div>
+		{
+			!teaser && (
+				<>
+					<form
+						id="photo-upload-form"
+						class:list={[
+							'mx-auto max-w-lg rounded-3xl border border-mauve/20 bg-white/80 p-6 shadow-sm md:p-8',
+							showHeader ? 'mt-10' : 'mt-0',
+						]}
+						enctype="multipart/form-data"
+					>
+						<div>
+							<label for="photo-uploader-name" class="block text-sm font-medium text-plum">
+								<span data-strand="en">Your name (optional)</span>
+								<span data-strand="es">Tu nombre (opcional)</span>
+							</label>
+							<input
+								type="text"
+								id="photo-uploader-name"
+								name="uploaderName"
+								autocomplete="name"
+								class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+							/>
+						</div>
 
-			<div class="mt-5">
-				<label for="photo-file" class="block text-sm font-medium text-plum">
-					<span data-strand="en">Choose a photo</span>
-					<span data-strand="es">Elige una foto</span>
-				</label>
-				<input
-					type="file"
-					id="photo-file"
-					name="photo"
-					accept="image/jpeg,image/png,image/webp,image/gif,image/*"
-					capture="environment"
-					required
-					class="mt-2 block w-full cursor-pointer text-sm text-brown-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-plum file:px-5 file:py-2.5 file:text-sm file:font-medium file:text-cream hover:file:bg-mauve-dark"
-				/>
-				<p class="mt-2 text-xs text-brown-muted">
-					<span data-strand="en">JPG, PNG, or WebP · up to 5 MB</span>
-					<span data-strand="es">JPG, PNG o WebP · hasta 5 MB</span>
-				</p>
-			</div>
+						<div class="mt-5">
+							<label for="photo-file" class="block text-sm font-medium text-plum">
+								<span data-strand="en">Choose a photo</span>
+								<span data-strand="es">Elige una foto</span>
+							</label>
+							<input
+								type="file"
+								id="photo-file"
+								name="photo"
+								accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+								required
+								class="mt-2 block w-full cursor-pointer text-sm text-brown-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-plum file:px-5 file:py-2.5 file:text-sm file:font-medium file:text-cream hover:file:bg-mauve-dark"
+							/>
+							<p class="mt-2 text-xs text-brown-muted">
+								<span data-strand="en">JPG, PNG, or WebP · up to 5 MB</span>
+								<span data-strand="es">JPG, PNG o WebP · hasta 5 MB</span>
+							</p>
+						</div>
 
-			<p id="photo-upload-preview-wrap" class="mt-5 hidden">
-				<img
-					id="photo-upload-preview"
-					alt=""
-					class="mx-auto max-h-48 rounded-2xl border border-mauve/15 object-contain"
-				/>
-			</p>
+						<p id="photo-upload-preview-wrap" class="mt-5 hidden">
+							<img
+								id="photo-upload-preview"
+								alt=""
+								class="mx-auto max-h-48 rounded-2xl border border-mauve/15 object-contain"
+							/>
+						</p>
 
-			<p id="photo-upload-status" class="mt-4 hidden text-sm" role="status"></p>
+						<p id="photo-upload-status" class="mt-4 hidden text-sm" role="status"></p>
 
-			<button
-				type="submit"
-				id="photo-upload-submit"
-				class="mt-6 w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark disabled:cursor-not-allowed disabled:opacity-50"
-			>
-				<span data-strand="en">Upload photo</span>
-				<span data-strand="es">Subir foto</span>
-			</button>
-		</form>
+						<button
+							type="submit"
+							id="photo-upload-submit"
+							class="mt-6 w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							<span data-strand="en">Upload photo</span>
+							<span data-strand="es">Subir foto</span>
+						</button>
+					</form>
 
-		<div id="photo-gallery-wrap" class="mt-14">
-			<h3 class="text-center font-serif text-2xl text-plum">
-				<span data-strand="en">Gallery</span>
-				<span data-strand="es">Galería</span>
-			</h3>
-			<p id="photo-gallery-empty" class="mt-6 hidden text-center text-sm text-brown-muted">
-				<span data-strand="en">No photos yet — be the first to share one.</span>
-				<span data-strand="es">Aún no hay fotos — sé el primero en compartir una.</span>
-			</p>
-			<p id="photo-gallery-loading" class="mt-6 text-center text-sm text-brown-muted">
-				<span data-strand="en">Loading photos…</span>
-				<span data-strand="es">Cargando fotos…</span>
-			</p>
-			<div
-				id="photo-gallery-grid"
-				class="mt-8 hidden grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4"
-			></div>
-		</div>
+					<div id="photo-gallery-wrap" class="mt-14">
+						<h3 class="text-center font-serif text-2xl text-plum">
+							<span data-strand="en">Gallery</span>
+							<span data-strand="es">Galería</span>
+						</h3>
+						<p id="photo-gallery-empty" class="mt-6 hidden text-center text-sm text-brown-muted">
+							<span data-strand="en">No photos yet — be the first to share one.</span>
+							<span data-strand="es">Aún no hay fotos — sé el primero en compartir una.</span>
+						</p>
+						<p id="photo-gallery-loading" class="mt-6 text-center text-sm text-brown-muted">
+							<span data-strand="en">Loading photos…</span>
+							<span data-strand="es">Cargando fotos…</span>
+						</p>
+						<div
+							id="photo-gallery-grid"
+							class="mt-8 hidden grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4"
+						></div>
+					</div>
+				</>
+			)
+		}
 	</div>
 </section>
 
-<script>
-	import { initPhotoGallery } from '../scripts/photo-gallery.ts';
+{
+	!teaser && (
+		<script>
+			import { initPhotoGallery } from '../scripts/photo-gallery.ts';
 
-	initPhotoGallery({ variant: 'full' });
-</script>
-
-
+			initPhotoGallery({ variant: 'full' });
+		</script>
+	)
+}
