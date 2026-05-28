@@ -52,13 +52,21 @@ const SESSION_KEY = 'wedding_admin_token';
 							Tracking opens and RSVPs · <span id="guest-count-label">—</span> guests
 						</p>
 					</div>
-					<button
-						type="button"
-						id="admin-sign-out"
-						class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
-					>
-						Sign out
-					</button>
+					<div class="flex flex-wrap gap-2">
+						<a
+							href="/admin/slideshow"
+							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+						>
+							AI Slideshow
+						</a>
+						<button
+							type="button"
+							id="admin-sign-out"
+							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+						>
+							Sign out
+						</button>
+					</div>
 				</header>
 
 				<p id="admin-load-error" class="mt-6 hidden rounded-2xl border border-mauve/30 bg-cream px-5 py-4 text-mauve-dark"></p>

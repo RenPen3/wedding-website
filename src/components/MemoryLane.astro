@@ -1,0 +1,399 @@
+---
+import { memoryLaneHeading, memoryLaneItems } from '../lib/memory-lane';
+
+const rotations = ['-2.5deg', '2deg', '-1.5deg', '2.5deg', '-2deg', '1.5deg'];
+---
+
+<section
+	class="memory-lane relative overflow-hidden py-16 md:py-24"
+	aria-labelledby="memory-lane-heading"
+>
+	<div class="memory-lane__backdrop" aria-hidden="true"></div>
+
+	<!-- Corner floral decorations -->
+	<svg class="memory-lane__floral memory-lane__floral--tl" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+		<path
+			d="M8 100 C 20 70, 45 55, 75 45 C 55 40, 35 25, 25 8"
+			stroke="currentColor"
+			stroke-width="1.2"
+			stroke-linecap="round"
+		></path>
+		<path
+			d="M30 95 C 38 78, 52 68, 68 58"
+			stroke="currentColor"
+			stroke-width="0.8"
+			stroke-linecap="round"
+			opacity="0.6"
+		></path>
+		<ellipse cx="72" cy="42" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-35 72 42)"
+		></ellipse>
+		<ellipse cx="88" cy="32" rx="3" ry="5" fill="currentColor" opacity="0.25" transform="rotate(-20 88 32)"
+		></ellipse>
+		<circle cx="22" cy="12" r="2.5" fill="currentColor" opacity="0.3"></circle>
+	</svg>
+	<svg class="memory-lane__floral memory-lane__floral--tr" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+		<path
+			d="M112 100 C 100 70, 75 55, 45 45 C 65 40, 85 25, 95 8"
+			stroke="currentColor"
+			stroke-width="1.2"
+			stroke-linecap="round"
+		></path>
+		<path
+			d="M90 95 C 82 78, 68 68, 52 58"
+			stroke="currentColor"
+			stroke-width="0.8"
+			stroke-linecap="round"
+			opacity="0.6"
+		></path>
+		<ellipse cx="48" cy="42" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(35 48 42)"
+		></ellipse>
+		<circle cx="98" cy="12" r="2.5" fill="currentColor" opacity="0.3"></circle>
+	</svg>
+	<svg class="memory-lane__floral memory-lane__floral--bl" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+		<path
+			d="M8 20 C 20 50, 45 65, 75 75 C 55 80, 35 95, 25 112"
+			stroke="currentColor"
+			stroke-width="1.2"
+			stroke-linecap="round"
+		></path>
+		<ellipse cx="68" cy="78" rx="4" ry="7" fill="currentColor" opacity="0.3" transform="rotate(35 68 78)"
+		></ellipse>
+	</svg>
+	<svg class="memory-lane__floral memory-lane__floral--br" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+		<path
+			d="M112 20 C 100 50, 75 65, 45 75 C 65 80, 85 95, 95 112"
+			stroke="currentColor"
+			stroke-width="1.2"
+			stroke-linecap="round"
+		></path>
+		<ellipse cx="52" cy="78" rx="4" ry="7" fill="currentColor" opacity="0.3" transform="rotate(-35 52 78)"
+		></ellipse>
+	</svg>
+
+	<div class="relative mx-auto max-w-5xl px-6 md:px-8">
+		<div class="text-center" data-reveal>
+			<p class="text-xs font-medium uppercase tracking-[0.32em] text-brown-muted">
+				<span data-strand="en">Our Story</span>
+				<span data-strand="es">Nuestra historia</span>
+			</p>
+			<h2 id="memory-lane-heading" class="mt-3 font-script text-5xl text-plum md:text-6xl lg:text-7xl">
+				<span data-strand="en">{memoryLaneHeading.en}</span>
+				<span data-strand="es">{memoryLaneHeading.es}</span>
+			</h2>
+			<div class="mx-auto mt-5 h-px w-20 bg-mauve/50" aria-hidden="true"></div>
+		</div>
+
+		<ol class="memory-lane__timeline relative mt-14 list-none p-0 md:mt-20">
+			<div class="memory-lane__line" aria-hidden="true"></div>
+
+			{
+				memoryLaneItems.map((item, index) => {
+					const isLeft = index % 2 === 0;
+					const rotation = rotations[index % rotations.length];
+
+					return (
+						<li
+							class={`memory-lane__item ${isLeft ? 'memory-lane__item--left' : 'memory-lane__item--right'}`}
+							data-reveal
+							style={`--reveal-delay: ${index * 90}ms; --polaroid-rotate: ${rotation};`}
+						>
+							<div class="memory-lane__dot" aria-hidden="true"></div>
+
+							<div class="memory-lane__row">
+								<div class="memory-lane__photo-col">
+									<figure class="memory-lane__polaroid">
+										<div class="memory-lane__polaroid-inner">
+											<img
+												src={item.image}
+												alt={item.caption.en}
+												width="400"
+												height="500"
+												loading="lazy"
+												class="memory-lane__photo"
+											/>
+										</div>
+										<figcaption class="memory-lane__year">{item.year}</figcaption>
+									</figure>
+								</div>
+
+								<div class="memory-lane__caption-col">
+									<blockquote class="memory-lane__caption">
+										<p class="font-serif text-xl leading-snug text-plum md:text-2xl lg:text-[1.65rem]">
+											<span data-strand="en">{item.caption.en}</span>
+											<span data-strand="es">{item.caption.es}</span>
+										</p>
+										{
+											item.description && (
+												<p class="mt-3 text-sm leading-relaxed text-brown-soft md:text-base">
+													<span data-strand="en">{item.description.en}</span>
+													<span data-strand="es">{item.description.es}</span>
+												</p>
+											)
+										}
+									</blockquote>
+								</div>
+							</div>
+						</li>
+					);
+				})
+			}
+		</ol>
+	</div>
+</section>
+
+<style>
+	.memory-lane {
+		color: var(--color-plum-deep);
+	}
+
+	.memory-lane__backdrop {
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(ellipse 80% 50% at 50% 0%, rgb(155 123 142 / 0.12), transparent 55%),
+			radial-gradient(ellipse 60% 40% at 20% 80%, rgb(107 115 73 / 0.08), transparent 50%),
+			radial-gradient(ellipse 60% 40% at 80% 70%, rgb(155 123 142 / 0.1), transparent 50%),
+			linear-gradient(180deg, var(--color-cream) 0%, var(--color-ivory) 45%, #ebe3d8 100%);
+	}
+
+	.memory-lane__backdrop::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: url('/story/memory-lane/placeholder.svg');
+		background-size: cover;
+		background-position: center;
+		opacity: 0.04;
+		filter: blur(40px);
+		transform: scale(1.15);
+	}
+
+	.memory-lane__floral {
+		position: absolute;
+		width: clamp(5rem, 12vw, 7.5rem);
+		height: clamp(5rem, 12vw, 7.5rem);
+		color: rgb(155 123 142 / 0.35);
+		pointer-events: none;
+		z-index: 1;
+	}
+
+	.memory-lane__floral--tl {
+		top: 1.5rem;
+		left: 1rem;
+	}
+
+	.memory-lane__floral--tr {
+		top: 1.5rem;
+		right: 1rem;
+	}
+
+	.memory-lane__floral--bl {
+		bottom: 2rem;
+		left: 1rem;
+	}
+
+	.memory-lane__floral--br {
+		bottom: 2rem;
+		right: 1rem;
+	}
+
+	.memory-lane__timeline {
+		display: flex;
+		flex-direction: column;
+		gap: 3.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.memory-lane__timeline {
+			gap: 5rem;
+		}
+	}
+
+	.memory-lane__line {
+		position: absolute;
+		left: 50%;
+		top: 0;
+		bottom: 0;
+		width: 1px;
+		transform: translateX(-50%);
+		background: linear-gradient(
+			180deg,
+			transparent,
+			rgb(155 123 142 / 0.35) 8%,
+			rgb(155 123 142 / 0.35) 92%,
+			transparent
+		);
+	}
+
+	.memory-lane__item {
+		position: relative;
+	}
+
+	.memory-lane__dot {
+		position: absolute;
+		left: 50%;
+		top: 2.5rem;
+		z-index: 2;
+		width: 0.625rem;
+		height: 0.625rem;
+		transform: translateX(-50%);
+		border-radius: 9999px;
+		background: var(--color-cream);
+		border: 2px solid rgb(155 123 142 / 0.55);
+		box-shadow: 0 0 0 4px rgb(245 240 232 / 0.85);
+	}
+
+	@media (min-width: 768px) {
+		.memory-lane__dot {
+			top: 50%;
+			transform: translate(-50%, -50%);
+		}
+	}
+
+	.memory-lane__row {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.25rem;
+		padding-top: 3rem;
+	}
+
+	@media (min-width: 768px) {
+		.memory-lane__row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			align-items: center;
+			gap: 2.5rem 3rem;
+			padding-top: 0;
+		}
+
+		.memory-lane__item--left .memory-lane__photo-col {
+			grid-column: 1;
+			grid-row: 1;
+			justify-self: end;
+		}
+
+		.memory-lane__item--left .memory-lane__caption-col {
+			grid-column: 2;
+			grid-row: 1;
+			justify-self: start;
+			padding-left: 0.5rem;
+		}
+
+		.memory-lane__item--right .memory-lane__photo-col {
+			grid-column: 2;
+			grid-row: 1;
+			justify-self: start;
+		}
+
+		.memory-lane__item--right .memory-lane__caption-col {
+			grid-column: 1;
+			grid-row: 1;
+			justify-self: end;
+			text-align: right;
+			padding-right: 0.5rem;
+		}
+	}
+
+	.memory-lane__photo-col {
+		width: 100%;
+		max-width: 16rem;
+	}
+
+	@media (min-width: 768px) {
+		.memory-lane__photo-col {
+			max-width: 15rem;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.memory-lane__photo-col {
+			max-width: 17rem;
+		}
+	}
+
+	.memory-lane__polaroid {
+		margin: 0;
+		padding: 0.65rem 0.65rem 1.35rem;
+		background: #fff;
+		border-radius: 2px;
+		box-shadow:
+			0 1px 2px rgb(61 38 69 / 0.06),
+			0 8px 24px rgb(61 38 69 / 0.1),
+			0 0 0 1px rgb(61 38 69 / 0.04);
+		transform: rotate(var(--polaroid-rotate, 0deg));
+		transition:
+			transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+			box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.memory-lane__polaroid:hover {
+		transform: rotate(0deg) scale(1.03);
+		box-shadow:
+			0 2px 4px rgb(61 38 69 / 0.08),
+			0 14px 32px rgb(61 38 69 / 0.14),
+			0 0 0 1px rgb(61 38 69 / 0.05);
+	}
+
+	.memory-lane__polaroid-inner {
+		overflow: hidden;
+		background: var(--color-ivory);
+		aspect-ratio: 4 / 5;
+	}
+
+	.memory-lane__photo {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.memory-lane__year {
+		margin-top: 0.85rem;
+		text-align: center;
+		font-family: var(--font-script);
+		font-size: 1.75rem;
+		line-height: 1;
+		color: var(--color-plum);
+	}
+
+	.memory-lane__caption-col {
+		max-width: 18rem;
+		text-align: center;
+	}
+
+	@media (min-width: 768px) {
+		.memory-lane__caption-col {
+			max-width: 14rem;
+		}
+
+		.memory-lane__item--right .memory-lane__caption-col {
+			text-align: right;
+		}
+
+		.memory-lane__item--left .memory-lane__caption-col {
+			text-align: left;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.memory-lane__caption-col {
+			max-width: 16rem;
+		}
+	}
+
+	.memory-lane__caption {
+		margin: 0;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.memory-lane__polaroid {
+			transform: none;
+			transition: none;
+		}
+
+		.memory-lane__polaroid:hover {
+			transform: none;
+		}
+	}
+</style>

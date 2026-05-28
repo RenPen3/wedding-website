@@ -9,6 +9,8 @@ interface ImportMetaEnv {
 	readonly ADMIN_PASSWORD?: string;
 	/** Server-only — used for admin dashboard (never expose to the browser). */
 	readonly SUPABASE_SERVICE_ROLE_KEY?: string;
+	/** Optional — enables OpenAI vision for AI Slideshow Builder */
+	readonly OPENAI_API_KEY?: string;
 }
 
 interface ImportMeta {

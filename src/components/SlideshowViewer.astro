@@ -1,0 +1,52 @@
+---
+import { SLIDESHOW_SECTIONS } from '../lib/slideshow-constants';
+---
+
+<section id="wedding-slideshow" class="border-b border-mauve/15 bg-ivory py-14 md:py-20" data-reveal>
+	<div class="mx-auto max-w-6xl px-6 md:px-8">
+		<div class="text-center">
+			<h2 class="font-serif text-3xl text-plum md:text-4xl">
+				<span data-strand="en">Our wedding story</span>
+				<span data-strand="es">Nuestra historia</span>
+			</h2>
+			<div class="mx-auto mt-4 h-px w-24 bg-mauve/60" aria-hidden="true"></div>
+		</div>
+
+		<p id="slideshow-loading" class="mt-10 text-center text-sm text-brown-muted">
+			<span data-strand="en">Loading slideshow…</span>
+			<span data-strand="es">Cargando presentación…</span>
+		</p>
+		<p id="slideshow-empty" class="mt-10 hidden text-center text-sm text-brown-muted">
+			<span data-strand="en">The curated slideshow will appear here once it is published.</span>
+			<span data-strand="es">La presentación aparecerá aquí cuando esté publicada.</span>
+		</p>
+
+		<div id="slideshow-sections" class="mt-12 hidden space-y-14"></div>
+	</div>
+
+	<script type="application/json" id="slideshow-section-labels" set:html={JSON.stringify(SLIDESHOW_SECTIONS)} />
+</section>
+
+<script>
+	import { initSlideshowViewer } from '../scripts/slideshow-viewer';
+
+	document.addEventListener('DOMContentLoaded', () => {
+		initSlideshowViewer();
+	});
+</script>
+
+<style>
+	.slideshow-track {
+		scrollbar-width: thin;
+		scrollbar-color: rgb(155 123 142 / 0.45) transparent;
+	}
+
+	.slideshow-track::-webkit-scrollbar {
+		height: 6px;
+	}
+
+	.slideshow-track::-webkit-scrollbar-thumb {
+		border-radius: 9999px;
+		background: rgb(155 123 142 / 0.45);
+	}
+</style>

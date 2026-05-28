@@ -1,0 +1,373 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+---
+
+<MainLayout title="AI Slideshow Builder — Admin" showInvitationIntro={false}>
+	<div id="slideshow-admin" class="min-h-screen bg-ivory">
+		<div id="slideshow-login" class="flex min-h-screen flex-col items-center justify-center px-6 py-20">
+			<div class="w-full max-w-sm rounded-3xl border border-mauve/20 bg-cream p-8 shadow-sm">
+				<h1 class="font-serif text-3xl text-plum">AI Slideshow Builder</h1>
+				<p class="mt-2 text-sm text-brown-soft">Sign in with the admin password to organize gallery photos.</p>
+				<form id="slideshow-login-form" class="mt-8 space-y-4">
+					<div>
+						<label for="slideshow-password" class="block text-sm font-medium text-plum">Password</label>
+						<input
+							type="password"
+							id="slideshow-password"
+							required
+							class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+						/>
+					</div>
+					<p id="slideshow-login-error" class="hidden text-sm text-mauve-dark"></p>
+					<button
+						type="submit"
+						class="w-full rounded-full bg-plum px-6 py-3 font-medium text-cream transition hover:bg-mauve-dark"
+					>
+						Sign in
+					</button>
+				</form>
+			</div>
+		</div>
+
+		<div id="slideshow-dashboard" class="hidden pb-20 pt-10 md:pt-12">
+			<div class="mx-auto max-w-7xl px-4 md:px-8">
+				<header class="flex flex-wrap items-end justify-between gap-4 border-b border-mauve/15 pb-6">
+					<div>
+						<h1 class="font-serif text-4xl text-plum">AI Slideshow Builder</h1>
+						<p class="mt-1 text-sm text-brown-soft">
+							Organize gallery uploads into wedding sections. Original photos are never deleted.
+						</p>
+					</div>
+					<div class="flex flex-wrap gap-2">
+						<a
+							href="/admin/guests"
+							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+						>
+							Guest admin
+						</a>
+						<button
+							type="button"
+							id="slideshow-sign-out"
+							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+						>
+							Sign out
+						</button>
+					</div>
+				</header>
+
+				<div class="mt-8 flex flex-wrap gap-3">
+					<button
+						type="button"
+						id="btn-generate"
+						class="rounded-full bg-plum px-6 py-3 text-sm font-medium text-cream transition hover:bg-mauve-dark disabled:opacity-50"
+					>
+						Generate AI Slideshow
+					</button>
+					<button
+						type="button"
+						id="btn-save"
+						class="rounded-full border border-plum/25 bg-white px-6 py-3 text-sm font-medium text-plum transition hover:border-olive hover:text-olive disabled:opacity-50"
+					>
+						Save Slideshow
+					</button>
+					<a
+						href="/gallery#wedding-slideshow"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="inline-flex rounded-full border border-mauve/25 bg-cream px-6 py-3 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+					>
+						Preview Slideshow
+					</a>
+				</div>
+
+				<p id="slideshow-status" class="mt-4 hidden text-sm" role="status"></p>
+				<p id="slideshow-load-error" class="mt-6 hidden rounded-2xl border border-mauve/30 bg-cream px-5 py-4 text-mauve-dark"></p>
+				<p id="slideshow-loading" class="mt-8 text-brown-soft">Loading…</p>
+
+				<div id="slideshow-sections-grid" class="mt-10 hidden grid gap-6 lg:grid-cols-2"></div>
+			</div>
+		</div>
+	</div>
+</MainLayout>
+
+<script>
+	const SESSION_KEY = 'wedding_admin_token';
+
+	type SectionDef = { id: string; en: string; es: string };
+	type PhotoRow = { id: string; url: string; uploaderName: string | null };
+	type Entry = {
+		photo_id: string;
+		section_name: string;
+		display_order: number;
+		is_visible: boolean;
+		quality_score: number | null;
+		ai_reason: string | null;
+	};
+
+	let sections: SectionDef[] = [];
+	let entries: Entry[] = [];
+	let photos: PhotoRow[] = [];
+
+	const loginEl = document.getElementById('slideshow-login');
+	const dashboardEl = document.getElementById('slideshow-dashboard');
+	const loginForm = document.getElementById('slideshow-login-form') as HTMLFormElement | null;
+	const loginError = document.getElementById('slideshow-login-error');
+	const signOutBtn = document.getElementById('slideshow-sign-out');
+	const loadingEl = document.getElementById('slideshow-loading');
+	const loadErrorEl = document.getElementById('slideshow-load-error');
+	const gridEl = document.getElementById('slideshow-sections-grid');
+	const statusEl = document.getElementById('slideshow-status');
+	const btnGenerate = document.getElementById('btn-generate') as HTMLButtonElement | null;
+	const btnSave = document.getElementById('btn-save') as HTMLButtonElement | null;
+
+	function token() {
+		return sessionStorage.getItem(SESSION_KEY) ?? '';
+	}
+
+	function showStatus(message: string, ok = true) {
+		if (!statusEl) return;
+		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
+		statusEl.classList.add(ok ? 'text-olive' : 'text-mauve-dark');
+		statusEl.textContent = message;
+	}
+
+	function photoMap() {
+		return new Map(photos.map((p) => [p.id, p]));
+	}
+
+	function getEntry(photoId: string): Entry {
+		return (
+			entries.find((e) => e.photo_id === photoId) ?? {
+				photo_id: photoId,
+				section_name: 'more_memories',
+				display_order: 0,
+				is_visible: true,
+				quality_score: null,
+				ai_reason: null,
+			}
+		);
+	}
+
+	function render() {
+		if (!gridEl) return;
+		const map = photoMap();
+
+		gridEl.innerHTML = sections
+			.map((section) => {
+				const sectionEntries = entries
+					.filter((e) => e.section_name === section.id)
+					.sort((a, b) => a.display_order - b.display_order);
+
+				const cards = sectionEntries
+					.map((entry) => {
+						const photo = map.get(entry.photo_id);
+						if (!photo) return '';
+
+						const moveOptions = sections
+							.map(
+								(s) =>
+									`<option value="${s.id}" ${s.id === entry.section_name ? 'selected' : ''}>${s.en}</option>`
+							)
+							.join('');
+
+						return `
+							<div class="rounded-2xl border border-mauve/15 bg-white p-3 ${entry.is_visible ? '' : 'opacity-50'}" data-photo-id="${entry.photo_id}">
+								<img src="${photo.url}" alt="" class="aspect-square w-full rounded-xl object-cover" loading="lazy" />
+								<p class="mt-2 truncate text-xs text-brown-muted">${photo.uploaderName ?? 'Guest photo'}</p>
+								${entry.ai_reason ? `<p class="mt-1 text-[11px] text-brown-muted/80">${entry.ai_reason}</p>` : ''}
+								<div class="mt-3 flex flex-wrap gap-2">
+									<select class="move-select rounded-lg border border-mauve/25 px-2 py-1 text-xs text-plum" data-photo-id="${entry.photo_id}">
+										${moveOptions}
+									</select>
+									<button type="button" class="hide-btn rounded-full border border-mauve/25 px-3 py-1 text-xs text-plum" data-photo-id="${entry.photo_id}">
+										${entry.is_visible ? 'Hide' : 'Show'}
+									</button>
+								</div>
+							</div>`;
+					})
+					.join('');
+
+				return `
+					<section class="rounded-3xl border border-mauve/20 bg-cream/80 p-5 shadow-sm">
+						<h2 class="font-serif text-2xl text-plum">${section.en}</h2>
+						<p class="mt-1 text-xs text-brown-muted">${sectionEntries.length} photo(s)</p>
+						<div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">${cards || '<p class="col-span-full text-sm text-brown-muted">No photos in this section.</p>'}</div>
+					</section>`;
+			})
+			.join('');
+
+		gridEl.querySelectorAll<HTMLSelectElement>('.move-select').forEach((select) => {
+			select.addEventListener('change', () => {
+				const photoId = select.dataset.photoId;
+				if (!photoId) return;
+				const entry = getEntry(photoId);
+				entry.section_name = select.value;
+				entry.display_order =
+					entries.filter((e) => e.section_name === entry.section_name && e.photo_id !== photoId).length;
+				const idx = entries.findIndex((e) => e.photo_id === photoId);
+				if (idx === -1) entries.push(entry);
+				else entries[idx] = entry;
+				render();
+			});
+		});
+
+		gridEl.querySelectorAll<HTMLButtonElement>('.hide-btn').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const photoId = btn.dataset.photoId;
+				if (!photoId) return;
+				const entry = getEntry(photoId);
+				entry.is_visible = !entry.is_visible;
+				const idx = entries.findIndex((e) => e.photo_id === photoId);
+				if (idx === -1) entries.push(entry);
+				else entries[idx] = entry;
+				render();
+			});
+		});
+	}
+
+	async function loadData() {
+		if (!loadingEl || !loadErrorEl || !gridEl) return;
+
+		loadingEl.classList.remove('hidden');
+		loadErrorEl.classList.add('hidden');
+		gridEl.classList.add('hidden');
+
+		try {
+			const res = await fetch('/api/admin/slideshow', {
+				headers: { Authorization: `Bearer ${token()}` },
+			});
+			const data = (await res.json()) as {
+				ok?: boolean;
+				error?: string;
+				sections?: SectionDef[];
+				entries?: Entry[];
+				photos?: PhotoRow[];
+			};
+
+			if (!res.ok || !data.ok) {
+				throw new Error(data.error ?? 'Failed to load');
+			}
+
+			sections = data.sections ?? [];
+			entries = data.entries ?? [];
+			photos = data.photos ?? [];
+
+			loadingEl.classList.add('hidden');
+			gridEl.classList.remove('hidden');
+			render();
+		} catch (err) {
+			loadingEl.classList.add('hidden');
+			loadErrorEl.classList.remove('hidden');
+			loadErrorEl.textContent = err instanceof Error ? err.message : 'Failed to load slideshow data';
+		}
+	}
+
+	loginForm?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		if (!loginError) return;
+
+		const password = (document.getElementById('slideshow-password') as HTMLInputElement).value;
+		loginError.classList.add('hidden');
+
+		const res = await fetch('/api/admin/verify', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ password }),
+		});
+		const data = (await res.json()) as { ok?: boolean; token?: string };
+
+		if (!res.ok || !data.ok || !data.token) {
+			loginError.classList.remove('hidden');
+			loginError.textContent = 'Invalid password.';
+			return;
+		}
+
+		sessionStorage.setItem(SESSION_KEY, data.token);
+		loginEl?.classList.add('hidden');
+		dashboardEl?.classList.remove('hidden');
+		await loadData();
+	});
+
+	signOutBtn?.addEventListener('click', () => {
+		sessionStorage.removeItem(SESSION_KEY);
+		dashboardEl?.classList.add('hidden');
+		loginEl?.classList.remove('hidden');
+	});
+
+	btnGenerate?.addEventListener('click', async () => {
+		if (!confirm('Generate a new AI slideshow? This replaces the current layout (original uploads stay safe).')) {
+			return;
+		}
+
+		btnGenerate.disabled = true;
+		showStatus('Analyzing photos…', true);
+
+		try {
+			const res = await fetch('/api/admin/slideshow?action=generate', {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token()}` },
+			});
+			const data = (await res.json()) as { ok?: boolean; error?: string; entries?: Entry[]; usedAi?: boolean };
+
+			if (!res.ok || !data.ok) {
+				showStatus(data.error ?? 'Generation failed', false);
+				return;
+			}
+
+			entries = data.entries ?? [];
+			render();
+			showStatus(
+				data.usedAi ?
+					'AI slideshow generated. Review sections and save when ready.'
+				:	'Slideshow generated using quality heuristics. Add OPENAI_API_KEY for vision AI.',
+				true
+			);
+		} catch {
+			showStatus('Network error during generation.', false);
+		} finally {
+			btnGenerate.disabled = false;
+		}
+	});
+
+	btnSave?.addEventListener('click', async () => {
+		btnSave.disabled = true;
+		showStatus('Saving…', true);
+
+		try {
+			const res = await fetch('/api/admin/slideshow', {
+				method: 'PUT',
+				headers: {
+					Authorization: `Bearer ${token()}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ items: entries }),
+			});
+			const data = (await res.json()) as { ok?: boolean; error?: string };
+
+			if (!res.ok || !data.ok) {
+				showStatus(data.error ?? 'Save failed', false);
+				return;
+			}
+
+			showStatus('Slideshow saved.', true);
+		} catch {
+			showStatus('Network error while saving.', false);
+		} finally {
+			btnSave.disabled = false;
+		}
+	});
+
+	(async () => {
+		if (token()) {
+			loginEl?.classList.add('hidden');
+			dashboardEl?.classList.remove('hidden');
+			await loadData();
+		}
+	})();
+</script>
+
+<style>
+	#slideshow-sections-grid img {
+		background: rgb(250 246 240);
+	}
+</style>
