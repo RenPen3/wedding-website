@@ -7,12 +7,14 @@ type Props = {
 	title?: string;
 	description?: string;
 	showInvitationIntro?: boolean;
+	noindex?: boolean;
 };
 
 const {
 	title = 'Jocelyn & René — September Wedding',
 	description = 'Join us for our wedding celebration.',
 	showInvitationIntro = false, // invitation preloader disabled for now
+	noindex = false,
 } = Astro.props;
 ---
 
@@ -41,6 +43,7 @@ const {
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
+		{noindex && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

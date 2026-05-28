@@ -1,0 +1,172 @@
+---
+import {
+	giftIdeas,
+	honeymoonFundHero,
+	isExternalPaymentLink,
+	paymentOptions,
+} from '../lib/honeymoon-fund';
+
+const paymentButtonClass =
+	'honeymoon-btn mt-6 inline-flex w-full items-center justify-center rounded-full border border-mauve/25 bg-cream px-6 py-3 text-sm font-medium text-plum';
+---
+
+<section class="honeymoon-fund">
+	<div class="border-b border-mauve/15 bg-gradient-to-b from-cream via-ivory to-cream py-14 md:py-20" data-reveal>
+		<div class="mx-auto max-w-3xl px-6 text-center md:px-8">
+			<h1 class="font-serif text-4xl text-plum md:text-5xl">
+				<span data-strand="en">{honeymoonFundHero.title.en}</span>
+				<span data-strand="es">{honeymoonFundHero.title.es}</span>
+			</h1>
+			<p class="mt-4 font-serif text-xl text-mauve-dark md:text-2xl">
+				<span data-strand="en">{honeymoonFundHero.subtitle.en}</span>
+				<span data-strand="es">{honeymoonFundHero.subtitle.es}</span>
+			</p>
+			<div class="mx-auto mt-5 h-px w-24 bg-mauve/60" aria-hidden="true"></div>
+			<p class="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-brown-soft md:text-lg">
+				<span data-strand="en">{honeymoonFundHero.intro.en}</span>
+				<span data-strand="es">{honeymoonFundHero.intro.es}</span>
+			</p>
+		</div>
+	</div>
+
+	<div class="bg-ivory py-16 md:py-24">
+		<div class="mx-auto max-w-6xl px-6 md:px-8">
+			<div class="text-center" data-reveal>
+				<h2 class="font-serif text-3xl text-plum md:text-4xl">
+					<span data-strand="en">Ways to Contribute</span>
+					<span data-strand="es">Formas de contribuir</span>
+				</h2>
+				<div class="mx-auto mt-4 h-px w-20 bg-mauve/50" aria-hidden="true"></div>
+			</div>
+
+			<ul class="mt-12 grid list-none gap-6 p-0 sm:grid-cols-2 lg:gap-8">
+				{
+					paymentOptions.map((option, index) => {
+						const external = isExternalPaymentLink(option.href);
+
+						return (
+							<li
+								class="list-none"
+								data-reveal
+								style={`--reveal-delay: ${index * 70}ms`}
+							>
+								<article class="honeymoon-card flex h-full flex-col rounded-3xl border border-mauve/15 bg-white/80 p-7 shadow-[0_8px_32px_rgb(61_38_69_/_0.06)] backdrop-blur-sm md:p-8">
+									<h3 class="font-serif text-2xl text-plum">
+										<span data-strand="en">{option.title.en}</span>
+										<span data-strand="es">{option.title.es}</span>
+									</h3>
+									<p class="mt-3 flex-1 text-sm leading-relaxed text-brown-soft md:text-base">
+										<span data-strand="en">{option.description.en}</span>
+										<span data-strand="es">{option.description.es}</span>
+									</p>
+
+									{
+										option.buttonText && option.comingSoon && (
+											<>
+												<span
+													class={paymentButtonClass}
+													role="status"
+													aria-live="polite"
+												>
+													<span data-strand="en">{option.buttonText.en}</span>
+													<span data-strand="es">{option.buttonText.es}</span>
+												</span>
+												{
+													option.placeholderText && (
+														<p class="mt-3 text-center text-sm text-brown-muted">
+															<span data-strand="en">{option.placeholderText.en}</span>
+															<span data-strand="es">{option.placeholderText.es}</span>
+														</p>
+													)
+												}
+											</>
+										)
+									}
+
+									{
+										option.buttonText && option.href && !option.comingSoon && (
+											<a
+												href={option.href}
+												class={`${paymentButtonClass} transition hover:border-olive hover:bg-white hover:text-olive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum/25`}
+												{...(external ?
+													{ target: '_blank', rel: 'noopener noreferrer' }
+												:	{})}
+											>
+												<span data-strand="en">{option.buttonText.en}</span>
+												<span data-strand="es">{option.buttonText.es}</span>
+											</a>
+										)
+									}
+
+									{
+										option.placeholderText && !option.buttonText && (
+											<p class="mt-6 rounded-2xl border border-dashed border-mauve/25 bg-ivory/80 px-4 py-3 text-center text-sm text-brown-muted">
+												<span data-strand="en">{option.placeholderText.en}</span>
+												<span data-strand="es">{option.placeholderText.es}</span>
+											</p>
+										)
+									}
+								</article>
+							</li>
+						);
+					})
+				}
+			</ul>
+		</div>
+	</div>
+
+	<div class="border-t border-mauve/10 bg-gradient-to-b from-ivory to-cream py-16 md:py-24">
+		<div class="mx-auto max-w-6xl px-6 md:px-8">
+			<div class="text-center" data-reveal>
+				<h2 class="font-serif text-3xl text-plum md:text-4xl">
+					<span data-strand="en">Honeymoon Gift Ideas</span>
+					<span data-strand="es">Ideas de regalo para la luna de miel</span>
+				</h2>
+				<div class="mx-auto mt-4 h-px w-20 bg-mauve/50" aria-hidden="true"></div>
+				<p class="mx-auto mt-5 max-w-xl text-sm text-brown-muted md:text-base">
+					<span data-strand="en">Suggested amounts to inspire your gift — any contribution is deeply appreciated.</span>
+					<span data-strand="es">Montos sugeridos para inspirar tu regalo — cualquier contribución es muy apreciada.</span>
+				</p>
+			</div>
+
+			<ul class="mt-12 grid list-none gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+				{
+					giftIdeas.map((idea, index) => (
+						<li
+							class="list-none"
+							data-reveal
+							style={`--reveal-delay: ${index * 60}ms`}
+						>
+							<article class="honeymoon-gift flex h-full flex-col items-center rounded-2xl border border-mauve/15 bg-white/70 px-5 py-6 text-center shadow-[0_4px_20px_rgb(61_38_69_/_0.05)] transition hover:border-mauve/30 hover:shadow-[0_8px_28px_rgb(61_38_69_/_0.08)]">
+								<p class="font-serif text-lg leading-snug text-plum">
+									<span data-strand="en">{idea.title.en}</span>
+									<span data-strand="es">{idea.title.es}</span>
+								</p>
+								<p class="mt-3 font-serif text-2xl text-mauve-dark">
+									<span data-strand="en">{idea.amount.en}</span>
+									<span data-strand="es">{idea.amount.es}</span>
+								</p>
+							</article>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<style>
+	.honeymoon-card {
+		background-image: linear-gradient(
+			145deg,
+			rgb(255 255 255 / 0.92) 0%,
+			rgb(250 246 240 / 0.85) 100%
+		);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.honeymoon-gift {
+			transition: none;
+		}
+	}
+</style>
