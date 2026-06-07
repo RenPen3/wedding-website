@@ -105,6 +105,8 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 	const SEEN_CLASS = 'invitation-intro-seen';
 	const ACTIVE_CLASS = 'invitation-intro-active';
 	const READY_DELAY_MS = 3400;
+	/* How long the settled invitation lingers before auto-fading into the site */
+	const AUTO_DISMISS_HOLD_MS = 2800;
 
 	const root = document.documentElement;
 	const overlay = document.querySelector<HTMLElement>('[data-invitation-intro]');
@@ -116,6 +118,8 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 		const skipBtn = overlay.querySelector<HTMLButtonElement>('[data-invitation-skip]');
 		const envelope = overlay.querySelector<HTMLElement>('[data-envelope]');
 		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
 
 		const markSeen = () => {
 			try {
@@ -130,6 +134,7 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 
 		const dismiss = () => {
 			if (overlay.classList.contains('is-dismissed')) return;
+			window.clearTimeout(autoDismissTimer);
 			overlay.classList.add('is-dismissed', 'is-exiting');
 			overlay.removeAttribute('role');
 			overlay.removeAttribute('aria-modal');
@@ -176,6 +181,9 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 				overlay.classList.add('is-ready');
 				envelope?.classList.add('is-settled');
 				openBtn?.focus({ preventScroll: true });
+
+				// Auto-fade into the site after a brief hold (manual open/skip cancels this).
+				autoDismissTimer = window.setTimeout(dismiss, AUTO_DISMISS_HOLD_MS);
 			}, reducedMotion ? 0 : READY_DELAY_MS);
 		}
 	}
@@ -278,7 +286,8 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 		position: relative;
 		z-index: 1;
 		width: var(--envelope-w);
-		height: calc(var(--envelope-h) + var(--card-h) * 0.72);
+		/* Bound the full settled composition (risen card + envelope) so it centers in the viewport */
+		height: calc(var(--envelope-h) + var(--card-h) * 0.82);
 		display: flex;
 		align-items: flex-end;
 		justify-content: center;
@@ -400,7 +409,7 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 	.invitation-card-slot {
 		position: absolute;
 		left: 50%;
-		bottom: 14%;
+		top: 0;
 		z-index: 2;
 		width: var(--card-w);
 		height: var(--card-h);
@@ -689,6 +698,7 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 	}
 
 	@media (prefers-reduced-motion: reduce) {
+
 		.invitation-intro {
 			transition: opacity 0.2s ease;
 		}

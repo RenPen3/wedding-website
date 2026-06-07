@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import ScrollReveal from '../components/ScrollReveal.astro';
-// import InvitationIntro from '../components/InvitationIntro.astro';
+import InvitationIntro from '../components/InvitationIntro.astro';
 
 type Props = {
 	title?: string;
@@ -13,7 +13,7 @@ type Props = {
 const {
 	title = 'Jocelyn & René — September Wedding',
 	description = 'Join us for our wedding celebration.',
-	showInvitationIntro = false, // invitation preloader disabled for now
+	showInvitationIntro = false,
 	noindex = false,
 } = Astro.props;
 ---
@@ -31,12 +31,11 @@ const {
 			} catch (_) {}
 		</script>
 		<script is:inline>
-			// Invitation preloader disabled — always mark intro as seen.
+			// Prevent intro flash if already opened this session.
 			try {
-				document.documentElement.classList.add('invitation-intro-seen');
-				// if (sessionStorage.getItem('wedding-invitation-opened') === '1') {
-				// 	document.documentElement.classList.add('invitation-intro-seen');
-				// }
+				if (sessionStorage.getItem('wedding-invitation-opened') === '1') {
+					document.documentElement.classList.add('invitation-intro-seen');
+				}
 			} catch (_) {}
 		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -53,9 +52,7 @@ const {
 		/>
 	</head>
 	<body class="min-h-screen">
-		{/* Invitation preloader — re-enable when ready:
 		{showInvitationIntro && <InvitationIntro />}
-		*/}
 		<slot />
 		<ScrollReveal />
 	</body>
