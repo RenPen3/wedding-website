@@ -1,3 +1,15 @@
+/**
+ * DISABLED — legacy slug-based wedding state store (uses src/data/wedding-state.json).
+ *
+ * This module is no longer used anywhere in the app. The active RSVP system lives in
+ * `rsvp-store.ts` (backed by `guest-list.json` + `rsvps.json`). The entire implementation
+ * below is commented out so it cannot run, but it is kept here intentionally as a backup
+ * in case the old slug/visit-tracking flow is ever needed again.
+ *
+ * To re-enable: remove the surrounding block comment.
+ */
+
+/*
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -171,3 +183,6 @@ export async function upsertRsvp(payload: Omit<Rsvp, 'at'> & { at?: string }): P
 		return state;
 	});
 }
+*/
+
+export {};

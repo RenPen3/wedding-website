@@ -61,6 +61,13 @@ const SESSION_KEY = 'wedding_admin_token';
 						</a>
 						<button
 							type="button"
+							id="admin-clear-rsvps"
+							class="rounded-full border border-mauve-dark/30 bg-cream px-5 py-2 text-sm font-medium text-mauve-dark transition hover:border-mauve-dark hover:bg-mauve-dark hover:text-cream"
+						>
+							Clear test RSVPs
+						</button>
+						<button
+							type="button"
 							id="admin-sign-out"
 							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
 						>
@@ -161,6 +168,7 @@ const SESSION_KEY = 'wedding_admin_token';
 	const loginForm = document.getElementById('admin-login-form');
 	const loginError = document.getElementById('admin-login-error');
 	const signOutBtn = document.getElementById('admin-sign-out');
+	const clearRsvpsBtn = document.getElementById('admin-clear-rsvps');
 	const loadingEl = document.getElementById('admin-loading');
 	const loadErrorEl = document.getElementById('admin-load-error');
 	const statsEl = document.getElementById('admin-stats');
@@ -431,6 +439,48 @@ const SESSION_KEY = 'wedding_admin_token';
 		clearToken();
 		allGuests = [];
 		showLogin();
+	});
+
+	clearRsvpsBtn?.addEventListener('click', async () => {
+		const token = getToken();
+		if (!token) {
+			showLogin();
+			return;
+		}
+
+		const confirmed = window.confirm(
+			'Delete ALL submitted RSVPs from the form? This clears test responses and cannot be undone.'
+		);
+		if (!confirmed) return;
+
+		const original = clearRsvpsBtn.textContent;
+		clearRsvpsBtn.setAttribute('disabled', 'true');
+		clearRsvpsBtn.textContent = 'Clearing…';
+
+		try {
+			const res = await fetch('/api/admin/rsvps', {
+				method: 'DELETE',
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			const data = await res.json();
+
+			if (res.status === 401) {
+				clearToken();
+				showLogin();
+				return;
+			}
+
+			if (!res.ok || !data.ok) {
+				throw new Error(data.error ?? 'Failed to clear RSVPs');
+			}
+
+			window.alert(`Cleared ${data.removed} RSVP${data.removed === 1 ? '' : 's'}.`);
+		} catch (err) {
+			window.alert(err instanceof Error ? err.message : 'Could not clear RSVPs.');
+		} finally {
+			clearRsvpsBtn.removeAttribute('disabled');
+			clearRsvpsBtn.textContent = original;
+		}
 	});
 
 	searchInput?.addEventListener('input', renderTable);

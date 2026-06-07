@@ -107,6 +107,21 @@ async function writeRsvps(rsvps: SavedRsvp[]): Promise<void> {
 	await getBlobStore().setJSON(BLOB_KEY, rsvps);
 }
 
+export async function listRsvps(): Promise<SavedRsvp[]> {
+	return readRsvps();
+}
+
+/** Removes every saved RSVP (used to clear test submissions). Returns how many were deleted. */
+export async function clearAllRsvps(): Promise<number> {
+	let removed = 0;
+	await (writeChain = writeChain.then(async () => {
+		const existing = await readRsvps();
+		removed = existing.length;
+		await writeRsvps([]);
+	}));
+	return removed;
+}
+
 export async function getRsvpForGuest(name: string): Promise<SavedRsvp | null> {
 	const norm = normalizeName(name);
 	const rsvps = await readRsvps();
