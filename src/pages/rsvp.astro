@@ -5,6 +5,7 @@ import RSVPForm from '../components/RSVPForm.astro';
 import Footer from '../components/Footer.astro';
 
 const initialName = Astro.url.searchParams.get('name') ?? '';
+const inviteCode = Astro.url.searchParams.get('code') ?? '';
 ---
 
 <MainLayout title="RSVP — Jocelyn & René">
@@ -22,7 +23,7 @@ const initialName = Astro.url.searchParams.get('name') ?? '';
 					tu invitación.</span>
 			</p>
 			<div class="mt-10">
-				<RSVPForm initialName={initialName} />
+				<RSVPForm initialName={initialName} inviteCode={inviteCode} />
 			</div>
 		</div>
 	</main>

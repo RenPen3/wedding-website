@@ -1,9 +1,10 @@
 ---
 type Props = {
 	initialName?: string;
+	inviteCode?: string;
 };
 
-const { initialName = '' } = Astro.props;
+const { initialName = '', inviteCode = '' } = Astro.props;
 ---
 
 <div class="rounded-3xl border border-mauve/20 bg-cream/90 p-8 shadow-sm md:p-10">
@@ -20,6 +21,7 @@ const { initialName = '' } = Astro.props;
 	</div>
 
 	<form id="rsvp-form" class="mt-8 space-y-6">
+		<input type="hidden" id="rsvp-invite-code" name="inviteCode" value={inviteCode} />
 		<div>
 			<label for="rsvp-guest-name" class="block text-sm font-medium text-plum">
 				<span data-strand="en">Your name</span>
@@ -531,6 +533,7 @@ const { initialName = '' } = Astro.props;
 		);
 		const guestNames = attending ? collectGuestNames() : [];
 		const message = String(new FormData(form).get('message') ?? '').trim();
+		const inviteCode = String(new FormData(form).get('inviteCode') ?? '').trim();
 
 		if (!name) {
 			statusEl.classList.remove('hidden', 'text-olive');
@@ -572,7 +575,7 @@ const { initialName = '' } = Astro.props;
 			const res = await fetch('/api/rsvp', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name, attending, guestCount, guestNames, message }),
+				body: JSON.stringify({ name, attending, guestCount, guestNames, message, inviteCode }),
 			});
 			const data = (await res.json()) as { ok?: boolean; error?: string };
 

@@ -1,3 +1,4 @@
 ---
-return Astro.redirect('/rsvp');
+const code = Astro.params.inviteCode?.trim();
+return Astro.redirect(code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp');
 ---

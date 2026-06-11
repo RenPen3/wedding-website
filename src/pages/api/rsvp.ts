@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { saveRsvp } from '../../lib/rsvp-store';
+import { syncRsvpToSupabase } from '../../lib/rsvp-supabase';
 
 export const POST: APIRoute = async ({ request }) => {
 	let body: Record<string, unknown>;
@@ -24,6 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
 		body.attending === true || body.attending === 'yes' || body.attending === 'true';
 	const guestCount = Number(body.guestCount ?? 1);
 	const message = String(body.message ?? '').trim();
+	const inviteCode = String(body.inviteCode ?? body.invite_code ?? '').trim() || null;
 
 	let guestNames: string[] = [];
 	if (Array.isArray(body.guestNames)) {
@@ -66,6 +68,24 @@ export const POST: APIRoute = async ({ request }) => {
 			status,
 			headers: { 'Content-Type': 'application/json' },
 		});
+	}
+
+	// Mirror the RSVP to Supabase (rsvp_responses + optional guests update by invite code).
+	try {
+		const sync = await syncRsvpToSupabase(result.rsvp, inviteCode);
+		if (!sync.ok) {
+			return new Response(JSON.stringify({ ok: false, error: sync.error }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+	} catch (err) {
+		const detail = err instanceof Error ? err.message : 'Unknown Supabase error';
+		console.error('[api/rsvp] Supabase sync threw:', detail);
+		return new Response(
+			JSON.stringify({ ok: false, error: `Could not save RSVP to Supabase: ${detail}` }),
+			{ status: 500, headers: { 'Content-Type': 'application/json' } }
+		);
 	}
 
 	return new Response(
