@@ -43,7 +43,7 @@ export const paymentOptions: PaymentOption[] = [
 			es: 'Envía un regalo directamente por Venmo.',
 		},
 		buttonText: { en: 'Give with Venmo', es: 'Regalar con Venmo' },
-		href: '#',
+		href: 'https://venmo.com/code?user_id=2900764028567552046&created=1781382112',
 	},
 	{
 		id: 'zelle',

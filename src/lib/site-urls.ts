@@ -1,1 +1,1 @@
-export const REGISTRY_URL = 'https://www.zola.com/registry/jocelynandrene/edit';
+export const REGISTRY_URL = 'https://www.zola.com/registry/jocelynandrene';
