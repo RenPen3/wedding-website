@@ -1,9 +1,6 @@
 import type { APIRoute } from 'astro';
 import { isValidAdminSession } from '../../../lib/admin-auth';
-import {
-	buildGuestActivityReport,
-	computeGuestActivityStats,
-} from '../../../lib/invite-opens';
+import { buildGuestActivityReport } from '../../../lib/invite-opens';
 
 function getBearerToken(request: Request): string | undefined {
 	const header = request.headers.get('authorization');
@@ -11,9 +8,9 @@ function getBearerToken(request: Request): string | undefined {
 	return header.slice(7).trim();
 }
 
+/** Admin-only: merged guest-list + invite opens + RSVP activity (for future /admin/guests). */
 export const GET: APIRoute = async ({ request }) => {
-	const token = getBearerToken(request);
-	if (!isValidAdminSession(token)) {
+	if (!isValidAdminSession(getBearerToken(request))) {
 		return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' },
@@ -21,18 +18,14 @@ export const GET: APIRoute = async ({ request }) => {
 	}
 
 	try {
-		const guests = await buildGuestActivityReport();
-		return new Response(
-			JSON.stringify({
-				ok: true,
-				guests,
-				stats: computeGuestActivityStats(guests),
-			}),
-			{ status: 200, headers: { 'Content-Type': 'application/json' } }
-		);
+		const activity = await buildGuestActivityReport();
+		return new Response(JSON.stringify({ ok: true, activity }), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
+		});
 	} catch (err) {
-		const message = err instanceof Error ? err.message : 'Failed to load guests';
-		console.error('[api/admin/guests]', message);
+		const message = err instanceof Error ? err.message : 'Failed to load invite activity';
+		console.error('[api/admin/invite-activity]', message);
 		return new Response(JSON.stringify({ ok: false, error: message }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' },

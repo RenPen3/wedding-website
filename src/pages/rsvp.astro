@@ -4,14 +4,13 @@ import Navbar from '../components/Navbar.astro';
 import RSVPForm from '../components/RSVPForm.astro';
 import Footer from '../components/Footer.astro';
 
-const initialName = Astro.url.searchParams.get('name') ?? '';
 const inviteCode = Astro.url.searchParams.get('code') ?? '';
 ---
 
 <MainLayout title="RSVP — Jocelyn & René">
 	<Navbar />
 	<main class="bg-ivory py-16 md:py-24">
-		<div class="mx-auto max-w-xl px-6 md:px-8" data-reveal>
+		<div class="relative z-10 mx-auto max-w-xl px-6 md:px-8" data-reveal>
 			<h1 class="text-center font-serif text-4xl text-plum md:text-5xl">RSVP</h1>
 			<p class="mx-auto mt-4 max-w-md text-center text-brown-soft">
 				<span data-strand="en"
@@ -23,7 +22,7 @@ const inviteCode = Astro.url.searchParams.get('code') ?? '';
 					tu invitación.</span>
 			</p>
 			<div class="mt-10">
-				<RSVPForm initialName={initialName} inviteCode={inviteCode} />
+				<RSVPForm inviteCode={inviteCode} />
 			</div>
 		</div>
 	</main>

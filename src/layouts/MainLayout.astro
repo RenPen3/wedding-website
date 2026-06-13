@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import ScrollReveal from '../components/ScrollReveal.astro';
 import InvitationIntro from '../components/InvitationIntro.astro';
+import InviteOpenTracker from '../components/InviteOpenTracker.astro';
 
 type Props = {
 	title?: string;
@@ -52,6 +53,7 @@ const {
 		/>
 	</head>
 	<body class="min-h-screen">
+		<InviteOpenTracker />
 		{showInvitationIntro && <InvitationIntro />}
 		<slot />
 		<ScrollReveal />

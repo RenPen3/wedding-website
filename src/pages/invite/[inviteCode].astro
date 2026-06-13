@@ -1,4 +1,51 @@
 ---
-const code = Astro.params.inviteCode?.trim();
-return Astro.redirect(code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp');
+const code = Astro.params.inviteCode?.trim().toLowerCase() ?? '';
+const target = code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp';
 ---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex, nofollow" />
+		<title>Opening invitation…</title>
+	</head>
+	<body>
+		<p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center; color: #444">
+			Opening your invitation…
+		</p>
+		<script define:vars={{ code, target }}>
+			const SESSION_PREFIX = 'wedding-invite-tracked:';
+
+			(async () => {
+				if (code) {
+					const storageKey = SESSION_PREFIX + code;
+					let alreadyTracked = false;
+					try {
+						alreadyTracked = sessionStorage.getItem(storageKey) === '1';
+					} catch (_) {}
+
+					if (!alreadyTracked) {
+						try {
+							const res = await fetch('/api/invite-open', {
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									invite_code: code,
+									page_path: '/invite/' + code,
+								}),
+							});
+							if (res.ok) {
+								try {
+									sessionStorage.setItem(storageKey, '1');
+								} catch (_) {}
+							}
+						} catch (_) {}
+					}
+				}
+				window.location.replace(target);
+			})();
+		</script>
+	</body>
+</html>

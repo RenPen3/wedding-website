@@ -118,7 +118,7 @@ const SESSION_KEY = 'wedding_admin_token';
 						<input
 							type="search"
 							id="admin-search"
-							placeholder="Name, email, or invite code…"
+							placeholder="Name, invite code, or message…"
 							class="mt-2 w-full max-w-md rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2"
 						/>
 					</div>
@@ -142,13 +142,12 @@ const SESSION_KEY = 'wedding_admin_token';
 						<thead>
 							<tr>
 								<th>Guest</th>
-								<th>Contact</th>
 								<th>Invite</th>
 								<th>Opens</th>
 								<th>RSVP</th>
 								<th>Attending</th>
 								<th>Details</th>
-								<th>Updated</th>
+								<th>Submitted</th>
 							</tr>
 						</thead>
 						<tbody id="admin-table-body"></tbody>
@@ -206,22 +205,18 @@ const SESSION_KEY = 'wedding_admin_token';
 	}
 
 	function guestName(g) {
-		const name = [g.first_name, g.last_name].filter(Boolean).join(' ').trim();
-		return name || g.email || g.invite_code;
+		return String(g.guest_name ?? g.invite_code ?? '—');
 	}
 
-	function normalizeRsvp(status) {
-		if (!status) return 'pending';
-		const s = String(status).toLowerCase();
-		if (s === 'yes' || s === 'attending' || s === 'accepted') return 'attending';
-		if (s === 'no' || s === 'declined' || s === 'not_attending' || s === 'not attending') {
-			return 'declined';
-		}
+	function rsvpStatus(g) {
+		if (!g.rsvp_submitted) return 'pending';
+		if (g.rsvp_attending === true) return 'attending';
+		if (g.rsvp_attending === false) return 'declined';
 		return 'pending';
 	}
 
 	function hasOpened(g) {
-		return (g.open_count ?? 0) > 0 || Boolean(g.opened_at);
+		return Boolean(g.invite_opened) || (g.open_count ?? 0) > 0;
 	}
 
 	function fmtDate(iso) {
@@ -241,7 +236,7 @@ const SESSION_KEY = 'wedding_admin_token';
 	}
 
 	function rsvpBadge(g) {
-		const s = normalizeRsvp(g.rsvp_status);
+		const s = rsvpStatus(g);
 		if (s === 'attending') return badge('Attending', 'attending');
 		if (s === 'declined') return badge('Not attending', 'declined');
 		return badge('Pending', 'pending');
@@ -260,16 +255,15 @@ const SESSION_KEY = 'wedding_admin_token';
 		const rsvp = rsvpFilter?.value ?? 'all';
 
 		return allGuests.filter((g) => {
-			const rsvpNorm = normalizeRsvp(g.rsvp_status);
-			if (rsvp !== 'all' && rsvpNorm !== rsvp) return false;
+			const status = rsvpStatus(g);
+			if (rsvp !== 'all' && status !== rsvp) return false;
 
 			if (!q) return true;
 			const haystack = [
-				g.first_name,
-				g.last_name,
-				g.email,
+				g.guest_name,
 				g.invite_code,
-				g.guest_names,
+				g.rsvp_guest_names,
+				g.rsvp_message,
 			]
 				.filter(Boolean)
 				.join(' ')
@@ -297,18 +291,17 @@ const SESSION_KEY = 'wedding_admin_token';
 		tableBody.innerHTML = guests
 			.map((g) => {
 				const inviteUrl = `${INVITE_BASE}${encodeURIComponent(g.invite_code)}`;
-				const rsvp = normalizeRsvp(g.rsvp_status);
+				const status = rsvpStatus(g);
 				const attending =
-					rsvp === 'attending' ? String(g.total_attending ?? '—') : rsvp === 'declined' ? '0' : '—';
+					status === 'attending' ?
+						String(g.rsvp_total_attending ?? '—')
+					: status === 'declined' ? '0'
+					: '—';
 
 				return `<tr>
 					<td data-label="Guest">
 						<p class="font-medium text-plum">${escapeHtml(guestName(g))}</p>
-						<p class="mt-0.5 text-xs text-brown-muted">Max guests: ${g.max_guests ?? g.invited_count ?? '—'}</p>
-					</td>
-					<td data-label="Contact">
-						<p class="text-xs">${escapeHtml(g.email ?? '—')}</p>
-						<p class="mt-0.5 text-xs text-brown-muted">${escapeHtml(g.phone ?? '—')}</p>
+						<p class="mt-0.5 text-xs text-brown-muted">Max guests: ${g.max_guests ?? '—'}</p>
 					</td>
 					<td data-label="Invite">
 						<p class="font-mono text-xs text-plum">${escapeHtml(g.invite_code)}</p>
@@ -317,18 +310,17 @@ const SESSION_KEY = 'wedding_admin_token';
 					<td data-label="Opens">
 						<div class="flex flex-wrap gap-1">${openBadge(g)}</div>
 						<p class="mt-1 text-xs text-brown-soft">Count: ${g.open_count ?? 0}</p>
-						<p class="text-xs text-brown-muted">First: ${fmtDate(g.opened_at)}</p>
+						<p class="text-xs text-brown-muted">First: ${fmtDate(g.first_opened_at)}</p>
 						<p class="text-xs text-brown-muted">Last: ${fmtDate(g.last_opened_at)}</p>
 					</td>
 					<td data-label="RSVP">${rsvpBadge(g)}</td>
 					<td data-label="Attending" class="font-medium">${attending}</td>
 					<td data-label="Details">
-						<p class="text-xs text-brown-soft max-w-[14rem] truncate" title="${escapeHtml(g.guest_names ?? '')}">${escapeHtml(g.guest_names ?? '—')}</p>
-						<p class="mt-1 text-xs text-brown-muted max-w-[14rem] truncate" title="${escapeHtml(g.message ?? '')}">${escapeHtml(g.message ?? '—')}</p>
+						<p class="text-xs text-brown-soft max-w-[14rem] truncate" title="${escapeHtml(g.rsvp_guest_names ?? '')}">${escapeHtml(g.rsvp_guest_names ?? '—')}</p>
+						<p class="mt-1 text-xs text-brown-muted max-w-[14rem] truncate" title="${escapeHtml(g.rsvp_message ?? '')}">${escapeHtml(g.rsvp_message ?? '—')}</p>
 					</td>
-					<td data-label="Updated">
-						<p class="text-xs whitespace-nowrap">${fmtDate(g.updated_at ?? g.created_at)}</p>
-						<p class="text-xs text-brown-muted">Created: ${fmtDate(g.created_at)}</p>
+					<td data-label="Submitted">
+						<p class="text-xs whitespace-nowrap">${fmtDate(g.rsvp_submitted_at)}</p>
 					</td>
 				</tr>`;
 			})

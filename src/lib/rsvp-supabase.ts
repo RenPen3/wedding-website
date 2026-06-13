@@ -1,9 +1,9 @@
 /**
  * Server-side Supabase sync for RSVP submissions.
  *
- * Matches the project schema in supabase/schema.sql and src/lib/guests.ts:
- *   rsvp_responses → guest_id, invite_code, attending, guest_count, guest_names (text), message
- *   guests         → rsvp_status, total_attending / rsvp_guest_count, guest_names, message
+ * Writes to rsvp_responses:
+ *   guest_id, invite_code, first_name, last_name, attending, total_attending,
+ *   guest_names (additional guests only), message, submitted_at
  *
  * Uses the service-role client when available (server-only). Never import from client scripts.
  */
@@ -31,6 +31,10 @@ function normalizeInviteCode(raw: string | null | undefined): string {
 	return (raw ?? '').trim().toLowerCase();
 }
 
+function isUuid(value: string): boolean {
+	return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
 function syntheticInviteCode(name: string): string {
 	const slug = name
 		.trim()
@@ -42,6 +46,17 @@ function syntheticInviteCode(name: string): string {
 
 function guestNamesText(names: string[]): string {
 	return names.map((n) => n.trim()).filter(Boolean).join(', ');
+}
+
+/** Additional guest names only — guest 1 in the form is the main invitee. */
+function additionalGuestNames(allNames: string[]): string[] {
+	return allNames.slice(1).map((n) => n.trim()).filter(Boolean);
+}
+
+/** Main guest counts as 1; each non-blank additional name adds +1. */
+function computeTotalAttending(attending: boolean, allGuestNames: string[]): number {
+	if (!attending) return 0;
+	return 1 + additionalGuestNames(allGuestNames).length;
 }
 
 function guestDisplayName(row: GuestRow): string {
@@ -116,15 +131,15 @@ async function tryRpcSubmit(
 	}
 
 	console.error('[rsvp-supabase] submit_guest_rsvp RPC failed:', error.message, error.details ?? '');
-	return { ok: false, error: `Could not save RSVP to Supabase: ${error.message}` };
+	return { ok: false, error: error.message };
 }
 
 async function updateGuestRow(
 	client: SupabaseClient,
 	guestId: string,
 	rsvp: SavedRsvp,
-	count: number,
-	namesText: string
+	totalAttending: number,
+	additionalNamesText: string
 ): Promise<SupabaseSyncResult> {
 	const now = new Date().toISOString();
 	const status = rsvp.attending ? 'yes' : 'no';
@@ -132,8 +147,8 @@ async function updateGuestRow(
 	// Admin-style columns (first_name / total_attending / guest_names / message / updated_at)
 	const adminPayload = {
 		rsvp_status: status,
-		total_attending: count,
-		guest_names: namesText || null,
+		total_attending: totalAttending,
+		guest_names: additionalNamesText || null,
 		message: rsvp.message || null,
 		updated_at: now,
 	};
@@ -145,8 +160,8 @@ async function updateGuestRow(
 		console.warn('[rsvp-supabase] Admin guest columns missing, trying schema.sql columns.');
 		const schemaPayload = {
 			rsvp_status: status,
-			rsvp_guest_count: count,
-			rsvp_guest_names: namesText || null,
+			rsvp_guest_count: totalAttending,
+			rsvp_guest_names: additionalNamesText || null,
 			rsvp_message: rsvp.message || null,
 			rsvp_submitted_at: now,
 		};
@@ -170,40 +185,58 @@ async function insertRsvpResponse(
 	opts: {
 		guestId?: string | null;
 		inviteCode?: string | null;
-		count: number;
-		namesText: string;
+		totalAttending: number;
+		additionalNamesText: string;
 	}
 ): Promise<SupabaseSyncResult> {
 	const resolvedCode = opts.inviteCode?.trim() || syntheticInviteCode(rsvp.name);
+	const firstName = rsvp.firstName.trim();
+	const lastName = rsvp.lastName.trim();
 
-	const base = {
+	const baseFields = {
+		invite_code: resolvedCode,
+		first_name: firstName || null,
+		last_name: lastName || null,
 		attending: rsvp.attending,
-		guest_count: opts.count,
-		guest_names: opts.namesText || null,
+		total_attending: opts.totalAttending,
+		guest_names: opts.additionalNamesText || null,
 		message: rsvp.message || null,
 		submitted_at: rsvp.submittedAt,
 	};
 
+	console.log('[rsvp-supabase] Inserting rsvp_response:', {
+		first_name: firstName,
+		last_name: lastName,
+		guest_names: opts.additionalNamesText || null,
+		total_attending: opts.totalAttending,
+	});
+
 	const attempts: Record<string, unknown>[] = [];
 
 	if (opts.guestId) {
-		attempts.push({ guest_id: opts.guestId, invite_code: resolvedCode, ...base });
-		attempts.push({
-			guest_id: opts.guestId,
-			invite_code: resolvedCode,
-			attending: rsvp.attending,
-			guest_names: opts.namesText || null,
-			message: rsvp.message || null,
-			submitted_at: rsvp.submittedAt,
-		});
+		attempts.push({ guest_id: opts.guestId, ...baseFields });
+	} else {
+		attempts.push({ ...baseFields });
 	}
 
-	attempts.push({ invite_code: resolvedCode, ...base });
+	// Legacy shapes (guest_count / guest_name) for older schemas
+	attempts.push({
+		guest_id: opts.guestId ?? null,
+		invite_code: resolvedCode,
+		guest_name: rsvp.name,
+		attending: rsvp.attending,
+		guest_count: opts.totalAttending,
+		guest_names: opts.additionalNamesText || null,
+		message: rsvp.message || null,
+		submitted_at: rsvp.submittedAt,
+	});
 
 	attempts.push({
 		invite_code: resolvedCode,
+		guest_name: rsvp.name,
 		attending: rsvp.attending,
-		guest_names: opts.namesText || null,
+		guest_count: opts.totalAttending,
+		guest_names: opts.additionalNamesText || null,
 		message: rsvp.message || null,
 		submitted_at: rsvp.submittedAt,
 	});
@@ -224,7 +257,7 @@ async function insertRsvpResponse(
 			error.details ?? '',
 			error.hint ?? ''
 		);
-		return { ok: false, error: `Could not save RSVP to Supabase: ${error.message}` };
+		return { ok: false, error: error.message };
 	}
 
 	return {
@@ -236,18 +269,32 @@ async function insertRsvpResponse(
 
 export async function syncRsvpToSupabase(
 	rsvp: SavedRsvp,
-	inviteCode?: string | null
+	inviteCode?: string | null,
+	guestId?: string | null
 ): Promise<SupabaseSyncResult> {
 	const { client } = getServerSupabase();
-	const count = rsvp.attending ? rsvp.guestCount : 0;
-	const namesText = guestNamesText(rsvp.guestNames);
+	const totalAttending = computeTotalAttending(rsvp.attending, rsvp.guestNames);
+	const additionalNamesText = guestNamesText(additionalGuestNames(rsvp.guestNames));
+	const rpcCount = totalAttending;
 
 	let code = normalizeInviteCode(inviteCode);
 	let guest: GuestRow | null = null;
 
-	if (code) {
+	if (guestId?.trim() && isUuid(guestId.trim())) {
+		const { data, error } = await client.from('guests').select('*').eq('id', guestId.trim()).maybeSingle();
+		if (error) {
+			console.error('[rsvp-supabase] guestId lookup failed:', error.message);
+		} else if (data) {
+			guest = data as GuestRow;
+			if (!code && guest.invite_code) {
+				code = normalizeInviteCode(String(guest.invite_code));
+			}
+		}
+	}
+
+	if (!guest && code) {
 		guest = await findGuestByInviteCode(client, code);
-	} else {
+	} else if (!guest) {
 		guest = await findGuestByName(client, rsvp.name);
 		if (guest?.invite_code) {
 			code = normalizeInviteCode(String(guest.invite_code));
@@ -255,19 +302,19 @@ export async function syncRsvpToSupabase(
 	}
 
 	if (code) {
-		const rpcResult = await tryRpcSubmit(client, code, rsvp, count, namesText);
+		const rpcResult = await tryRpcSubmit(client, code, rsvp, rpcCount, additionalNamesText);
 		if (rpcResult) return rpcResult;
 	}
 
 	if (guest) {
-		const guestUpdate = await updateGuestRow(client, guest.id, rsvp, count, namesText);
+		const guestUpdate = await updateGuestRow(client, guest.id, rsvp, totalAttending, additionalNamesText);
 		if (!guestUpdate.ok) return guestUpdate;
 
 		return insertRsvpResponse(client, rsvp, {
 			guestId: guest.id,
 			inviteCode: code || normalizeInviteCode(String(guest.invite_code ?? '')),
-			count,
-			namesText,
+			totalAttending,
+			additionalNamesText,
 		});
 	}
 
@@ -279,7 +326,7 @@ export async function syncRsvpToSupabase(
 	return insertRsvpResponse(client, rsvp, {
 		guestId: null,
 		inviteCode: code || null,
-		count,
-		namesText,
+		totalAttending,
+		additionalNamesText,
 	});
 }

@@ -11,6 +11,8 @@ export type InvitedGuest = {
 
 export type SavedRsvp = {
 	name: string;
+	firstName: string;
+	lastName: string;
 	attending: boolean;
 	guestCount: number;
 	guestNames: string[];
@@ -138,7 +140,7 @@ export function validateGuestCount(
 		return 'Guest count must be at least 1.';
 	}
 	if (guestCount > guest.maxGuests) {
-		return `Guest count cannot exceed ${guest.maxGuests}.`;
+		return `Your invite allows up to ${guest.maxGuests} guest(s). Please remove extra names.`;
 	}
 	return null;
 }
@@ -154,14 +156,26 @@ export function validateGuestNames(attending: boolean, guestCount: number, guest
 	return null;
 }
 
-export async function saveRsvp(payload: {
-	name: string;
-	attending: boolean;
-	guestCount: number;
-	guestNames: string[];
-	message: string;
-}): Promise<{ ok: true; rsvp: SavedRsvp } | { ok: false; error: string }> {
-	const guest = findInvitedGuest(payload.name);
+function splitFullName(full: string): { firstName: string; lastName: string } {
+	const parts = full.trim().split(/\s+/).filter(Boolean);
+	if (parts.length === 0) return { firstName: '', lastName: '' };
+	if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+	return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+}
+
+export async function saveRsvp(
+	payload: {
+		name: string;
+		firstName?: string;
+		lastName?: string;
+		attending: boolean;
+		guestCount: number;
+		guestNames: string[];
+		message: string;
+	},
+	options?: { guest?: InvitedGuest }
+): Promise<{ ok: true; rsvp: SavedRsvp } | { ok: false; error: string }> {
+	const guest = options?.guest ?? findInvitedGuest(payload.name);
 	if (!guest) {
 		return { ok: false, error: 'Guest not found on the invitation list.' };
 	}
@@ -173,8 +187,11 @@ export async function saveRsvp(payload: {
 	const namesError = validateGuestNames(payload.attending, guestCount, payload.guestNames);
 	if (namesError) return { ok: false, error: namesError };
 
+	const resolvedNames = splitFullName(guest.name);
 	const rsvp: SavedRsvp = {
 		name: guest.name,
+		firstName: payload.firstName?.trim() || resolvedNames.firstName,
+		lastName: payload.lastName?.trim() || resolvedNames.lastName,
 		attending: payload.attending,
 		guestCount,
 		guestNames: payload.attending ? payload.guestNames.map((n) => n.trim()) : [],

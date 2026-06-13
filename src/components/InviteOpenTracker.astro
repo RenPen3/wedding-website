@@ -1,0 +1,59 @@
+---
+/** Tracks invite link opens once per browser session (client → POST /api/invite-open). */
+---
+
+<script>
+	const SESSION_PREFIX = 'wedding-invite-tracked:';
+
+	function readInviteCodeFromUrl(): string | null {
+		const params = new URLSearchParams(window.location.search);
+		const fromQuery = (params.get('code') ?? params.get('invite') ?? '').trim().toLowerCase();
+		if (fromQuery) return fromQuery;
+
+		const match = window.location.pathname.match(/^\/invite\/([^/?#]+)/i);
+		if (match?.[1]) {
+			try {
+				return decodeURIComponent(match[1]).trim().toLowerCase();
+			} catch {
+				return match[1].trim().toLowerCase();
+			}
+		}
+
+		return null;
+	}
+
+	async function trackInviteOpen(inviteCode: string) {
+		const storageKey = SESSION_PREFIX + inviteCode;
+		try {
+			if (sessionStorage.getItem(storageKey) === '1') return;
+		} catch {
+			/* sessionStorage unavailable */
+		}
+
+		try {
+			const res = await fetch('/api/invite-open', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					invite_code: inviteCode,
+					page_path: window.location.pathname + window.location.search,
+				}),
+			});
+
+			if (res.ok) {
+				try {
+					sessionStorage.setItem(storageKey, '1');
+				} catch {
+					/* ignore */
+				}
+			}
+		} catch {
+			/* non-blocking — do not affect page UX */
+		}
+	}
+
+	const inviteCode = readInviteCodeFromUrl();
+	if (inviteCode) {
+		void trackInviteOpen(inviteCode);
+	}
+</script>

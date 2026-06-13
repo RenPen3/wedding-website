@@ -1,13 +1,12 @@
 ---
 type Props = {
-	initialName?: string;
 	inviteCode?: string;
 };
 
-const { initialName = '', inviteCode = '' } = Astro.props;
+const { inviteCode = '' } = Astro.props;
 ---
 
-<div class="rounded-3xl border border-mauve/20 bg-cream/90 p-8 shadow-sm md:p-10">
+<div class="relative overflow-visible rounded-3xl border border-mauve/20 bg-cream/90 p-8 shadow-sm md:p-10">
 	<h3 class="font-serif text-2xl text-plum md:text-3xl">RSVP</h3>
 	<p class="mt-2 text-brown-soft">
 		<span data-strand="en">Please respond by August 1, 2026.</span>
@@ -21,25 +20,66 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 	</div>
 
 	<form id="rsvp-form" class="mt-8 space-y-6">
+		<input type="hidden" id="rsvp-guest-id" name="guestId" value="" />
 		<input type="hidden" id="rsvp-invite-code" name="inviteCode" value={inviteCode} />
-		<div>
-			<label for="rsvp-guest-name" class="block text-sm font-medium text-plum">
-				<span data-strand="en">Your name</span>
-				<span data-strand="es">Tu nombre</span>
+		<input type="hidden" id="rsvp-guest-name" name="name" value="" />
+
+		<div class="relative z-10" id="rsvp-name-search-wrap">
+			<label for="rsvp-name-search" class="block text-sm font-medium text-plum">
+				<span data-strand="en">Find your name</span>
+				<span data-strand="es">Busca tu nombre</span>
 			</label>
 			<input
-				type="text"
-				id="rsvp-guest-name"
-				name="name"
-				required
-				autocomplete="name"
-				value={initialName}
+				type="search"
+				id="rsvp-name-search"
+				autocomplete="off"
+				autocorrect="off"
+				spellcheck="false"
 				class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
-				placeholder="Full name as it appears on your invitation"
-				data-ph-en="Full name as it appears on your invitation"
-				data-ph-es="Nombre completo como aparece en tu invitación"
+				placeholder="Start typing your name…"
+				data-ph-en="Start typing your name…"
+				data-ph-es="Empieza a escribir tu nombre…"
+				role="combobox"
+				aria-autocomplete="list"
+				aria-expanded="false"
+				aria-controls="rsvp-name-dropdown"
 			/>
+			<ul
+				id="rsvp-name-dropdown"
+				class="rsvp-dropdown hidden"
+				role="listbox"
+				aria-label="Matching guests"
+			></ul>
 			<p id="rsvp-name-status" class="mt-2 hidden text-sm" role="status"></p>
+		</div>
+
+		<div id="rsvp-selected-guest" class="hidden grid gap-4 sm:grid-cols-2">
+			<div>
+				<label for="rsvp-first-name" class="block text-sm font-medium text-plum">
+					<span data-strand="en">First name</span>
+					<span data-strand="es">Nombre</span>
+				</label>
+				<input
+					type="text"
+					id="rsvp-first-name"
+					readonly
+					tabindex="-1"
+					class="mt-2 w-full rounded-xl border border-mauve/20 bg-ivory/80 px-4 py-3 text-plum-deep"
+				/>
+			</div>
+			<div>
+				<label for="rsvp-last-name" class="block text-sm font-medium text-plum">
+					<span data-strand="en">Last name</span>
+					<span data-strand="es">Apellido</span>
+				</label>
+				<input
+					type="text"
+					id="rsvp-last-name"
+					readonly
+					tabindex="-1"
+					class="mt-2 w-full rounded-xl border border-mauve/20 bg-ivory/80 px-4 py-3 text-plum-deep"
+				/>
+			</div>
 		</div>
 
 		<div id="rsvp-form-body" class="hidden space-y-6">
@@ -148,10 +188,22 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		message: string;
 	};
 
-	let matchedGuestName = '';
+	type GuestMatch = {
+		id: string;
+		name: string;
+		first_name: string;
+		last_name: string;
+		full_name: string;
+		invite_code: string;
+		maxGuests: number;
+	};
+
+	let selectedGuest: GuestMatch | null = null;
 	let currentMax = 1;
 	let currentCount = 1;
 	let uiReady = false;
+	let searchTimer: ReturnType<typeof setTimeout> | undefined;
+	let activeSearchQuery = '';
 
 	type SubmittedRsvp = {
 		name: string;
@@ -214,7 +266,7 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 			input.className =
 				'mt-1 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2';
 			input.value =
-				existing[i] ?? prev[i] ?? (i === 0 && matchedGuestName ? matchedGuestName : '');
+				existing[i] ?? prev[i] ?? (i === 0 && selectedGuest ? selectedGuest.full_name : '');
 
 			label.append(labelText, input);
 			container.append(label);
@@ -276,7 +328,10 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		if (body) body.classList.toggle('hidden', !show);
 	}
 
-	function setNameStatus(type: 'found' | 'not-found' | 'loading' | 'hidden', message = '') {
+	function setNameStatus(
+		type: 'found' | 'not-found' | 'loading' | 'search-error' | 'hidden',
+		message = ''
+	) {
 		const el = document.getElementById('rsvp-name-status');
 		if (!el) return;
 
@@ -287,9 +342,177 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 
 		el.classList.remove('hidden', 'text-olive', 'text-mauve-dark', 'text-brown-muted');
 		if (type === 'found') el.classList.add('text-olive');
-		else if (type === 'not-found') el.classList.add('text-mauve-dark');
+		else if (type === 'not-found' || type === 'search-error') el.classList.add('text-mauve-dark');
 		else el.classList.add('text-brown-muted');
 		el.textContent = message;
+	}
+
+	function closeDropdown() {
+		const dropdown = document.getElementById('rsvp-name-dropdown');
+		const searchInput = document.getElementById('rsvp-name-search') as HTMLInputElement | null;
+		dropdown?.classList.add('hidden');
+		searchInput?.setAttribute('aria-expanded', 'false');
+	}
+
+	function clearGuestSelection() {
+		selectedGuest = null;
+		showFormBody(false);
+
+		const guestIdInput = document.getElementById('rsvp-guest-id') as HTMLInputElement | null;
+		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
+		const inviteInput = document.getElementById('rsvp-invite-code') as HTMLInputElement | null;
+		const firstName = document.getElementById('rsvp-first-name') as HTMLInputElement | null;
+		const lastName = document.getElementById('rsvp-last-name') as HTMLInputElement | null;
+		const selectedWrap = document.getElementById('rsvp-selected-guest');
+
+		if (guestIdInput) guestIdInput.value = '';
+		if (nameInput) nameInput.value = '';
+		if (firstName) firstName.value = '';
+		if (lastName) lastName.value = '';
+		selectedWrap?.classList.add('hidden');
+		if (inviteInput) {
+			inviteInput.value = inviteInput.dataset.urlCode ?? '';
+		}
+	}
+
+	function renderDropdown(guests: GuestMatch[]) {
+		const dropdown = document.getElementById('rsvp-name-dropdown');
+		const searchInput = document.getElementById('rsvp-name-search') as HTMLInputElement | null;
+		if (!dropdown || !searchInput) return;
+
+		dropdown.innerHTML = '';
+
+		if (guests.length === 0) {
+			closeDropdown();
+			setNameStatus(
+				'not-found',
+				pick({
+					en: 'No matching guest found. Please check your spelling.',
+					es: 'No se encontró un invitado. Por favor verifica la ortografía.',
+				})
+			);
+			return;
+		}
+
+		for (const guest of guests) {
+			const li = document.createElement('li');
+			li.setAttribute('role', 'presentation');
+
+			const btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'rsvp-dropdown__option';
+			btn.setAttribute('role', 'option');
+			btn.textContent = guest.full_name;
+			btn.addEventListener('click', () => {
+				void selectGuest(guest);
+			});
+
+			li.append(btn);
+			dropdown.append(li);
+		}
+
+		dropdown.classList.remove('hidden');
+		searchInput.setAttribute('aria-expanded', 'true');
+		setNameStatus('hidden');
+	}
+
+	async function searchGuests(query: string) {
+		const trimmed = query.trim();
+		activeSearchQuery = trimmed;
+
+		if (trimmed.length < 2) {
+			closeDropdown();
+			setNameStatus('hidden');
+			return;
+		}
+
+		setNameStatus('loading', pick({ en: 'Searching…', es: 'Buscando…' }));
+
+		try {
+			const res = await fetch(`/api/guest-search?q=${encodeURIComponent(trimmed)}`);
+			const data = (await res.json()) as { ok?: boolean; guests?: GuestMatch[]; error?: string };
+
+			if (activeSearchQuery !== trimmed) return;
+
+			if (!res.ok || !data.ok) {
+				closeDropdown();
+				setNameStatus(
+					'search-error',
+					data.error ??
+						pick({
+							en: 'Could not search guest list. Please try again.',
+							es: 'No se pudo buscar la lista de invitados. Por favor intenta de nuevo.',
+						})
+				);
+				console.error('[RSVPForm] guest search failed:', data.error);
+				return;
+			}
+
+			renderDropdown(data.guests ?? []);
+			console.log('[RSVPForm] search query:', trimmed, 'matches:', data.guests?.length ?? 0);
+		} catch (err) {
+			if (activeSearchQuery !== trimmed) return;
+			closeDropdown();
+			setNameStatus(
+				'search-error',
+				pick({
+					en: 'Could not search guest list. Please try again.',
+					es: 'No se pudo buscar la lista de invitados. Por favor intenta de nuevo.',
+				})
+			);
+			console.error('[RSVPForm] guest search error:', err);
+		}
+	}
+
+	async function selectGuest(guest: GuestMatch) {
+		selectedGuest = guest;
+		currentMax = Math.max(1, guest.maxGuests);
+		currentCount = currentMax;
+
+		console.log('[RSVPForm] selected guest:', guest.full_name, 'maxGuests:', guest.maxGuests);
+
+		const searchInput = document.getElementById('rsvp-name-search') as HTMLInputElement | null;
+		const guestIdInput = document.getElementById('rsvp-guest-id') as HTMLInputElement | null;
+		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
+		const inviteInput = document.getElementById('rsvp-invite-code') as HTMLInputElement | null;
+		const firstName = document.getElementById('rsvp-first-name') as HTMLInputElement | null;
+		const lastName = document.getElementById('rsvp-last-name') as HTMLInputElement | null;
+		const selectedWrap = document.getElementById('rsvp-selected-guest');
+
+		if (searchInput) searchInput.value = guest.full_name;
+		if (guestIdInput) guestIdInput.value = guest.id;
+		if (nameInput) nameInput.value = guest.full_name;
+		if (inviteInput && guest.invite_code) inviteInput.value = guest.invite_code;
+		if (firstName) firstName.value = guest.first_name ?? '';
+		if (lastName) lastName.value = guest.last_name ?? '';
+		selectedWrap?.classList.remove('hidden');
+
+		closeDropdown();
+		showFormBody(true);
+		setNameStatus(
+			'found',
+			currentMax === 1 ?
+				pick({
+					en: `Welcome, ${guest.full_name}! Your invitation includes 1 guest.`,
+					es: `¡Bienvenido/a, ${guest.full_name}! Tu invitación incluye 1 invitado.`,
+				})
+			:	pick({
+					en: `Welcome, ${guest.full_name}! Your invitation includes ${currentMax} guests.`,
+					es: `¡Bienvenido/a, ${guest.full_name}! Tu invitación incluye ${currentMax} invitados.`,
+				})
+		);
+
+		try {
+			const res = await fetch(`/api/guest-lookup?id=${encodeURIComponent(guest.id)}`);
+			const data = (await res.json()) as { ok?: boolean; rsvp?: LookupRsvp | null };
+			if (res.ok && data.ok) {
+				applyExistingRsvp(data.rsvp ?? null, currentMax);
+			} else {
+				applyExistingRsvp(null, currentMax);
+			}
+		} catch {
+			applyExistingRsvp(null, currentMax);
+		}
 	}
 
 	function applyExistingRsvp(rsvp: LookupRsvp | null, maxGuests: number) {
@@ -315,95 +538,42 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		}
 	}
 
-	async function lookupGuest(name: string) {
-		const trimmed = name.trim();
-		if (!trimmed) {
-			showFormBody(false);
-			setNameStatus('hidden');
-			return;
-		}
-
-		setNameStatus(
-			'loading',
-			pick({ en: 'Looking up your invitation…', es: 'Buscando tu invitación…' })
-		);
-
-		try {
-			const res = await fetch(`/api/guest-lookup?name=${encodeURIComponent(trimmed)}`);
-			const data = (await res.json()) as {
-				ok?: boolean;
-				guest?: { name: string; maxGuests: number };
-				rsvp?: LookupRsvp | null;
-			};
-
-			if (!res.ok || !data.ok || !data.guest) {
-				showFormBody(false);
-				setNameStatus(
-					'not-found',
-					pick({
-						en: 'We could not find that name. Please check the spelling and try again.',
-						es: 'No encontramos ese nombre. Por favor verifica la ortografía e intenta de nuevo.',
-					})
-				);
-				return;
-			}
-
-			matchedGuestName = data.guest.name;
-			currentMax = Math.max(1, data.guest.maxGuests);
-			currentCount = currentMax;
-
-			const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
-			if (nameInput && nameInput.value.trim() !== data.guest.name) {
-				nameInput.value = data.guest.name;
-			}
-
-			showFormBody(true);
-			setNameStatus(
-				'found',
-				currentMax === 1 ?
-					pick({
-						en: `Welcome, ${data.guest.name}! Your invitation includes 1 guest.`,
-						es: `¡Bienvenido/a, ${data.guest.name}! Tu invitación incluye 1 invitado.`,
-					})
-				:	pick({
-						en: `Welcome, ${data.guest.name}! Your invitation includes ${currentMax} guests.`,
-						es: `¡Bienvenido/a, ${data.guest.name}! Tu invitación incluye ${currentMax} invitados.`,
-					})
-			);
-
-			applyExistingRsvp(data.rsvp ?? null, currentMax);
-		} catch {
-			showFormBody(false);
-			setNameStatus(
-				'not-found',
-				pick({
-					en: 'Something went wrong. Please try again.',
-					es: 'Algo salió mal. Por favor intenta de nuevo.',
-				})
-			);
-		}
-	}
-
 	function initUI() {
 		if (uiReady) {
 			syncFormUI();
 			return;
 		}
 
-		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
+		const searchInput = document.getElementById('rsvp-name-search') as HTMLInputElement | null;
+		const inviteInput = document.getElementById('rsvp-invite-code') as HTMLInputElement | null;
+		const searchWrap = document.getElementById('rsvp-name-search-wrap');
 		const decrease = document.getElementById('rsvp-count-decrease');
 		const increase = document.getElementById('rsvp-count-increase');
 		const attendingRadios = document.querySelectorAll<HTMLInputElement>('input[name="attending"]');
 
-		let lookupTimer: ReturnType<typeof setTimeout> | undefined;
-		nameInput?.addEventListener('input', () => {
-			clearTimeout(lookupTimer);
-			lookupTimer = setTimeout(() => lookupGuest(nameInput.value), 450);
+		if (inviteInput?.value) {
+			inviteInput.dataset.urlCode = inviteInput.value;
+		}
+
+		searchInput?.addEventListener('input', () => {
+			if (!searchInput) return;
+			if (selectedGuest && searchInput.value.trim() !== selectedGuest.full_name) {
+				clearGuestSelection();
+			}
+			clearTimeout(searchTimer);
+			searchTimer = setTimeout(() => searchGuests(searchInput.value), 300);
 		});
 
-		nameInput?.addEventListener('blur', () => {
-			clearTimeout(lookupTimer);
-			void lookupGuest(nameInput.value);
+		searchInput?.addEventListener('focus', () => {
+			if (searchInput.value.trim().length >= 2) {
+				void searchGuests(searchInput.value);
+			}
+		});
+
+		document.addEventListener('click', (e) => {
+			if (!searchWrap?.contains(e.target as Node)) {
+				closeDropdown();
+			}
 		});
 
 		decrease?.addEventListener('click', () => {
@@ -419,10 +589,6 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		});
 
 		attendingRadios.forEach((radio) => radio.addEventListener('change', syncFormUI));
-
-		if (nameInput?.value.trim()) {
-			void lookupGuest(nameInput.value);
-		}
 
 		uiReady = true;
 	}
@@ -498,9 +664,9 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 	}
 
 	function refreshI18n() {
-		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
-		if (nameInput?.dataset) {
-			nameInput.placeholder = nameInput.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
+		const searchInput = document.getElementById('rsvp-name-search') as HTMLInputElement | null;
+		if (searchInput?.dataset) {
+			searchInput.placeholder = searchInput.dataset[isEs() ? 'phEs' : 'phEn'] ?? '';
 		}
 		const message = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
 		if (message?.dataset) {
@@ -526,7 +692,11 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		e.preventDefault();
 		if (!statusEl) return;
 
-		const name = matchedGuestName || String(new FormData(form).get('name') ?? '').trim();
+		const name =
+			selectedGuest?.full_name ||
+			String((document.getElementById('rsvp-guest-name') as HTMLInputElement | null)?.value ?? '').trim();
+		const guestId = selectedGuest?.id ||
+			String((document.getElementById('rsvp-guest-id') as HTMLInputElement | null)?.value ?? '').trim();
 		const attending = isAttending();
 		let guestCount = Number(
 			(document.getElementById('rsvp-count') as HTMLInputElement | null)?.value ?? 1
@@ -534,6 +704,16 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		const guestNames = attending ? collectGuestNames() : [];
 		const message = String(new FormData(form).get('message') ?? '').trim();
 		const inviteCode = String(new FormData(form).get('inviteCode') ?? '').trim();
+
+		if (!selectedGuest || !guestId) {
+			statusEl.classList.remove('hidden', 'text-olive');
+			statusEl.classList.add('text-mauve-dark');
+			statusEl.textContent = pick({
+				en: 'Please select your name from the list.',
+				es: 'Por favor selecciona tu nombre de la lista.',
+			});
+			return;
+		}
 
 		if (!name) {
 			statusEl.classList.remove('hidden', 'text-olive');
@@ -549,10 +729,16 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 			if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > currentMax) {
 				statusEl.classList.remove('hidden', 'text-olive');
 				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent = pick({
-					en: `Please choose between 1 and ${currentMax} guests.`,
-					es: `Por favor elige entre 1 y ${currentMax} invitados.`,
-				});
+				statusEl.textContent =
+					guestCount > currentMax ?
+						pick({
+							en: `Your invite allows up to ${currentMax} guest(s). Please remove extra names.`,
+							es: `Tu invitación permite hasta ${currentMax} invitado(s). Por favor elimina nombres extra.`,
+						})
+					:	pick({
+							en: `Please choose between 1 and ${currentMax} guests.`,
+							es: `Por favor elige entre 1 y ${currentMax} invitados.`,
+						});
 				return;
 			}
 			if (guestNames.length !== guestCount || guestNames.some((n) => !n)) {
@@ -571,11 +757,39 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
 		statusEl.textContent = pick({ en: 'Sending…', es: 'Enviando…' });
 
+		const firstName =
+			selectedGuest.first_name ??
+			String((document.getElementById('rsvp-first-name') as HTMLInputElement | null)?.value ?? '').trim();
+		const lastName =
+			selectedGuest.last_name ??
+			String((document.getElementById('rsvp-last-name') as HTMLInputElement | null)?.value ?? '').trim();
+
+		const totalAttending = attending ? guestCount : 0;
+		console.log(
+			'[RSVPForm] submitting RSVP:',
+			name,
+			'maxGuests:',
+			selectedGuest.maxGuests,
+			'total_attending:',
+			totalAttending
+		);
+
 		try {
 			const res = await fetch('/api/rsvp', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name, attending, guestCount, guestNames, message, inviteCode }),
+				body: JSON.stringify({
+					name,
+					first_name: firstName,
+					last_name: lastName,
+					guestId,
+					maxGuests: selectedGuest.maxGuests,
+					attending,
+					guestCount,
+					guestNames,
+					message,
+					inviteCode: selectedGuest.invite_code || inviteCode,
+				}),
 			});
 			const data = (await res.json()) as { ok?: boolean; error?: string };
 
@@ -600,3 +814,44 @@ const { initialName = '', inviteCode = '' } = Astro.props;
 		}
 	});
 </script>
+
+<style is:global>
+	.rsvp-dropdown {
+		position: relative;
+		z-index: 10;
+		margin-top: 0.5rem;
+		max-height: 16rem;
+		width: 100%;
+		overflow-x: hidden;
+		overflow-y: auto;
+		list-style: none;
+		padding: 0.625rem;
+		border-radius: 0.875rem;
+		border: 1px solid rgb(155 123 142 / 0.25);
+		background: #fff;
+		box-shadow: 0 4px 16px rgb(42 26 50 / 0.1);
+		color: #000001;
+	}
+
+	.rsvp-dropdown__option {
+		display: block;
+		width: 100%;
+		min-height: 2.75rem;
+		padding: 0.75rem 1rem;
+		text-align: left;
+		font-size: 0.9375rem;
+		color: #000001;
+		background: transparent;
+		border: none;
+		border-radius: 0.625rem;
+		cursor: pointer;
+		transition: background-color 0.15s ease;
+	}
+
+	.rsvp-dropdown__option:hover,
+	.rsvp-dropdown__option:focus-visible {
+		background: rgb(250 246 240);
+		color: #000001;
+		outline: none;
+	}
+</style>
