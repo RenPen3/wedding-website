@@ -10,6 +10,16 @@ const florals = [
 	{ src: '/story/memory-lane/floral-3.png', class: 'memory-lane__floral-img--3' },
 	{ src: '/story/memory-lane/floral-4.png', class: 'memory-lane__floral-img--4' },
 ];
+
+const backgroundImages = [
+	{ src: '/images/memory-bg-1.jpg', class: 'bg-1' },
+	{ src: '/images/memory-bg-2.jpg', class: 'bg-2' },
+	{ src: '/images/memory-bg-3.jpg', class: 'bg-3' },
+	{ src: '/images/memory-bg-4.jpg', class: 'bg-4' },
+	{ src: '/images/memory-bg-5.jpg', class: 'bg-5' },
+	{ src: '/images/memory-bg-6.jpg', class: 'bg-6' },
+	{ src: '/images/memory-bg-7.jpg', class: 'bg-7' },
+];
 ---
 
 <section
@@ -17,6 +27,22 @@ const florals = [
 	aria-labelledby="memory-lane-heading"
 >
 	<div class="memory-lane__backdrop" aria-hidden="true"></div>
+
+	<div class="memory-bg-images" aria-hidden="true">
+		{
+			backgroundImages.map((image) => (
+				<img
+					src={image.src}
+					alt=""
+					width="800"
+					height="800"
+					loading="lazy"
+					decoding="async"
+					class={`memory-bg-img ${image.class}`}
+				/>
+			))
+		}
+	</div>
 
 	<div class="memory-lane__florals" aria-hidden="true">
 		{
@@ -117,6 +143,7 @@ const florals = [
 	.memory-lane__backdrop {
 		position: absolute;
 		inset: 0;
+		z-index: 0;
 		background:
 			radial-gradient(ellipse 80% 50% at 50% 0%, rgb(155 123 142 / 0.12), transparent 55%),
 			radial-gradient(ellipse 60% 40% at 20% 80%, rgb(107 115 73 / 0.08), transparent 50%),
@@ -136,6 +163,235 @@ const florals = [
 		transform: scale(1.15);
 	}
 
+	.memory-bg-images {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	@media (max-width: 767px) {
+		.memory-bg-images {
+			display: none;
+		}
+	}
+
+	.memory-bg-img {
+		position: absolute;
+		display: block;
+		object-fit: cover;
+		border-radius: 16px;
+		opacity: 0.08;
+		pointer-events: none;
+		filter: blur(2px);
+		width: clamp(11.25rem, 52vw, 15rem);
+		height: clamp(11.25rem, 52vw, 15rem);
+	}
+
+	/* Left edge — upper */
+	.memory-bg-img.bg-1 {
+		top: 33%;
+		left: 0;
+		right: auto;
+		opacity: 0.09;
+		transform: translateX(-8%) rotate(-4deg);
+	}
+
+	/* Right edge — upper-mid */
+	.memory-bg-img.bg-2 {
+		top: 52%;
+		right: 0;
+		left: auto;
+		opacity: 0.08;
+		transform: translateX(6%) rotate(3deg);
+	}
+
+	/* Left edge — lower */
+	.memory-bg-img.bg-3 {
+		display: none;
+		top: 78%;
+		left: 0;
+		right: auto;
+		opacity: 0.08;
+		transform: translateX(-7%) rotate(-2deg);
+	}
+
+	/* Left edge — mid (desktop) */
+	.memory-bg-img.bg-4 {
+		display: none;
+		top: 74%;
+		left: 0;
+		bottom: auto;
+		right: auto;
+		opacity: 0.08;
+		transform: translateX(-8%) rotate(5deg);
+	}
+
+	/* Right edge — mid (desktop) */
+	.memory-bg-img.bg-5 {
+		display: none;
+		top: 46%;
+		right: 0;
+		left: auto;
+		opacity: 0.08;
+		transform: translateX(6%) rotate(-5deg);
+	}
+
+	/* Right edge — lower-mid (desktop) */
+	.memory-bg-img.bg-6 {
+		display: none;
+		top: 80%;
+		right: 0;
+		left: auto;
+		bottom: auto;
+		opacity: 0.07;
+		transform: translateX(5%) rotate(2deg);
+	}
+
+	/* Left edge — bottom (desktop) */
+	.memory-bg-img.bg-7 {
+		display: none;
+		bottom: 0;
+		left: 0;
+		right: auto;
+		top: auto;
+		opacity: 0.08;
+		transform: translateX(-5%) rotate(-3deg);
+	}
+
+	@media (min-width: 480px) {
+		.memory-bg-img.bg-3 {
+			display: block;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.memory-bg-img {
+			filter: blur(1.5px);
+			width: clamp(16.25rem, 22vw, 23.75rem);
+			height: clamp(16.25rem, 22vw, 23.75rem);
+		}
+
+		.memory-bg-img.bg-4,
+		.memory-bg-img.bg-5,
+		.memory-bg-img.bg-6,
+		.memory-bg-img.bg-7 {
+			display: block;
+		}
+
+		.memory-bg-img.bg-1 {
+			top: 26%;
+			left: 0;
+			width: clamp(16.25rem, 20vw, 20rem);
+			height: clamp(16.25rem, 20vw, 20rem);
+			opacity: 0.1;
+			transform: translateX(-10%) rotate(-4deg);
+		}
+
+		.memory-bg-img.bg-2 {
+			top: 34%;
+			right: 0;
+			left: auto;
+			width: clamp(17.5rem, 21vw, 21.25rem);
+			height: clamp(17.5rem, 21vw, 21.25rem);
+			opacity: 0.11;
+			transform: translateX(9%) rotate(3deg);
+		}
+
+		.memory-bg-img.bg-4 {
+			top: 48%;
+			left: 0;
+			bottom: auto;
+			right: auto;
+			width: clamp(17.5rem, 21vw, 22.5rem);
+			height: clamp(17.5rem, 21vw, 22.5rem);
+			opacity: 0.1;
+			transform: translateX(-11%) rotate(5deg);
+		}
+
+		.memory-bg-img.bg-5 {
+			top: 56%;
+			right: 0;
+			left: auto;
+			width: clamp(16.25rem, 19vw, 19.5rem);
+			height: clamp(16.25rem, 19vw, 19.5rem);
+			opacity: 0.09;
+			transform: translateX(8%) rotate(-5deg);
+		}
+
+		.memory-bg-img.bg-3 {
+			top: 66%;
+			left: 0;
+			right: auto;
+			width: clamp(16.25rem, 20vw, 20rem);
+			height: clamp(16.25rem, 20vw, 20rem);
+			opacity: 0.08;
+			transform: translateX(-10%) rotate(-2deg);
+		}
+
+		.memory-bg-img.bg-6 {
+			top: 76%;
+			right: 0;
+			left: auto;
+			bottom: auto;
+			width: clamp(16.25rem, 18vw, 18.75rem);
+			height: clamp(16.25rem, 18vw, 18.75rem);
+			opacity: 0.08;
+			transform: translateX(9%) rotate(2deg);
+		}
+
+		.memory-bg-img.bg-7 {
+			top: auto;
+			bottom: 0;
+			left: 0;
+			right: auto;
+			width: clamp(16.25rem, 19vw, 19rem);
+			height: clamp(16.25rem, 19vw, 19rem);
+			opacity: 0.1;
+			transform: translateX(-7%) rotate(-3deg);
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.memory-bg-img.bg-1 {
+			top: 24%;
+			transform: translateX(-12%) rotate(-4deg);
+		}
+
+		.memory-bg-img.bg-2 {
+			top: 32%;
+			transform: translateX(10%) rotate(3deg);
+		}
+
+		.memory-bg-img.bg-4 {
+			top: 46%;
+			transform: translateX(-13%) rotate(5deg);
+		}
+
+		.memory-bg-img.bg-5 {
+			top: 54%;
+			transform: translateX(9%) rotate(-5deg);
+		}
+
+		.memory-bg-img.bg-3 {
+			top: 64%;
+			transform: translateX(-11%) rotate(-2deg);
+		}
+
+		.memory-bg-img.bg-6 {
+			top: 74%;
+			transform: translateX(10%) rotate(2deg);
+		}
+
+		.memory-bg-img.bg-7 {
+			bottom: 0;
+			left: 0;
+			right: auto;
+			transform: translateX(-8%) rotate(-3deg);
+		}
+	}
+
 	.memory-lane__florals {
 		position: absolute;
 		inset: 0;
@@ -148,65 +404,124 @@ const florals = [
 		position: absolute;
 		display: block;
 		height: auto;
+		max-width: 100%;
 		object-fit: contain;
 	}
 
-	/* L-corner — top left */
+	/* Mobile — smaller corners, side florals tucked to edges */
 	.memory-lane__floral-img--1 {
-		top: 0;
+		top: 0.25rem;
 		left: 0;
-		width: clamp(11rem, 28vw, 20rem);
-		transform: translate(-4%, -3%);
+		width: clamp(4.75rem, 34vw, 7.5rem);
+			rotate: 110deg;
+			transform: translate(-10%, 0) ;
 	}
 
-	/* Curved branch — top right */
 	.memory-lane__floral-img--2 {
-		top: 0;
+		top: 0.25rem;
 		right: 0;
-		width: clamp(12rem, 30vw, 22rem);
-		transform: scaleX(-1) translate(-3%, -2%);
+		width: clamp(4.75rem, 34vw, 7.5rem);
+		transform: scaleX(-1) translate(-10%, 0);
 	}
 
-	/* Tall spray — left edge, mid timeline */
 	.memory-lane__floral-img--3 {
-		left: 0;
-		top: 38%;
-		width: clamp(9rem, 20vw, 15rem);
-		transform: translateX(-12%);
+		display: none;
 	}
 
-	/* Bouquet — bottom right */
 	.memory-lane__floral-img--4 {
 		right: 0;
 		bottom: 0;
-		width: clamp(11rem, 26vw, 19rem);
-		transform: translate(5%, 8%);
+		width: clamp(4.5rem, 32vw, 7rem);
+		transform: translate(8%, 6%);
+	}
+
+	@media (min-width: 480px) {
+		.memory-lane__floral-img--2 {
+			width: clamp(6rem, 30vw, 7rem);
+			transform: scaleX(-1) translate(8%, 10%) rotate(20deg);
+		}
+		.memory-lane__floral-img--1{
+			rotate: 110deg;
+
+		}
+
+	
+		.memory-lane__floral-img--3 {
+			display: block;
+			left: 0;
+			top: auto;
+			bottom: 18%;
+			width: clamp(6.5rem, 26vw, 10rem);
+			transform: translateX(-28%);
+		}
+
+		.memory-lane__floral-img--4 {
+			width: clamp(5.5rem, 28vw, 8.5rem);
+		}
+	}
+
+	@media (min-width: 640px) {
+		.memory-lane__floral-img--1 {
+			width: clamp(7rem, 26vw, 10rem);
+			transform: translate(6%, -2%) rotate(0deg);
+
+		}
+
+		.memory-lane__floral-img--2 {
+			width: clamp(7.5rem, 28vw, 10.5rem);
+			transform: scaleX(-1) translate(-6%, -2%);
+		}
+
+		.memory-lane__floral-img--3 {
+			top: 40%;
+			bottom: auto;
+			left: 0;
+			width: clamp(8rem, 22vw, 13rem);
+			transform: translateX(-24%);
+		}
+
+		.memory-lane__floral-img--4 {
+			width: clamp(7rem, 24vw, 11rem);
+		}
 	}
 
 	@media (min-width: 768px) {
 		.memory-lane__floral-img--1 {
+			top: 0;
 			width: clamp(13rem, 24vw, 22rem);
+			transform: translate(-4%, -3%) rotate(0deg);
 		}
 
 		.memory-lane__floral-img--2 {
+			top: 0;
 			width: clamp(14rem, 26vw, 24rem);
+			transform: scaleX(-1) translate(-3%, -2%);
 		}
 
 		.memory-lane__floral-img--3 {
 			top: 36%;
-			width: clamp(10rem, 16vw, 17rem);
-			transform: translateX(-8%);
+			left: 0;
+			width: clamp(12rem, 20vw, 20rem);
+			transform: translateX(-18%);
 		}
 
 		.memory-lane__floral-img--4 {
 			width: clamp(13rem, 22vw, 21rem);
 			bottom: 1.5rem;
+			transform: translate(5%, 8%);
 		}
 	}
 
 	@media (min-width: 1024px) {
+
+		.memory-lane__floral-img--1 {
+			top: 0;
+			width: clamp(13rem, 24vw, 22rem);
+			transform: translate(4%, 3%) rotate(0deg);
+		}
 		.memory-lane__floral-img--3 {
-			left: max(0.5rem, calc(50% - 38rem));
+			left: max(0rem, calc(50% - 44rem));
+			transform: translateX(39%) rotate(-90deg);
 		}
 
 		.memory-lane__floral-img--4 {

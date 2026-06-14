@@ -1,5 +1,5 @@
 ---
-import { REGISTRY_URL } from '../lib/site-urls';
+import { HONEYMOON_FUND_URL, REGISTRY_URL } from '../lib/site-urls';
 
 type Props = {
 	homeStyle?: boolean;
@@ -72,9 +72,7 @@ const { homeStyle = false } = Astro.props;
 			</li>
 			<li>
 				<a
-					href={REGISTRY_URL}
-					target="_blank"
-					rel="noopener noreferrer"
+					href={HONEYMOON_FUND_URL}
 					class="text-sm text-brown-muted underline-offset-4 hover:text-olive hover:underline"
 				>
 					<span data-strand="en">Honeymoon fund</span>
