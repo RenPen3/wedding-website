@@ -147,6 +147,15 @@ const { showHeader = true, teaser = false, homeStyle = false } = Astro.props;
 						<p id="photo-upload-status" class="mt-4 hidden text-sm" role="status"></p>
 
 						<button
+							type="button"
+							id="photo-upload-reset"
+							class="mt-3 hidden w-full rounded-full border border-mauve/30 bg-white px-6 py-2.5 text-sm font-medium text-plum transition hover:border-olive hover:text-olive"
+						>
+							<span data-strand="en">Choose Another Photo</span>
+							<span data-strand="es">Elegir otra foto</span>
+						</button>
+
+						<button
 							type="submit"
 							id="photo-upload-submit"
 							class="mt-6 w-full rounded-full bg-plum px-6 py-3.5 font-medium text-cream transition hover:bg-mauve-dark disabled:cursor-not-allowed disabled:opacity-50"

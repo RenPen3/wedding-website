@@ -43,11 +43,12 @@ function clearUploadStatusTimeout() {
 	}
 }
 
-function showUploadError(statusEl: HTMLElement, message: string) {
+function showUploadError(statusEl: HTMLElement, message: string, persist = false) {
 	clearUploadStatusTimeout();
 	statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
 	statusEl.classList.add('text-red-700');
 	statusEl.textContent = message;
+	if (persist) return;
 	uploadStatusTimeout = window.setTimeout(() => {
 		statusEl.classList.add('hidden');
 		statusEl.classList.remove('text-red-700');
@@ -230,15 +231,79 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 	const preview = document.getElementById('photo-upload-preview') as HTMLImageElement | null;
 	const statusEl = document.getElementById('photo-upload-status');
 	const submitBtn = document.getElementById('photo-upload-submit') as HTMLButtonElement | null;
+	const resetBtn = document.getElementById('photo-upload-reset') as HTMLButtonElement | null;
+
+	let previewObjectUrl: string | null = null;
+
+	const revokePreviewUrl = () => {
+		if (previewObjectUrl) {
+			URL.revokeObjectURL(previewObjectUrl);
+			previewObjectUrl = null;
+		}
+	};
+
+	const updateResetButtonVisibility = () => {
+		if (!resetBtn) return;
+		const hasPreview = Boolean(previewWrap && !previewWrap.classList.contains('hidden'));
+		const hasError = Boolean(
+			statusEl &&
+				!statusEl.classList.contains('hidden') &&
+				statusEl.classList.contains('text-red-700')
+		);
+		const hasFile = Boolean(fileInput?.files?.[0]);
+		resetBtn.classList.toggle('hidden', !(hasPreview || hasError || hasFile));
+	};
+
+	const clearStatus = () => {
+		if (!statusEl) return;
+		clearUploadStatusTimeout();
+		statusEl.classList.add('hidden');
+		statusEl.classList.remove('text-red-700', 'text-olive', 'text-mauve-dark');
+		statusEl.textContent = '';
+	};
+
+	const setPreview = (file: File) => {
+		if (!preview || !previewWrap) return;
+		revokePreviewUrl();
+		previewObjectUrl = URL.createObjectURL(file);
+		preview.src = previewObjectUrl;
+		previewWrap.classList.remove('hidden');
+		updateResetButtonVisibility();
+	};
+
+	const resetUpload = () => {
+		revokePreviewUrl();
+		if (fileInput) fileInput.value = '';
+		previewWrap?.classList.add('hidden');
+		preview?.removeAttribute('src');
+		clearStatus();
+		if (submitBtn) submitBtn.disabled = false;
+		updateResetButtonVisibility();
+	};
+
+	resetBtn?.addEventListener('click', resetUpload);
 
 	fileInput?.addEventListener('change', () => {
+		if (!statusEl || !submitBtn) return;
+
 		const file = fileInput.files?.[0];
-		if (!file || !preview || !previewWrap) {
-			previewWrap?.classList.add('hidden');
+		if (!file) {
+			resetUpload();
 			return;
 		}
-		preview.src = URL.createObjectURL(file);
-		previewWrap.classList.remove('hidden');
+
+		clearStatus();
+		setPreview(file);
+
+		if (file.size > MAX_FILE_SIZE) {
+			showUploadError(statusEl, pick(FILE_TOO_LARGE), true);
+			submitBtn.disabled = true;
+			updateResetButtonVisibility();
+			return;
+		}
+
+		submitBtn.disabled = false;
+		updateResetButtonVisibility();
 	});
 
 	form.addEventListener('submit', async (e) => {
@@ -255,11 +320,14 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 					es: 'Por favor elige una foto primero.',
 				})
 			);
+			updateResetButtonVisibility();
 			return;
 		}
 
 		if (file.size > MAX_FILE_SIZE) {
-			showUploadError(statusEl, pick(FILE_TOO_LARGE));
+			showUploadError(statusEl, pick(FILE_TOO_LARGE), true);
+			submitBtn.disabled = true;
+			updateResetButtonVisibility();
 			return;
 		}
 
@@ -267,6 +335,7 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 		clearUploadStatusTimeout();
 		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark', 'text-red-700');
 		statusEl.textContent = pick({ en: 'Uploading…', es: 'Subiendo…' });
+		updateResetButtonVisibility();
 
 		try {
 			const res = await fetch('/api/photos', { method: 'POST', body: fd });
@@ -280,7 +349,9 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 				data = (await res.json()) as typeof data;
 			} catch {
 				if (res.status === 413) {
-					showUploadError(statusEl, pick(FILE_TOO_LARGE));
+					showUploadError(statusEl, pick(FILE_TOO_LARGE), true);
+					submitBtn.disabled = true;
+					updateResetButtonVisibility();
 					return;
 				}
 				throw new Error('network');
@@ -288,6 +359,7 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 
 			if (!res.ok || !data.ok || !data.photo) {
 				showUploadError(statusEl, mapUploadError(data.error));
+				updateResetButtonVisibility();
 				return;
 			}
 
@@ -295,16 +367,19 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 				saveUploadToken(data.photo.id, data.photo.uploadToken);
 			}
 
+			revokePreviewUrl();
 			form.reset();
 			previewWrap?.classList.add('hidden');
-			if (preview) preview.removeAttribute('src');
+			preview?.removeAttribute('src');
 			clearUploadStatusTimeout();
 			statusEl.classList.remove('text-red-700', 'text-mauve-dark');
 			statusEl.classList.add('text-olive');
+			statusEl.classList.remove('hidden');
 			statusEl.textContent = pick({
 				en: 'Thank you — your photo has been added.',
 				es: 'Gracias — tu foto ha sido agregada.',
 			});
+			updateResetButtonVisibility();
 			await onUploaded();
 		} catch {
 			showUploadError(
@@ -314,8 +389,12 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 					es: 'Error de red. Por favor intenta de nuevo.',
 				})
 			);
+			updateResetButtonVisibility();
 		} finally {
 			submitBtn.disabled = false;
+			if (fileInput?.files?.[0] && fileInput.files[0].size > MAX_FILE_SIZE) {
+				submitBtn.disabled = true;
+			}
 		}
 	});
 }
