@@ -10,6 +10,51 @@ export type GalleryPhoto = {
 type Lang = 'en' | 'es';
 
 const TOKEN_STORAGE_KEY = 'wedding-uploaded-photos';
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+const FILE_TOO_LARGE = {
+	en: 'Image is too large. Please upload a photo under 5MB.',
+	es: 'La imagen es demasiado grande. Sube una foto de menos de 5 MB.',
+} satisfies Record<Lang, string>;
+
+function isFileSizeError(message: string): boolean {
+	return /5\s*mb|too large|smaller|file size|demasiado grande|menos de 5/i.test(message);
+}
+
+function mapUploadError(error?: string): string {
+	if (error && isFileSizeError(error)) {
+		return pick(FILE_TOO_LARGE);
+	}
+	return (
+		error ??
+		pick({
+			en: 'Upload failed. Please try again.',
+			es: 'La subida falló. Por favor intenta de nuevo.',
+		})
+	);
+}
+
+let uploadStatusTimeout: number | null = null;
+
+function clearUploadStatusTimeout() {
+	if (uploadStatusTimeout !== null) {
+		window.clearTimeout(uploadStatusTimeout);
+		uploadStatusTimeout = null;
+	}
+}
+
+function showUploadError(statusEl: HTMLElement, message: string) {
+	clearUploadStatusTimeout();
+	statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
+	statusEl.classList.add('text-red-700');
+	statusEl.textContent = message;
+	uploadStatusTimeout = window.setTimeout(() => {
+		statusEl.classList.add('hidden');
+		statusEl.classList.remove('text-red-700');
+		statusEl.textContent = '';
+		uploadStatusTimeout = null;
+	}, 6000);
+}
 
 function isEs(): boolean {
 	return document.documentElement.classList.contains('lang-es');
@@ -203,35 +248,46 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 		const fd = new FormData(form);
 		const file = fd.get('photo');
 		if (!(file instanceof File) || file.size === 0) {
-			statusEl.classList.remove('hidden', 'text-olive');
-			statusEl.classList.add('text-mauve-dark');
-			statusEl.textContent = pick({
-				en: 'Please choose a photo first.',
-				es: 'Por favor elige una foto primero.',
-			});
+			showUploadError(
+				statusEl,
+				pick({
+					en: 'Please choose a photo first.',
+					es: 'Por favor elige una foto primero.',
+				})
+			);
+			return;
+		}
+
+		if (file.size > MAX_FILE_SIZE) {
+			showUploadError(statusEl, pick(FILE_TOO_LARGE));
 			return;
 		}
 
 		submitBtn.disabled = true;
-		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
+		clearUploadStatusTimeout();
+		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark', 'text-red-700');
 		statusEl.textContent = pick({ en: 'Uploading…', es: 'Subiendo…' });
 
 		try {
 			const res = await fetch('/api/photos', { method: 'POST', body: fd });
-			const data = (await res.json()) as {
+			let data: {
 				ok?: boolean;
 				error?: string;
 				photo?: GalleryPhoto & { uploadToken?: string };
 			};
 
+			try {
+				data = (await res.json()) as typeof data;
+			} catch {
+				if (res.status === 413) {
+					showUploadError(statusEl, pick(FILE_TOO_LARGE));
+					return;
+				}
+				throw new Error('network');
+			}
+
 			if (!res.ok || !data.ok || !data.photo) {
-				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent =
-					data.error ??
-					pick({
-						en: 'Upload failed. Please try again.',
-						es: 'La subida falló. Por favor intenta de nuevo.',
-					});
+				showUploadError(statusEl, mapUploadError(data.error));
 				return;
 			}
 
@@ -242,6 +298,8 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 			form.reset();
 			previewWrap?.classList.add('hidden');
 			if (preview) preview.removeAttribute('src');
+			clearUploadStatusTimeout();
+			statusEl.classList.remove('text-red-700', 'text-mauve-dark');
 			statusEl.classList.add('text-olive');
 			statusEl.textContent = pick({
 				en: 'Thank you — your photo has been added.',
@@ -249,11 +307,13 @@ function initUploadForm(onUploaded: () => Promise<void>) {
 			});
 			await onUploaded();
 		} catch {
-			statusEl.classList.add('text-mauve-dark');
-			statusEl.textContent = pick({
-				en: 'Network error. Please try again.',
-				es: 'Error de red. Por favor intenta de nuevo.',
-			});
+			showUploadError(
+				statusEl,
+				pick({
+					en: 'Network error. Please try again.',
+					es: 'Error de red. Por favor intenta de nuevo.',
+				})
+			);
 		} finally {
 			submitBtn.disabled = false;
 		}
