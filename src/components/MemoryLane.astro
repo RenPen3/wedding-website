@@ -1,5 +1,6 @@
 ---
 import { memoryLaneHeading, memoryLaneItems } from '../lib/memory-lane';
+import { storyIntro } from '../lib/our-story';
 
 const rotations = ['-2.5deg', '2deg', '-1.5deg', '2.5deg', '-2deg', '1.5deg'];
 ---
@@ -81,6 +82,10 @@ const rotations = ['-2.5deg', '2deg', '-1.5deg', '2.5deg', '-2deg', '1.5deg'];
 				<span data-strand="es">{memoryLaneHeading.es}</span>
 			</h2>
 			<div class="mx-auto mt-5 h-px w-20 bg-mauve/50" aria-hidden="true"></div>
+			<p class="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-brown-soft md:text-xl">
+				<span data-strand="en">{storyIntro.en}</span>
+				<span data-strand="es">{storyIntro.es}</span>
+			</p>
 		</div>
 
 		<ol class="memory-lane__timeline relative mt-14 list-none p-0 md:mt-20">
