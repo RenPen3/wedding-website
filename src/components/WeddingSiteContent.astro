@@ -6,6 +6,7 @@ import Registry from './Registry.astro';
 import FAQ from './FAQ.astro';
 import RSVPForm from './RSVPForm.astro';
 import PhotoGallery from './PhotoGallery.astro';
+import { CONTACT_EMAIL, CONTACT_PHONE_TEL } from '../lib/site-urls';
 ---
 
 <Hero />
@@ -28,8 +29,86 @@ import PhotoGallery from './PhotoGallery.astro';
 		<div class="mt-10">
 			<RSVPForm />
 		</div>
+
+		<div class="rsvp-help">
+			<p>
+				<span data-strand="en">
+					Having trouble with the RSVP form? Contact us directly and we’ll help you.
+				</span>
+				<span data-strand="es">
+					¿Tienes problemas con el formulario de RSVP? Contáctanos directamente y te ayudaremos.
+				</span>
+			</p>
+			<div class="rsvp-help-links">
+				<a href={`tel:${CONTACT_PHONE_TEL}`}>
+					<span data-strand="en">Call or Text Us</span>
+					<span data-strand="es">Llámanos o envíanos un mensaje</span>
+				</a>
+				<span class="rsvp-help-divider" aria-hidden="true">|</span>
+				<a href={`mailto:${CONTACT_EMAIL}`}>
+					<span data-strand="en">Email Us</span>
+					<span data-strand="es">Escríbenos</span>
+				</a>
+			</div>
+		</div>
 	</div>
 </section>
 <Registry homeStyle />
 <PhotoGallery teaser homeStyle />
 <FAQ homeStyle />
+
+<style>
+	.rsvp-help {
+		margin-top: 1.5rem;
+		text-align: center;
+		font-size: 0.95rem;
+		color: rgb(245 240 232 / 0.9);
+	}
+
+	.rsvp-help p {
+		margin-bottom: 0.5rem;
+		line-height: 1.5;
+	}
+
+	.rsvp-help-links {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.rsvp-help-links a {
+		display: inline-block;
+		padding: 0.25rem 0.125rem;
+		color: inherit;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		font-weight: 500;
+	}
+
+	.rsvp-help-links a:hover {
+		opacity: 0.75;
+	}
+
+	.rsvp-help-links a:focus-visible {
+		outline: 2px solid rgb(245 240 232 / 0.6);
+		outline-offset: 3px;
+		border-radius: 2px;
+	}
+
+	.rsvp-help-divider {
+		opacity: 0.5;
+	}
+
+	@media (max-width: 768px) {
+		.rsvp-help {
+			font-size: 0.9rem;
+			margin-top: 1.25rem;
+		}
+
+		.rsvp-help-links {
+			gap: 0.5rem;
+		}
+	}
+</style>
