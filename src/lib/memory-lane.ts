@@ -29,7 +29,7 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 			en: 'Where our story began',
 			es: 'Donde comenzó nuestra historia',
 		},
-		image: '/story/memory-lane/2015.svg',
+		image: '/story/memory-lane/mem-1.jpg',
 	},
 	{
 		id: '2017',
@@ -38,7 +38,7 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 			en: 'From strangers to something special',
 			es: 'De desconocidos a algo especial',
 		},
-		image: '/story/memory-lane/2017.svg',
+		image: '/story/memory-lane/mem-2.jpg',
 	},
 	{
 		id: '2019',
@@ -47,7 +47,7 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 			en: 'The first time we said “I love you”',
 			es: 'La primera vez que dijimos “te amo”',
 		},
-		image: '/story/memory-lane/2019.svg',
+		image: '/story/memory-lane/mem-3.jpg',
 	},
 	{
 		id: '2022',
@@ -56,7 +56,7 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 			en: 'Even the pandemic couldn’t pause us',
 			es: 'Ni la pandemia pudo detenernos',
 		},
-		image: '/story/memory-lane/2022.svg',
+		image: '/story/memory-lane/mem-4.jpg',
 	},
 	{
 		id: '2024',
@@ -65,7 +65,7 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 			en: 'Growing stronger side by side',
 			es: 'Creciendo juntos, más fuertes',
 		},
-		image: '/story/memory-lane/2024.svg',
+		image: '/story/memory-lane/mem-5.jpg',
 	},
 	{
 		id: '2026',
@@ -74,6 +74,6 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 			en: 'From a question to a lifetime promise',
 			es: 'De una pregunta a una promesa de por vida',
 		},
-		image: '/story/memory-lane/2026.svg',
+		image: '/story/memory-lane/mem-6.jpg',
 	},
 ];
