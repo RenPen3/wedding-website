@@ -31,6 +31,7 @@
 	}
 
 	html {
+		font-size: 18px;
 		scroll-behavior: smooth;
 	}
 
@@ -43,6 +44,8 @@
 	}
 	body {
 		@apply bg-cream text-plum-deep font-sans antialiased;
+		font-size: 1rem;
+		line-height: 1.5;
 	}
 }
 
@@ -53,6 +56,12 @@
 		position: relative;
 		top: 0.14em;
 		vertical-align: baseline;
+	}
+
+	@media (max-width: 768px) {
+		.family-text {
+			display: none;
+		}
 	}
 
 	@media (prefers-reduced-motion: no-preference) {

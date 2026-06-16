@@ -41,6 +41,14 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
+	const maxBytes = 5 * 1024 * 1024;
+	if (file.size > maxBytes) {
+		return new Response(
+			JSON.stringify({ ok: false, error: 'Image is too large. Please upload a photo under 5MB.' }),
+			{ status: 400, headers: { 'Content-Type': 'application/json' } }
+		);
+	}
+
 	const buffer = Buffer.from(await file.arrayBuffer());
 	const result = await savePhoto(buffer, file.type || 'image/jpeg', uploaderName);
 

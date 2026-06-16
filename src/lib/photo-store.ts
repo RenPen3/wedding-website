@@ -122,7 +122,7 @@ export async function savePhoto(
 		return { ok: false, error: 'Please upload a JPG, PNG, WebP, or GIF image.' };
 	}
 	if (buffer.byteLength > MAX_BYTES) {
-		return { ok: false, error: 'Image must be 5 MB or smaller.' };
+		return { ok: false, error: 'Image is too large. Please upload a photo under 5MB.' };
 	}
 
 	const photo: PhotoRecord = {

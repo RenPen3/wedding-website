@@ -1,6 +1,6 @@
 ---
 import QRCode from 'qrcode';
-import { REGISTRY_URL } from '../lib/site-urls';
+import { CONTACT_EMAIL, CONTACT_PHONE_TEL, REGISTRY_URL } from '../lib/site-urls';
 
 const year = new Date().getFullYear();
 
@@ -56,20 +56,49 @@ const qrSvg = await QRCode.toString(qrTargetUrl, {
 			</figcaption>
 		</figure> -->
 
-		<p class="mt-8 text-xs text-ivory/60">
-			<span data-strand="en"
-				>Questions? Email <a class="underline-offset-2 hover:underline" href="mailto:hello@placeholder.wedding"
-					>hello@placeholder.wedding</a
-				></span
-			><span data-strand="es"
-				>¿Preguntas? Escríbenos a <a class="underline-offset-2 hover:underline" href="mailto:hello@placeholder.wedding"
-					>hello@placeholder.wedding</a
-				></span
-			>
+		<p class="footer-contact">
+			<span data-strand="en">
+				Any questions?
+				<a href={`mailto:${CONTACT_EMAIL}`}>Email Us</a>
+				or
+				<a href={`tel:${CONTACT_PHONE_TEL}`}>Contact Us</a>
+			</span>
+			<span data-strand="es">
+				¿Alguna pregunta?
+				<a href={`mailto:${CONTACT_EMAIL}`}>Escríbenos</a>
+				o
+				<a href={`tel:${CONTACT_PHONE_TEL}`}>Contáctanos</a>
+			</span>
 		</p>
 		<p class="mt-6 text-xs text-ivory/50">
-			<span data-strand="en">© {year} Placeholder celebration. Made with love and Astro.</span>
-			<span data-strand="es">© {year} Celebración placeholder. Hecha con cariño y Astro.</span>
+			<span data-strand="en">© {year} Jocelyn & Rene. A love story written by God, celebrated with family, and remembered forever.			</span>
+			<span data-strand="es">© {year} Jocelyn & Rene. Una historia de amor escrita por Dios, celebrada con familia, y recordada para siempre.</span>
 		</p>
 	</div>
 </footer>
+
+<style>
+	.footer-contact {
+		margin-top: 2rem;
+		font-size: 0.95rem;
+		color: rgb(245 240 232 / 0.85);
+	}
+
+	.footer-contact a {
+		display: inline-block;
+		padding: 0.125rem 0.25rem;
+		color: inherit;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.footer-contact a:hover {
+		opacity: 0.75;
+	}
+
+	.footer-contact a:focus-visible {
+		outline: 2px solid rgb(245 240 232 / 0.6);
+		outline-offset: 3px;
+		border-radius: 2px;
+	}
+</style>
