@@ -1,9 +1,9 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
-import { getSiteUrl } from '../../lib/site-urls';
+import { getInviteUrl, getSiteUrl } from '../../lib/site-urls';
 
-const SITE_URL = getSiteUrl();
-const INVITE_BASE = `${SITE_URL}/invite/`;
+const requestOrigin = Astro.url.origin;
+const SITE_URL = getSiteUrl(requestOrigin);
 const SESSION_KEY = 'wedding_admin_token';
 ---
 
@@ -163,7 +163,7 @@ const SESSION_KEY = 'wedding_admin_token';
 	</div>
 </MainLayout>
 
-<script define:vars={{ INVITE_BASE, SESSION_KEY }}>
+<script define:vars={{ SITE_URL, SESSION_KEY }}>
 	const loginEl = document.getElementById('admin-login');
 	const dashboardEl = document.getElementById('admin-dashboard');
 	const loginForm = document.getElementById('admin-login-form');
@@ -292,7 +292,7 @@ const SESSION_KEY = 'wedding_admin_token';
 
 		tableBody.innerHTML = guests
 			.map((g) => {
-				const inviteUrl = `${INVITE_BASE}${encodeURIComponent(g.invite_code)}`;
+				const inviteUrl = `${SITE_URL}/invite/${encodeURIComponent(g.invite_code)}`;
 				const status = rsvpStatus(g);
 				const attending =
 					status === 'attending' ?
