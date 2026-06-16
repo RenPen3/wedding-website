@@ -3,10 +3,6 @@ import { getGuestById } from '../../lib/guest-search';
 import { findInvitedGuest, saveRsvp } from '../../lib/rsvp-store';
 import { syncRsvpToSupabase } from '../../lib/rsvp-supabase';
 
-function isUuid(value: string): boolean {
-	return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-}
-
 export const POST: APIRoute = async ({ request }) => {
 	let body: Record<string, unknown>;
 
@@ -30,28 +26,31 @@ export const POST: APIRoute = async ({ request }) => {
 	const lastName = String(body.last_name ?? body.lastName ?? '').trim();
 	const attending =
 		body.attending === true || body.attending === 'yes' || body.attending === 'true';
-	const guestCount = Number(body.guestCount ?? 1);
 	const message = String(body.message ?? '').trim();
 	const guestId = String(body.guestId ?? body.guest_id ?? '').trim() || null;
 	let inviteCode = String(body.inviteCode ?? body.invite_code ?? '').trim() || null;
 	const maxGuestsFromBody = Number(body.maxGuests ?? body.max_guests ?? 0);
 
 	let guestNames: string[] = [];
-	if (Array.isArray(body.guestNames)) {
-		guestNames = body.guestNames.map((n) => String(n).trim());
-	} else if (typeof body.guestNames === 'string' && body.guestNames.trim()) {
+	const rawGuestNames = body.guest_names ?? body.guestNames;
+	if (Array.isArray(rawGuestNames)) {
+		guestNames = rawGuestNames.map((n) => String(n).trim()).filter(Boolean);
+	} else if (typeof rawGuestNames === 'string' && rawGuestNames.trim()) {
 		try {
-			const parsed = JSON.parse(body.guestNames) as unknown;
+			const parsed = JSON.parse(rawGuestNames) as unknown;
 			if (Array.isArray(parsed)) {
-				guestNames = parsed.map((n) => String(n).trim());
+				guestNames = parsed.map((n) => String(n).trim()).filter(Boolean);
 			}
 		} catch {
-			guestNames = body.guestNames
+			guestNames = rawGuestNames
 				.split(',')
 				.map((n) => n.trim())
 				.filter(Boolean);
 		}
 	}
+
+	const guestCountFromBody = Number(body.guestCount ?? body.guest_count ?? 0);
+	const totalAttendingFromBody = Number(body.total_attending ?? body.totalAttending ?? 0);
 
 	if (!name) {
 		return new Response(JSON.stringify({ ok: false, error: 'Guest name is required' }), {
@@ -60,6 +59,14 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
+	const guestCount =
+		attending ?
+			guestNames.length ||
+				(Number.isInteger(guestCountFromBody) && guestCountFromBody >= 1 ? guestCountFromBody : 0) ||
+				(Number.isInteger(totalAttendingFromBody) && totalAttendingFromBody >= 1 ?
+					totalAttendingFromBody
+				:	1)
+		:	0;
 	const totalAttending = attending ? guestCount : 0;
 
 	let listGuest: Awaited<ReturnType<typeof getGuestById>> = null;
@@ -139,17 +146,26 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	// Only pass a Supabase UUID as guest_id — JSON slugs are not guests-table FKs.
-	const supabaseGuestId = guestId && isUuid(guestId) ? guestId : null;
-
+	// Mirror the RSVP to Supabase rsvp_responses (guest-list slug as invite_code).
 	try {
-		const sync = await syncRsvpToSupabase(result.rsvp, inviteCode, supabaseGuestId);
+		console.log('[api/rsvp] Supabase sync:', {
+			invite_code: inviteCode,
+			name: invitedGuest.name,
+			attending,
+			guest_names: guestNames,
+			total_attending: totalAttending,
+			message,
+		});
+
+		const sync = await syncRsvpToSupabase(result.rsvp, inviteCode);
 		if (!sync.ok) {
+			console.error('[api/rsvp] Supabase sync failed:', sync.error);
 			return new Response(JSON.stringify({ ok: false, error: sync.error }), {
 				status: 500,
 				headers: { 'Content-Type': 'application/json' },
 			});
 		}
+		console.log('[api/rsvp] Supabase sync success for invite_code:', inviteCode);
 	} catch (err) {
 		const detail = err instanceof Error ? err.message : 'Unknown Supabase error';
 		console.error('[api/rsvp] Supabase sync threw:', detail);

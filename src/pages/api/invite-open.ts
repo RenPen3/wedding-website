@@ -14,7 +14,10 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	const invite_code = normalizeInviteCode(String(body.invite_code ?? body.code ?? ''));
+	console.log('[api/invite-open] slug received:', invite_code);
+
 	if (!isValidInviteCode(invite_code)) {
+		console.warn('[api/invite-open] invalid invite code:', invite_code);
 		return new Response(JSON.stringify({ ok: false, error: 'Invalid invite code' }), {
 			status: 400,
 			headers: { 'Content-Type': 'application/json' },
@@ -31,12 +34,15 @@ export const POST: APIRoute = async ({ request }) => {
 	});
 
 	if (!result.ok) {
+		console.error('[api/invite-open] failed:', invite_code, result.error);
 		const status = result.error === 'Invite tracking is not configured' ? 503 : 500;
 		return new Response(JSON.stringify({ ok: false, error: result.error }), {
 			status,
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
+
+	console.log('[api/invite-open] success:', invite_code);
 
 	return new Response(JSON.stringify({ ok: true }), {
 		status: 200,

@@ -768,8 +768,12 @@ const { inviteCode = '' } = Astro.props;
 		console.log(
 			'[RSVPForm] submitting RSVP:',
 			name,
+			'invite_code:',
+			selectedGuest.invite_code,
 			'maxGuests:',
 			selectedGuest.maxGuests,
+			'guest_names:',
+			guestNames,
 			'total_attending:',
 			totalAttending
 		);
@@ -787,8 +791,11 @@ const { inviteCode = '' } = Astro.props;
 					attending,
 					guestCount,
 					guestNames,
+					guest_names: guestNames,
+					total_attending: totalAttending,
 					message,
 					inviteCode: selectedGuest.invite_code || inviteCode,
+					invite_code: selectedGuest.invite_code || inviteCode,
 				}),
 			});
 			const data = (await res.json()) as { ok?: boolean; error?: string };

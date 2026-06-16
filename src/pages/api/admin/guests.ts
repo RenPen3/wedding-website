@@ -22,11 +22,13 @@ export const GET: APIRoute = async ({ request }) => {
 
 	try {
 		const guests = await buildGuestActivityReport();
+		const stats = computeGuestActivityStats(guests);
+		console.log('[api/admin/guests] loaded activity:', stats);
 		return new Response(
 			JSON.stringify({
 				ok: true,
 				guests,
-				stats: computeGuestActivityStats(guests),
+				stats,
 			}),
 			{ status: 200, headers: { 'Content-Type': 'application/json' } }
 		);

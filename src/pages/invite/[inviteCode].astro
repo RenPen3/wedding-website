@@ -1,6 +1,23 @@
 ---
-const code = Astro.params.inviteCode?.trim().toLowerCase() ?? '';
+import {
+	isValidInviteCode,
+	normalizeInviteCode,
+	recordInviteOpen,
+} from '../../lib/invite-opens';
+
+const code = normalizeInviteCode(Astro.params.inviteCode ?? '');
 const target = code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp';
+
+if (code && isValidInviteCode(code)) {
+	const result = await recordInviteOpen({
+		invite_code: code,
+		page_path: `/invite/${code}`,
+		user_agent: Astro.request.headers.get('user-agent'),
+	});
+	console.log('[invite] server-side track:', code, result.ok ? 'success' : result.error);
+} else if (code) {
+	console.warn('[invite] invalid slug:', code);
+}
 ---
 
 <!doctype html>
@@ -18,34 +35,12 @@ const target = code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp';
 		<script define:vars={{ code, target }}>
 			const SESSION_PREFIX = 'wedding-invite-tracked:';
 
-			(async () => {
-				if (code) {
-					const storageKey = SESSION_PREFIX + code;
-					let alreadyTracked = false;
-					try {
-						alreadyTracked = sessionStorage.getItem(storageKey) === '1';
-					} catch (_) {}
-
-					if (!alreadyTracked) {
-						try {
-							const res = await fetch('/api/invite-open', {
-								method: 'POST',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({
-									invite_code: code,
-									page_path: '/invite/' + code,
-								}),
-							});
-							if (res.ok) {
-								try {
-									sessionStorage.setItem(storageKey, '1');
-								} catch (_) {}
-							}
-						} catch (_) {}
-					}
-				}
-				window.location.replace(target);
-			})();
+			if (code) {
+				try {
+					sessionStorage.setItem(SESSION_PREFIX + code, '1');
+				} catch (_) {}
+			}
+			window.location.replace(target);
 		</script>
 	</body>
 </html>

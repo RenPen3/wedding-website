@@ -2,6 +2,7 @@
  * Server-side invite open tracking (Supabase invite_opens table).
  * Never import from client scripts — use POST /api/invite-open instead.
  */
+import { formatGuestNamesList, parseGuestNames } from './guest-names';
 import { createAdminSupabase } from './supabase';
 import { getGuestByInviteCode, guestSlug } from './guest-search';
 import { loadInvitedGuests, normalizeName } from './rsvp-store';
@@ -35,6 +36,7 @@ export type GuestActivityRow = {
 	rsvp_attending: boolean | null;
 	rsvp_total_attending: number | null;
 	rsvp_guest_names: string | null;
+	rsvp_guest_names_list: string[];
 	rsvp_message: string | null;
 	rsvp_submitted_at: string | null;
 };
@@ -86,6 +88,13 @@ export async function recordInviteOpen(payload: {
 		guest_name = await resolveGuestNameForInviteCode(invite_code);
 	}
 
+	console.log('[invite-opens] recordInviteOpen:', {
+		invite_code,
+		guest_matched: Boolean(guest_name),
+		guest_name: guest_name ?? null,
+		page_path: payload.page_path ?? null,
+	});
+
 	const user_agent = payload.user_agent?.trim().slice(0, 500) || null;
 	const page_path = payload.page_path?.trim().slice(0, 500) || null;
 
@@ -97,12 +106,42 @@ export async function recordInviteOpen(payload: {
 	});
 
 	if (error) {
-		console.error('[invite-opens] insert failed:', error.message);
+		console.error('[invite-opens] insert failed:', error.message, error.details ?? '', error.hint ?? '');
 		return { ok: false, error: error.message };
 	}
 
-	console.log('[invite-opens] recorded open:', invite_code, guest_name ?? '(unknown guest)');
+	console.log('[invite-opens] insert success:', invite_code, guest_name ?? '(unknown guest)');
 	return { ok: true };
+}
+
+function aggregateInviteOpens(rows: InviteOpenRow[]): InviteOpenSummary[] {
+	const byCode = new Map<string, InviteOpenSummary>();
+
+	for (const row of rows) {
+		const code = normalizeInviteCode(row.invite_code);
+		if (!code) continue;
+
+		const existing = byCode.get(code);
+		if (!existing) {
+			byCode.set(code, {
+				invite_code: code,
+				guest_name: row.guest_name,
+				first_opened_at: row.opened_at,
+				last_opened_at: row.opened_at,
+				open_count: 1,
+			});
+			continue;
+		}
+
+		if (row.guest_name && !existing.guest_name) existing.guest_name = row.guest_name;
+		if (row.opened_at < existing.first_opened_at) existing.first_opened_at = row.opened_at;
+		if (row.opened_at > existing.last_opened_at) existing.last_opened_at = row.opened_at;
+		existing.open_count += 1;
+	}
+
+	return Array.from(byCode.values()).sort((a, b) =>
+		b.last_opened_at.localeCompare(a.last_opened_at)
+	);
 }
 
 export async function fetchInviteOpenSummaries(): Promise<InviteOpenSummary[]> {
@@ -116,11 +155,35 @@ export async function fetchInviteOpenSummaries(): Promise<InviteOpenSummary[]> {
 		.select('invite_code, guest_name, first_opened_at, last_opened_at, open_count')
 		.order('last_opened_at', { ascending: false });
 
-	if (error) {
-		throw new Error(error.message);
+	if (!error) {
+		console.log('[invite-opens] loaded invite_open_summary rows:', data?.length ?? 0);
+		return (data ?? []) as InviteOpenSummary[];
 	}
 
-	return (data ?? []) as InviteOpenSummary[];
+	console.warn('[invite-opens] invite_open_summary unavailable:', error.message, '— aggregating invite_opens.');
+
+	const { data: rows, error: rowsError } = await client
+		.from('invite_opens')
+		.select('invite_code, guest_name, opened_at')
+		.order('opened_at', { ascending: false });
+
+	if (rowsError) {
+		throw new Error(rowsError.message);
+	}
+
+	const summaries = aggregateInviteOpens(
+		(rows ?? []).map((row) => ({
+			id: '',
+			invite_code: String(row.invite_code),
+			guest_name: row.guest_name != null ? String(row.guest_name) : null,
+			opened_at: String(row.opened_at),
+			user_agent: null,
+			page_path: null,
+		}))
+	);
+
+	console.log('[invite-opens] aggregated invite_opens rows:', summaries.length);
+	return summaries;
 }
 
 type RsvpResponseRow = {
@@ -130,10 +193,15 @@ type RsvpResponseRow = {
 	attending: boolean | null;
 	total_attending: number | null;
 	guest_count: number | null;
-	guest_names: string | null;
+	guest_names: unknown;
+	guest_names_jsonb?: unknown;
 	message: string | null;
 	submitted_at: string | null;
 };
+
+function guestNamesFromRow(row: RsvpResponseRow): unknown {
+	return row.guest_names_jsonb ?? row.guest_names;
+}
 
 /** Latest RSVP per invite_code from rsvp_responses (for future admin dashboard). */
 async function fetchLatestRsvpsByInviteCode(): Promise<Map<string, RsvpResponseRow>> {
@@ -143,16 +211,47 @@ async function fetchLatestRsvpsByInviteCode(): Promise<Map<string, RsvpResponseR
 	const { data, error } = await client
 		.from('rsvp_responses')
 		.select(
-			'invite_code, first_name, last_name, attending, total_attending, guest_count, guest_names, message, submitted_at'
+			'invite_code, first_name, last_name, attending, total_attending, guest_count, guest_names, guest_names_jsonb, message, submitted_at'
 		)
 		.not('invite_code', 'is', null)
 		.order('submitted_at', { ascending: false });
 
 	if (error) {
-		console.error('[invite-opens] rsvp_responses fetch failed:', error.message);
+		console.error('[invite-opens] rsvp_responses fetch failed:', error.message, error.details ?? '');
 		return new Map();
 	}
 
+	const rows = (data ?? []) as RsvpResponseRow[];
+	console.log('[invite-opens] loaded rsvp_responses rows:', rows.length);
+
+	const map = new Map<string, RsvpResponseRow>();
+	for (const row of rows) {
+		const code = normalizeInviteCode(String(row.invite_code ?? ''));
+		if (!code || map.has(code)) continue;
+		map.set(code, row);
+	}
+	return map;
+}
+
+async function fetchLatestRsvpsByInviteCodeWithFallback(): Promise<Map<string, RsvpResponseRow>> {
+	const full = await fetchLatestRsvpsByInviteCode();
+	if (full.size > 0) return full;
+
+	const client = createAdminSupabase();
+	if (!client) return full;
+
+	const { data, error } = await client
+		.from('rsvp_responses')
+		.select('invite_code, attending, guest_count, guest_names, guest_names_jsonb, message, submitted_at')
+		.not('invite_code', 'is', null)
+		.order('submitted_at', { ascending: false });
+
+	if (error) {
+		console.error('[invite-opens] rsvp_responses fallback fetch failed:', error.message);
+		return full;
+	}
+
+	console.log('[invite-opens] loaded rsvp_responses fallback rows:', data?.length ?? 0);
 	const map = new Map<string, RsvpResponseRow>();
 	for (const row of (data ?? []) as RsvpResponseRow[]) {
 		const code = normalizeInviteCode(String(row.invite_code ?? ''));
@@ -177,9 +276,18 @@ export async function buildGuestActivityReport(): Promise<GuestActivityRow[]> {
 	});
 
 	const [openSummaries, rsvpMap] = await Promise.all([
-		fetchInviteOpenSummaries().catch(() => [] as InviteOpenSummary[]),
-		fetchLatestRsvpsByInviteCode(),
+		fetchInviteOpenSummaries().catch((err) => {
+			console.error('[invite-opens] open summary fetch failed:', err);
+			return [] as InviteOpenSummary[];
+		}),
+		fetchLatestRsvpsByInviteCodeWithFallback(),
 	]);
+
+	console.log('[invite-opens] activity report merge:', {
+		guest_list: listEntries.length,
+		open_summaries: openSummaries.length,
+		rsvp_codes: rsvpMap.size,
+	});
 
 	const openByCode = new Map(openSummaries.map((s) => [normalizeInviteCode(s.invite_code), s]));
 
@@ -188,6 +296,9 @@ export async function buildGuestActivityReport(): Promise<GuestActivityRow[]> {
 			const code = normalizeInviteCode(entry.invite_code);
 			const opens = openByCode.get(code);
 			const rsvp = rsvpMap.get(code);
+
+			const rsvpNamesRaw = rsvp ? guestNamesFromRow(rsvp) : null;
+			const rsvpNamesList = parseGuestNames(rsvpNamesRaw);
 
 			return {
 				invite_code: code,
@@ -200,8 +311,9 @@ export async function buildGuestActivityReport(): Promise<GuestActivityRow[]> {
 				rsvp_submitted: Boolean(rsvp),
 				rsvp_attending: rsvp?.attending ?? null,
 				rsvp_total_attending:
-					rsvp?.total_attending ?? rsvp?.guest_count ?? null,
-				rsvp_guest_names: rsvp?.guest_names ?? null,
+					rsvp?.total_attending ?? rsvp?.guest_count ?? (rsvpNamesList.length || null),
+				rsvp_guest_names: rsvpNamesList.length ? formatGuestNamesList(rsvpNamesRaw) : null,
+				rsvp_guest_names_list: rsvpNamesList,
 				rsvp_message: rsvp?.message ?? null,
 				rsvp_submitted_at: rsvp?.submitted_at ?? null,
 			};

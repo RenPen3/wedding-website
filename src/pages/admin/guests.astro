@@ -265,6 +265,7 @@ const SESSION_KEY = 'wedding_admin_token';
 				g.guest_name,
 				g.invite_code,
 				g.rsvp_guest_names,
+				...(Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list : []),
 				g.rsvp_message,
 			]
 				.filter(Boolean)
@@ -318,8 +319,10 @@ const SESSION_KEY = 'wedding_admin_token';
 					<td data-label="RSVP">${rsvpBadge(g)}</td>
 					<td data-label="Attending" class="font-medium">${attending}</td>
 					<td data-label="Details">
-						<p class="text-xs text-brown-soft max-w-[14rem] truncate" title="${escapeHtml(g.rsvp_guest_names ?? '')}">${escapeHtml(g.rsvp_guest_names ?? '—')}</p>
-						<p class="mt-1 text-xs text-brown-muted max-w-[14rem] truncate" title="${escapeHtml(g.rsvp_message ?? '')}">${escapeHtml(g.rsvp_message ?? '—')}</p>
+						<p class="text-xs font-medium text-brown-muted">Attending names</p>
+						${guestNamesDisplay(g)}
+						<p class="mt-2 text-xs font-medium text-brown-muted">Message</p>
+						<p class="text-xs text-brown-muted max-w-[14rem]" title="${escapeHtml(g.rsvp_message ?? '')}">${escapeHtml(g.rsvp_message ?? '—')}</p>
 					</td>
 					<td data-label="Submitted">
 						<p class="text-xs whitespace-nowrap">${fmtDate(g.rsvp_submitted_at)}</p>
@@ -351,6 +354,19 @@ const SESSION_KEY = 'wedding_admin_token';
 			.replace(/</g, '&lt;')
 			.replace(/>/g, '&gt;')
 			.replace(/"/g, '&quot;');
+	}
+
+	function guestNamesDisplay(g) {
+		const list = Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list : [];
+		if (list.length > 0) {
+			return `<ul class="mt-1 space-y-0.5 text-xs text-brown-soft">${list
+				.map((n) => `<li>${escapeHtml(n)}</li>`)
+				.join('')}</ul>`;
+		}
+		const fallback = String(g.rsvp_guest_names ?? '').trim();
+		return fallback ?
+				`<p class="text-xs text-brown-soft">${escapeHtml(fallback)}</p>`
+			:	'<p class="text-xs text-brown-soft">—</p>';
 	}
 
 	async function loadGuests() {
