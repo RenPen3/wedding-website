@@ -1,7 +1,9 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
+import { getSiteUrl } from '../../lib/site-urls';
 
-const INVITE_BASE = 'https://jayandren.netlify.app/invite/';
+const SITE_URL = getSiteUrl();
+const INVITE_BASE = `${SITE_URL}/invite/`;
 const SESSION_KEY = 'wedding_admin_token';
 ---
 

@@ -11,6 +11,8 @@ interface ImportMetaEnv {
 	readonly SUPABASE_SERVICE_ROLE_KEY?: string;
 	/** Optional — enables OpenAI vision for AI Slideshow Builder */
 	readonly OPENAI_API_KEY?: string;
+	/** Public site base URL for invite links (no trailing slash). */
+	readonly PUBLIC_SITE_URL?: string;
 }
 
 interface ImportMeta {
