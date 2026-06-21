@@ -3,7 +3,10 @@ export const HONEYMOON_FUND_URL = '/honeymoon-fund';
 
 /** Guest contact — update with your real email and phone */
 export const CONTACT_EMAIL = 'jocelynandrene0912@gmail.com';
+/** @deprecated Use CONTACT_PHONE_RENE / CONTACT_PHONE_JOCELYN for display (not clickable). */
 export const CONTACT_PHONE_TEL = '+18185682932';
+export const CONTACT_PHONE_RENE = '(818) 568-2932';
+export const CONTACT_PHONE_JOCELYN = '(661) 974-6713';
 
 function stripTrailingSlash(url: string): string {
 	return url.replace(/\/+$/, '');

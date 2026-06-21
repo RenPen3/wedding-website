@@ -79,6 +79,8 @@ export type GiftIdea = {
 	id: string;
 	title: Bilingual;
 	amount: Bilingual;
+	/** Payment URL — defaults to Venmo when omitted */
+	href?: string;
 };
 
 export const giftIdeas: GiftIdea[] = [
@@ -111,4 +113,10 @@ export const giftIdeas: GiftIdea[] = [
 
 export function isExternalPaymentLink(href: string | undefined): boolean {
 	return Boolean(href && href !== '#' && /^https?:\/\//i.test(href));
+}
+
+export function getHoneymoonGiftHref(idea: GiftIdea): string {
+	if (idea.href) return idea.href;
+	const venmo = paymentOptions.find((o) => o.id === 'venmo' && o.href && o.href !== '#');
+	return venmo?.href ?? '#';
 }
