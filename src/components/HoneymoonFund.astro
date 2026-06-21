@@ -1,10 +1,14 @@
 ---
 import {
 	giftIdeas,
+	getHoneymoonGiftHref,
 	honeymoonFundHero,
 	isExternalPaymentLink,
 	paymentOptions,
 } from '../lib/honeymoon-fund';
+
+const giftCardClass =
+	'honeymoon-gift flex h-full flex-col items-center rounded-2xl border border-mauve/15 bg-white/70 px-5 py-6 text-center shadow-[0_4px_20px_rgb(61_38_69_/_0.05)] transition hover:border-mauve/30 hover:shadow-[0_8px_28px_rgb(61_38_69_/_0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum/25';
 
 const paymentButtonClass =
 	'honeymoon-btn mt-6 inline-flex w-full items-center justify-center rounded-full border border-mauve/25 bg-cream px-6 py-3 text-sm font-medium text-plum';
@@ -131,13 +135,23 @@ const paymentButtonClass =
 
 			<ul class="mt-12 grid list-none gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 				{
-					giftIdeas.map((idea, index) => (
+					giftIdeas.map((idea, index) => {
+						const href = getHoneymoonGiftHref(idea);
+						const external = isExternalPaymentLink(href);
+
+						return (
 						<li
 							class="list-none"
 							data-reveal
 							style={`--reveal-delay: ${index * 60}ms`}
 						>
-							<article class="honeymoon-gift flex h-full flex-col items-center rounded-2xl border border-mauve/15 bg-white/70 px-5 py-6 text-center shadow-[0_4px_20px_rgb(61_38_69_/_0.05)] transition hover:border-mauve/30 hover:shadow-[0_8px_28px_rgb(61_38_69_/_0.08)]">
+							<a
+								href={href}
+								class={giftCardClass}
+								{...(external ?
+									{ target: '_blank', rel: 'noopener noreferrer' }
+								:	{})}
+							>
 								<p class="font-serif text-lg leading-snug text-plum">
 									<span data-strand="en">{idea.title.en}</span>
 									<span data-strand="es">{idea.title.es}</span>
@@ -146,9 +160,10 @@ const paymentButtonClass =
 									<span data-strand="en">{idea.amount.en}</span>
 									<span data-strand="es">{idea.amount.es}</span>
 								</p>
-							</article>
+							</a>
 						</li>
-					))
+						);
+					})
 				}
 			</ul>
 		</div>
@@ -162,6 +177,11 @@ const paymentButtonClass =
 			rgb(255 255 255 / 0.92) 0%,
 			rgb(250 246 240 / 0.85) 100%
 		);
+	}
+
+	.honeymoon-gift {
+		text-decoration: none;
+		color: inherit;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

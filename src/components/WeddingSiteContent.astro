@@ -6,7 +6,7 @@ import Registry from './Registry.astro';
 import FAQ from './FAQ.astro';
 import RSVPForm from './RSVPForm.astro';
 import PhotoGallery from './PhotoGallery.astro';
-import { CONTACT_EMAIL, CONTACT_PHONE_TEL } from '../lib/site-urls';
+import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE } from '../lib/site-urls';
 ---
 
 <Hero />
@@ -39,13 +39,15 @@ import { CONTACT_EMAIL, CONTACT_PHONE_TEL } from '../lib/site-urls';
 					¿Tienes problemas con el formulario de RSVP? Contáctanos directamente y te ayudaremos.
 				</span>
 			</p>
-			<div class="rsvp-help-links">
-				<a href={`tel:${CONTACT_PHONE_TEL}`}>
-					<span data-strand="en">Call or Text Us</span>
-					<span data-strand="es">Llámanos o envíanos un mensaje</span>
-				</a>
+			<div class="rsvp-help-contact">
+				<div class="rsvp-help-phones">
+					<ul class="rsvp-help-numbers">
+						<li>René: {CONTACT_PHONE_RENE}</li>
+						<li>Jocelyn: {CONTACT_PHONE_JOCELYN}</li>
+					</ul>
+				</div>
 				<span class="rsvp-help-divider" aria-hidden="true">|</span>
-				<a href={`mailto:${CONTACT_EMAIL}`}>
+				<a class="rsvp-help-email" href={`mailto:${CONTACT_EMAIL}`}>
 					<span data-strand="en">Email Us</span>
 					<span data-strand="es">Escríbenos</span>
 				</a>
@@ -70,15 +72,37 @@ import { CONTACT_EMAIL, CONTACT_PHONE_TEL } from '../lib/site-urls';
 		line-height: 1.5;
 	}
 
-	.rsvp-help-links {
+	.rsvp-help-contact {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: 0.75rem;
 		flex-wrap: wrap;
+		gap: 0.75rem 1rem;
 	}
 
-	.rsvp-help-links a {
+	.rsvp-help-phones {
+		text-align: center;
+	}
+
+	.rsvp-help-numbers {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.25rem 0.75rem;
+		line-height: 1.45;
+	}
+
+	.rsvp-help-numbers li + li::before {
+		content: '·';
+		margin-right: 0.75rem;
+		opacity: 0.6;
+	}
+
+	.rsvp-help-email {
 		display: inline-block;
 		padding: 0.25rem 0.125rem;
 		color: inherit;
@@ -87,11 +111,11 @@ import { CONTACT_EMAIL, CONTACT_PHONE_TEL } from '../lib/site-urls';
 		font-weight: 500;
 	}
 
-	.rsvp-help-links a:hover {
+	.rsvp-help-email:hover {
 		opacity: 0.75;
 	}
 
-	.rsvp-help-links a:focus-visible {
+	.rsvp-help-email:focus-visible {
 		outline: 2px solid rgb(245 240 232 / 0.6);
 		outline-offset: 3px;
 		border-radius: 2px;
@@ -107,8 +131,9 @@ import { CONTACT_EMAIL, CONTACT_PHONE_TEL } from '../lib/site-urls';
 			margin-top: 1.25rem;
 		}
 
-		.rsvp-help-links {
-			gap: 0.5rem;
+		.rsvp-help-contact {
+			flex-direction: column;
+			gap: 0.625rem;
 		}
 	}
 </style>

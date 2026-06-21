@@ -1,6 +1,6 @@
 ---
 import QRCode from 'qrcode';
-import { CONTACT_EMAIL, CONTACT_PHONE_TEL, REGISTRY_URL } from '../lib/site-urls';
+import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE, REGISTRY_URL } from '../lib/site-urls';
 
 const year = new Date().getFullYear();
 
@@ -56,20 +56,25 @@ const qrSvg = await QRCode.toString(qrTargetUrl, {
 			</figcaption>
 		</figure> -->
 
-		<p class="footer-contact">
-			<span data-strand="en">
-				Any questions?
-				<a href={`mailto:${CONTACT_EMAIL}`}>Email Us</a>
-				or
-				<a href={`tel:${CONTACT_PHONE_TEL}`}>Contact Us</a>
-			</span>
-			<span data-strand="es">
-				¿Alguna pregunta?
-				<a href={`mailto:${CONTACT_EMAIL}`}>Escríbenos</a>
-				o
-				<a href={`tel:${CONTACT_PHONE_TEL}`}>Contáctanos</a>
-			</span>
-		</p>
+		<div class="footer-contact">
+			<p class="footer-contact-intro">
+				<span data-strand="en">Any questions?</span>
+				<span data-strand="es">¿Alguna pregunta?</span>
+			</p>
+			<div class="footer-contact-details">
+				<div class="footer-contact-phones">
+					<ul class="footer-contact-numbers">
+						<li>René: {CONTACT_PHONE_RENE}</li>
+						<li>Jocelyn: {CONTACT_PHONE_JOCELYN}</li>
+					</ul>
+				</div>
+				<span class="footer-contact-divider" aria-hidden="true">|</span>
+				<a class="footer-contact-email" href={`mailto:${CONTACT_EMAIL}`}>
+					<span data-strand="en">Email Us</span>
+					<span data-strand="es">Escríbenos</span>
+				</a>
+			</div>
+		</div>
 		<p class="mt-6 text-xs text-ivory/50">
 			<span data-strand="en">© {year} Jocelyn & Rene. A love story written by God, celebrated with family, and remembered forever.			</span>
 			<span data-strand="es">© {year} Jocelyn & Rene. Una historia de amor escrita por Dios, celebrada con familia, y recordada para siempre.</span>
@@ -84,7 +89,46 @@ const qrSvg = await QRCode.toString(qrTargetUrl, {
 		color: rgb(245 240 232 / 0.85);
 	}
 
-	.footer-contact a {
+	.footer-contact-intro {
+		margin: 0 0 0.75rem;
+		line-height: 1.5;
+	}
+
+	.footer-contact-details {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.75rem 1rem;
+	}
+
+	.footer-contact-phones {
+		text-align: center;
+	}
+
+	.footer-contact-numbers {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.25rem 0.75rem;
+		line-height: 1.45;
+	}
+
+	.footer-contact-numbers li + li::before {
+		content: '·';
+		margin-right: 0.75rem;
+		opacity: 0.6;
+	}
+
+	.footer-contact-divider {
+		opacity: 0.5;
+	}
+
+	.footer-contact-email {
 		display: inline-block;
 		padding: 0.125rem 0.25rem;
 		color: inherit;
@@ -92,13 +136,20 @@ const qrSvg = await QRCode.toString(qrTargetUrl, {
 		text-underline-offset: 3px;
 	}
 
-	.footer-contact a:hover {
+	.footer-contact-email:hover {
 		opacity: 0.75;
 	}
 
-	.footer-contact a:focus-visible {
+	.footer-contact-email:focus-visible {
 		outline: 2px solid rgb(245 240 232 / 0.6);
 		outline-offset: 3px;
 		border-radius: 2px;
+	}
+
+	@media (max-width: 640px) {
+		.footer-contact-details {
+			flex-direction: column;
+			gap: 0.625rem;
+		}
 	}
 </style>
