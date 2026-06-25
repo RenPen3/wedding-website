@@ -1,13 +1,9 @@
 ---
 /**
- * Luxury envelope invitation intro — Paperless Post–inspired motion, site-branded visuals.
- * Shown once per session; early `invitation-intro-seen` on <html> prevents flash (MainLayout).
+ * Invitation GIF preloader — shown once per session on the homepage.
+ * Early `invitation-intro-seen` on <html> prevents flash (MainLayout).
  */
-const floralLinerSvg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='160' viewBox='0 0 240 160'%3E%3Cg fill='none' stroke='%239b7b8e' stroke-width='1.1' opacity='0.55'%3E%3Cpath d='M36 98c14-22 32-28 48-18 10 7 12 20 4 30-10 12-28 10-40-2-8-8-10-18-12-10z'/%3E%3Cpath d='M52 86c6 8 4 18-2 24-8 8-22 6-28-4'/%3E%3Cpath d='M188 42c-12 18-30 24-46 14-10-7-12-20-4-30 10-12 28-10 40 2 8 8 10 18 12 14z'/%3E%3Cpath d='M172 54c-6-8-4-18 2-24 8-8 22-6 28 4'/%3E%3Cpath d='M120 118c-10-16-8-34 6-44 12-8 28-2 34 14 6 18-8 36-26 38-10 1-18-4-14-8z'/%3E%3C/g%3E%3Cg fill='none' stroke='%236b7349' stroke-width='0.9' opacity='0.42'%3E%3Ccircle cx='78' cy='48' r='14'/%3E%3Ccircle cx='168' cy='108' r='11'/%3E%3Cpath d='M98 28c8 6 10 16 4 24M142 132c-10 4-20 0-24-10'/%3E%3C/g%3E%3C/svg%3E")`;
-
-const floralCornerSvg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23c4a8b4' stroke-width='0.85' opacity='0.9'%3E%3Cpath d='M8 58c10-14 24-18 36-10 8 6 9 16 3 24-8 10-22 8-32-4-4-6-5-12-7-10z'/%3E%3Cpath d='M20 50c4 6 3 14-2 18-6 6-16 4-20-4'/%3E%3Cpath d='M4 68c6-4 12-4 18 0'/%3E%3C/g%3E%3C/svg%3E")`;
-
-const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E")`;
+const INTRO_GIF_SRC = '/images/our-intro.gif';
 ---
 
 <div
@@ -16,8 +12,7 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 	data-invitation-intro
 	role="dialog"
 	aria-modal="true"
-	aria-labelledby="invitation-card-heading"
-	style={`--paper-noise: ${paperNoiseSvg}`}
+	aria-labelledby="invitation-intro-heading"
 >
 	<button
 		type="button"
@@ -34,79 +29,32 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 	</div>
 
 	<div class="invitation-intro__stage">
-		<div class="invitation-envelope" data-envelope>
-			<div class="invitation-envelope__shadow" aria-hidden="true"></div>
+		<h2 id="invitation-intro-heading" class="sr-only">
+			<span data-strand="en">Our wedding invitation</span>
+			<span data-strand="es">Nuestra invitación de boda</span>
+		</h2>
 
-			<div class="invitation-envelope__scene">
-				<div class="invitation-envelope__back" aria-hidden="true">
-					<span class="invitation-paper-texture" aria-hidden="true"></span>
-				</div>
-
-				<div class="invitation-envelope__liner" aria-hidden="true" style={`--floral-liner: ${floralLinerSvg}`}>
-					<span class="invitation-paper-texture invitation-paper-texture--liner" aria-hidden="true"></span>
-				</div>
-
-				<div class="invitation-card-slot">
-					<button
-						type="button"
-						class="invitation-card"
-						data-invitation-open
-						aria-label="Open wedding invitation. Abrir invitación."
-					>
-						<span class="invitation-paper-texture" aria-hidden="true"></span>
-						<span
-							class="invitation-card__floral invitation-card__floral--tl"
-							aria-hidden="true"
-							style={`--floral-corner: ${floralCornerSvg}`}
-						></span>
-						<span
-							class="invitation-card__floral invitation-card__floral--br"
-							aria-hidden="true"
-							style={`--floral-corner: ${floralCornerSvg}`}
-						></span>
-
-						<span class="invitation-card__content">
-							<p class="invitation-card__eyebrow family-text">
-								<span data-strand="en">Together with their families</span>
-								<span data-strand="es">Junto a sus familias</span>
-							</p>
-							<p id="invitation-card-heading" class="invitation-card__names">Jocelyn & René</p>
-							<p class="invitation-card__honor">
-								<span data-strand="en">Request the honor of your presence</span>
-								<span data-strand="es">Solicitan el honor de su presencia</span>
-							</p>
-							<p class="invitation-card__date">
-								<span data-strand="en">September 12, 2026</span>
-								<span data-strand="es">12 de septiembre de 2026</span>
-							</p>
-							<p class="invitation-card__venue">Tesoro Adobe Historic Park</p>
-							<span class="invitation-card__cta">
-								<span data-strand="en">Open Invitation</span>
-								<span data-strand="es">Abrir invitación</span>
-							</span>
-						</span>
-					</button>
-				</div>
-
-				<div class="invitation-envelope__pocket" aria-hidden="true">
-					<span class="invitation-paper-texture" aria-hidden="true"></span>
-				</div>
-
-				<div class="invitation-envelope__flap" aria-hidden="true">
-					<span class="invitation-paper-texture" aria-hidden="true"></span>
-				</div>
-			</div>
-		</div>
+		<img
+			class="invitation-intro__gif"
+			src={INTRO_GIF_SRC}
+			alt="Jocelyn and René wedding invitation"
+			width="960"
+			height="540"
+			decoding="async"
+			fetchpriority="high"
+		/>
 	</div>
+
+	<button type="button" class="invitation-intro__continue" data-invitation-continue>
+		<span data-strand="en">Enter Site</span>
+		<span data-strand="es">Entrar al sitio</span>
+	</button>
 </div>
 
 <script>
 	const STORAGE_KEY = 'wedding-invitation-opened';
 	const SEEN_CLASS = 'invitation-intro-seen';
 	const ACTIVE_CLASS = 'invitation-intro-active';
-	const READY_DELAY_MS = 3400;
-	/* How long the settled invitation lingers before auto-fading into the site */
-	const AUTO_DISMISS_HOLD_MS = 2800;
 
 	const root = document.documentElement;
 	const overlay = document.querySelector<HTMLElement>('[data-invitation-intro]');
@@ -114,12 +62,9 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 	if (!overlay) {
 		/* no-op */
 	} else {
-		const openBtn = overlay.querySelector<HTMLButtonElement>('[data-invitation-open]');
 		const skipBtn = overlay.querySelector<HTMLButtonElement>('[data-invitation-skip]');
-		const envelope = overlay.querySelector<HTMLElement>('[data-envelope]');
+		const continueBtn = overlay.querySelector<HTMLButtonElement>('[data-invitation-continue]');
 		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-		let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
 
 		const markSeen = () => {
 			try {
@@ -134,7 +79,6 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 
 		const dismiss = () => {
 			if (overlay.classList.contains('is-dismissed')) return;
-			window.clearTimeout(autoDismissTimer);
 			overlay.classList.add('is-dismissed', 'is-exiting');
 			overlay.removeAttribute('role');
 			overlay.removeAttribute('aria-modal');
@@ -174,17 +118,13 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 			root.classList.add(ACTIVE_CLASS);
 			if (reducedMotion) overlay.classList.add('is-reduced-motion');
 
-			openBtn?.addEventListener('click', dismiss);
 			skipBtn?.addEventListener('click', dismiss);
+			continueBtn?.addEventListener('click', dismiss);
 
 			window.setTimeout(() => {
 				overlay.classList.add('is-ready');
-				envelope?.classList.add('is-settled');
-				openBtn?.focus({ preventScroll: true });
-
-				// Auto-fade into the site after a brief hold (manual open/skip cancels this).
-				autoDismissTimer = window.setTimeout(dismiss, AUTO_DISMISS_HOLD_MS);
-			}, reducedMotion ? 0 : READY_DELAY_MS);
+				continueBtn?.focus({ preventScroll: true });
+			}, reducedMotion ? 0 : 400);
 		}
 	}
 </script>
@@ -199,22 +139,26 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 		overflow: hidden;
 	}
 
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
 	/* ── Overlay ─────────────────────────────────────────────────── */
 	.invitation-intro {
-		--ease-luxury: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 		--ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
-		--envelope-w: min(19rem, 82vw);
-		--envelope-h: calc(var(--envelope-w) * 0.58);
-		--card-w: min(15.5rem, 74vw);
-		--card-h: calc(var(--card-w) * 1.38);
 
 		position: fixed;
 		inset: 0;
 		z-index: 100;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: clamp(1rem, 4vw, 2rem);
+		padding: 0;
 		opacity: 1;
 		visibility: visible;
 		transition:
@@ -231,18 +175,11 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 	.invitation-intro__backdrop {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(168deg, #f7f2ea 0%, #efe6da 38%, #e6dcd0 100%);
+		background: #f7f2ea;
 	}
 
 	.invitation-intro__glow {
-		position: absolute;
-		inset: 0;
-		background:
-			radial-gradient(ellipse 55% 45% at 50% 42%, rgb(196 168 180 / 0.22), transparent 68%),
-			radial-gradient(ellipse 40% 35% at 18% 78%, rgb(107 115 73 / 0.12), transparent 55%),
-			radial-gradient(ellipse 38% 32% at 82% 22%, rgb(155 123 142 / 0.14), transparent 52%);
-		backdrop-filter: blur(2px);
-		animation: intro-backdrop-in 1.1s var(--ease-out-soft) both;
+		display: none;
 	}
 
 	.invitation-intro__skip {
@@ -281,305 +218,62 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 		outline-offset: 2px;
 	}
 
-	/* ── Stage & envelope unit ───────────────────────────────────── */
+	/* ── Full-screen GIF ─────────────────────────────────────────── */
 	.invitation-intro__stage {
-		position: relative;
-		z-index: 1;
-		width: var(--envelope-w);
-		/* Bound the full settled composition (risen card + envelope) so it centers in the viewport */
-		height: calc(var(--envelope-h) + var(--card-h) * 0.82);
-		display: flex;
-		align-items: flex-end;
-		justify-content: center;
-	}
-
-	.invitation-envelope {
-		position: relative;
-		width: 100%;
-		height: var(--envelope-h);
-		will-change: transform;
-		animation: intro-envelope-in 1s var(--ease-out-soft) both;
-	}
-
-	.invitation-envelope.is-settled {
-		animation: intro-envelope-float 5.5s ease-in-out infinite;
-	}
-
-	.invitation-envelope__shadow {
 		position: absolute;
-		left: 10%;
-		right: 10%;
-		bottom: -0.5rem;
-		height: 1.5rem;
-		border-radius: 50%;
-		background: rgb(42 26 50 / 0.14);
-		filter: blur(12px);
-		transform: translateZ(0);
-		animation: intro-shadow-in 1s var(--ease-out-soft) both;
-	}
-
-	.invitation-envelope__scene {
-		position: relative;
+		inset: 0;
+		z-index: 1;
 		width: 100%;
 		height: 100%;
-		perspective: 1100px;
-		transform-style: preserve-3d;
+		animation: intro-stage-in 0.9s var(--ease-out-soft) both;
 	}
 
-	/* Paper grain shared */
-	.invitation-paper-texture {
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		opacity: 0.45;
-		pointer-events: none;
-		mix-blend-mode: multiply;
-		background-image: var(--paper-noise);
-		background-size: 180px 180px;
-	}
-
-	.invitation-paper-texture--liner {
-		opacity: 0.25;
-		mix-blend-mode: soft-light;
-	}
-
-	/* ── Envelope layers ─────────────────────────────────────────── */
-	.invitation-envelope__back {
-		position: absolute;
-		inset: 0;
-		border-radius: 0.2rem;
-		background: linear-gradient(155deg, #f3ebe2 0%, #e8ddd0 48%, #dfd2c4 100%);
-		border: 1px solid rgb(160 139 114 / 0.35);
-		box-shadow:
-			inset 0 1px 0 rgb(255 255 255 / 0.65),
-			0 18px 40px rgb(42 26 50 / 0.12);
-	}
-
-	.invitation-envelope__liner {
-		position: absolute;
-		left: 5%;
-		right: 5%;
-		top: 12%;
-		bottom: 18%;
-		border-radius: 0.15rem;
-		overflow: hidden;
-		background:
-			var(--floral-liner) center / 88% auto no-repeat,
-			linear-gradient(175deg, #e8d4dc 0%, #ddd0c8 45%, #d4cfc4 100%);
-		box-shadow: inset 0 0 0 1px rgb(155 123 142 / 0.15);
-		opacity: 0;
-		transform: translateZ(0);
-		animation: intro-liner-reveal 0.9s var(--ease-luxury) 1.1s both;
-	}
-
-	.invitation-envelope__pocket {
-		position: absolute;
-		inset: 0;
-		z-index: 3;
-		border-radius: 0.2rem;
-		background: linear-gradient(168deg, #ebe2d6 0%, #dfd4c6 55%, #d6c9ba 100%);
-		clip-path: polygon(0 36%, 50% 62%, 100% 36%, 100% 100%, 0 100%);
-		border: 1px solid rgb(160 139 114 / 0.28);
-		box-shadow:
-			inset 0 3px 8px rgb(42 26 50 / 0.05),
-			0 6px 16px rgb(42 26 50 / 0.06);
-	}
-
-	.invitation-envelope__flap {
-		position: absolute;
-		left: -1px;
-		right: -1px;
-		top: -1px;
-		height: 54%;
-		z-index: 4;
-		transform-origin: top center;
-		transform: rotateX(0deg) translateZ(1px);
-		background: linear-gradient(180deg, #f5efe6 0%, #ebe2d6 55%, #e2d8cc 100%);
-		clip-path: polygon(0 0, 50% 100%, 100% 0);
-		border: 1px solid rgb(160 139 114 / 0.3);
-		box-shadow:
-			0 6px 18px rgb(42 26 50 / 0.1),
-			inset 0 1px 0 rgb(255 255 255 / 0.55);
-		backface-visibility: hidden;
-		will-change: transform;
-		animation: intro-flap-open 1.35s var(--ease-luxury) 0.85s both;
-	}
-
-	/* ── Card slot (rise) + card (content / hover) ───────────────── */
-	.invitation-card-slot {
-		position: absolute;
-		left: 50%;
-		top: 0;
-		z-index: 2;
-		width: var(--card-w);
-		height: var(--card-h);
-		transform: translate3d(-50%, 42%, 0);
-		will-change: transform;
-		animation: intro-card-rise 1.85s var(--ease-out-soft) 1.65s both;
-	}
-
-	.invitation-card {
-		position: relative;
+	.invitation-intro__gif {
 		display: block;
 		width: 100%;
 		height: 100%;
-		margin: 0;
-		padding: 0;
-		border: none;
-		font: inherit;
-		color: inherit;
-		text-align: center;
-		cursor: pointer;
-		background: linear-gradient(168deg, #fffefb 0%, #f9f4ec 42%, #f3ebe2 100%);
-		border-radius: 0.15rem;
-		box-shadow:
-			inset 0 1px 0 rgb(255 255 255 / 0.9),
-			0 2px 0 rgb(255 255 255 / 0.5),
-			0 20px 48px rgb(42 26 50 / 0.16),
-			0 8px 20px rgb(155 123 142 / 0.12);
-		transform: translate3d(0, 0, 0) rotateX(0deg);
-		transition:
-			transform 0.45s var(--ease-out-soft),
-			box-shadow 0.45s var(--ease-out-soft);
-		will-change: transform, box-shadow;
+		object-fit: cover;
+		object-position: center;
 	}
 
-	.invitation-intro.is-ready .invitation-card {
-		animation: intro-card-breathe 4.2s ease-in-out infinite;
-	}
-
-	.invitation-card:hover,
-	.invitation-card:focus-visible {
-		animation: none;
-		transform: translate3d(0, -4px, 0) scale(1.025) rotateX(-2deg);
-		box-shadow:
-			inset 0 1px 0 rgb(255 255 255 / 0.95),
-			0 28px 56px rgb(42 26 50 / 0.2),
-			0 0 40px rgb(196 168 180 / 0.35),
-			0 12px 28px rgb(155 123 142 / 0.18);
-	}
-
-	.invitation-card:focus-visible {
-		outline: 2px solid var(--color-mauve);
-		outline-offset: 4px;
-	}
-
-	.invitation-intro.is-exiting .invitation-card-slot {
-		animation: intro-card-exit 0.75s var(--ease-out-soft) forwards;
-	}
-
-	.invitation-card__floral {
+	.invitation-intro__continue {
 		position: absolute;
-		width: 4.25rem;
-		height: 4.25rem;
-		background: var(--floral-corner) center / contain no-repeat;
-		opacity: 0.42;
-		pointer-events: none;
-		filter: drop-shadow(-0.5px -0.5px 0 rgb(255 255 255 / 0.85))
-			drop-shadow(0.5px 0.5px 0 rgb(61 38 69 / 0.06));
-	}
-
-	.invitation-card__floral--tl {
-		top: 0.35rem;
-		left: 0.35rem;
-	}
-
-	.invitation-card__floral--br {
-		right: 0.35rem;
-		bottom: 0.35rem;
-		transform: rotate(180deg);
-	}
-
-	.invitation-card__content {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		height: 100%;
-		padding: 1.5rem 1.1rem 1.35rem;
-	}
-
-	.invitation-card__eyebrow {
-		margin: 0;
-		font-family: var(--font-serif);
-		font-size: 0.5625rem;
-		font-weight: 600;
-		letter-spacing: 0.32em;
-		text-transform: uppercase;
-		color: var(--color-brown-muted);
-	}
-
-	.invitation-card__names {
-		margin: 0.75rem 0 0;
-		font-family: var(--font-script);
-		font-size: clamp(2.1rem, 9vw, 2.85rem);
-		line-height: 1.2;
-		color: var(--color-plum);
-	}
-
-	.invitation-card__honor {
-		margin: 0.7rem 0 0;
-		max-width: 12rem;
-		font-family: var(--font-serif);
-		font-size: 0.6875rem;
-		font-weight: 500;
-		font-style: italic;
-		line-height: 1.55;
-		letter-spacing: 0.04em;
-		color: var(--color-mauve-dark);
-	}
-
-	.invitation-card__date {
-		margin: 0.85rem 0 0;
-		font-family: var(--font-serif);
-		font-size: 1rem;
-		font-weight: 600;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: var(--color-plum-deep);
-	}
-
-	.invitation-card__venue {
-		margin: 0.35rem 0 0;
+		left: 50%;
+		bottom: clamp(1.25rem, 4vw, 2rem);
+		z-index: 5;
+		transform: translateX(-50%);
+		padding: 0.65rem 1.75rem;
 		font-family: var(--font-sans);
 		font-size: 0.75rem;
-		font-weight: 400;
-		line-height: 1.45;
-		letter-spacing: 0.06em;
-		color: var(--color-brown-soft);
-	}
-
-	.invitation-card__cta {
-		margin-top: auto;
-		padding-top: 1rem;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 10rem;
-		padding: 0.5rem 1.35rem;
-		font-family: var(--font-sans);
-		font-size: 0.6875rem;
 		font-weight: 600;
-		letter-spacing: 0.18em;
+		letter-spacing: 0.14em;
 		text-transform: uppercase;
 		color: var(--color-plum-deep);
 		background: linear-gradient(180deg, #faf6f0, #f0e8dc);
 		border: 1px solid rgb(155 123 142 / 0.3);
 		border-radius: 9999px;
 		box-shadow: 0 4px 16px rgb(42 26 50 / 0.08);
-		pointer-events: none;
-		transition: box-shadow 0.35s ease;
+		cursor: pointer;
+		transition:
+			color 0.25s ease,
+			border-color 0.25s ease,
+			box-shadow 0.25s ease,
+			transform 0.25s ease;
 	}
 
-	.invitation-card:hover .invitation-card__cta,
-	.invitation-card:focus-visible .invitation-card__cta {
+	.invitation-intro__continue:hover {
+		color: var(--color-plum);
+		border-color: rgb(155 123 142 / 0.45);
 		box-shadow: 0 6px 22px rgb(155 123 142 / 0.22);
+		transform: translateX(-50%) translateY(-1px);
 	}
 
-	/* ── Keyframes ───────────────────────────────────────────────── */
-	@keyframes intro-backdrop-in {
+	.invitation-intro__continue:focus-visible {
+		outline: 2px solid var(--color-mauve);
+		outline-offset: 3px;
+	}
+
+	@keyframes intro-stage-in {
 		from {
 			opacity: 0;
 		}
@@ -588,173 +282,17 @@ const paperNoiseSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmln
 		}
 	}
 
-	@keyframes intro-envelope-in {
-		from {
-			opacity: 0;
-			transform: translate3d(0, 2rem, 0) scale(0.94);
-		}
-		to {
-			opacity: 1;
-			transform: translate3d(0, 0, 0) scale(1);
-		}
-	}
-
-	@keyframes intro-envelope-float {
-		0%,
-		100% {
-			transform: translate3d(0, 0, 0);
-		}
-		50% {
-			transform: translate3d(0, -5px, 0);
-		}
-	}
-
-	@keyframes intro-shadow-in {
-		from {
-			opacity: 0;
-			transform: scaleX(0.65) translateZ(0);
-		}
-		to {
-			opacity: 1;
-			transform: scaleX(1) translateZ(0);
-		}
-	}
-
-	@keyframes intro-liner-reveal {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes intro-flap-open {
-		0% {
-			transform: rotateX(0deg) translateZ(1px);
-		}
-		100% {
-			transform: rotateX(-175deg) translateZ(1px);
-		}
-	}
-
-	@keyframes intro-card-rise {
-		0% {
-			opacity: 0;
-			transform: translate3d(-50%, 48%, 0) scale(0.92);
-		}
-		25% {
-			opacity: 1;
-		}
-		70% {
-			transform: translate3d(-50%, -78%, 0) scale(1) rotateX(-1deg);
-		}
-		100% {
-			opacity: 1;
-			transform: translate3d(-50%, -82%, 0) scale(1) rotateX(-2.5deg);
-		}
-	}
-
-	@keyframes intro-card-breathe {
-		0%,
-		100% {
-			transform: translate3d(0, 0, 0) rotateX(-2.5deg);
-		}
-		50% {
-			transform: translate3d(0, -6px, 0) rotateX(-3.5deg);
-		}
-	}
-
-	@keyframes intro-card-exit {
-		to {
-			opacity: 0;
-			transform: translate3d(-50%, -105%, 0) scale(0.94) rotateX(6deg);
-		}
-	}
-
-	/* ── Reduced motion ──────────────────────────────────────────── */
-	.invitation-intro.is-reduced-motion .invitation-intro__glow,
-	.invitation-intro.is-reduced-motion .invitation-envelope,
-	.invitation-intro.is-reduced-motion .invitation-envelope__shadow,
-	.invitation-intro.is-reduced-motion .invitation-envelope__liner,
-	.invitation-intro.is-reduced-motion .invitation-envelope__flap,
-	.invitation-intro.is-reduced-motion .invitation-card-slot,
-	.invitation-intro.is-reduced-motion .invitation-card {
+	.invitation-intro.is-reduced-motion .invitation-intro__stage {
 		animation: none !important;
 	}
 
-	.invitation-intro.is-reduced-motion .invitation-envelope__flap {
-		transform: rotateX(-175deg) translateZ(1px);
-		opacity: 0.4;
-	}
-
-	.invitation-intro.is-reduced-motion .invitation-envelope__liner {
-		opacity: 1;
-	}
-
-	.invitation-intro.is-reduced-motion .invitation-card-slot {
-		opacity: 1;
-		transform: translate3d(-50%, -82%, 0) scale(1) rotateX(-2.5deg);
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-
 		.invitation-intro {
 			transition: opacity 0.2s ease;
 		}
 
-		.invitation-intro__glow,
-		.invitation-envelope,
-		.invitation-envelope__shadow,
-		.invitation-envelope__liner,
-		.invitation-envelope__flap,
-		.invitation-card-slot,
-		.invitation-card {
+		.invitation-intro__stage {
 			animation: none !important;
-		}
-
-		.invitation-envelope__flap {
-			transform: rotateX(-175deg) translateZ(1px);
-			opacity: 0.4;
-		}
-
-		.invitation-envelope__liner {
-			opacity: 1;
-		}
-
-		.invitation-card-slot {
-			opacity: 1;
-			transform: translate3d(-50%, -82%, 0) scale(1) rotateX(-2.5deg);
-		}
-	}
-
-	/* ── Desktop refinements ─────────────────────────────────────── */
-	@media (min-width: 768px) {
-		.invitation-intro {
-			--envelope-w: 22rem;
-			--card-w: 17.5rem;
-		}
-
-		.invitation-card__eyebrow {
-			font-size: 0.625rem;
-		}
-
-		.invitation-card__honor {
-			font-size: 0.75rem;
-			max-width: 13.5rem;
-		}
-
-		.invitation-card__date {
-			font-size: 1.0625rem;
-		}
-
-		.invitation-card__venue {
-			font-size: 0.8125rem;
-		}
-
-		.invitation-card__floral {
-			width: 5rem;
-			height: 5rem;
 		}
 	}
 </style>

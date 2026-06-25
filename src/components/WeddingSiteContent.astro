@@ -47,10 +47,11 @@ import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE } from '../lib
 					</ul>
 				</div>
 				<span class="rsvp-help-divider" aria-hidden="true">|</span>
-				<a class="rsvp-help-email" href={`mailto:${CONTACT_EMAIL}`}>
-					<span data-strand="en">Email Us</span>
-					<span data-strand="es">Escríbenos</span>
-				</a>
+				<span class="rsvp-help-email-wrap">
+					<span data-strand="en">Email us: </span>
+					<span data-strand="es">Escríbenos: </span>
+					<a class="rsvp-help-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+				</span>
 			</div>
 		</div>
 	</div>

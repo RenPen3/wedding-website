@@ -7,16 +7,16 @@ export type Bilingual = { en: string; es: string };
 
 export const honeymoonFundHero = {
 	title: {
-		en: 'Honeymoon Fund',
-		es: 'Fondo de luna de miel',
+		en: 'Support Our Next Chapter',
+		es: 'Apoya nuestro siguiente capítulo',
 	} satisfies Bilingual,
 	subtitle: {
 		en: 'Help Us Create Beautiful Memories Together',
 		es: 'Ayúdanos a crear hermosos recuerdos juntos',
 	} satisfies Bilingual,
 	intro: {
-		en: 'Your presence at our wedding means the world to us. If you would like to bless us with a gift, we would be grateful for a contribution toward our honeymoon memories.',
-		es: 'Tu presencia en nuestra boda significa mucho para nosotros. Si deseas bendecirnos con un regalo, te agradecemos una contribución para nuestros recuerdos de luna de miel.',
+		en: 'Your presence at our wedding means the world to us. If you would like to bless us with a gift, we would be grateful for your support as we begin this new chapter together.',
+		es: 'Tu presencia en nuestra boda significa mucho para nosotros. Si deseas bendecirnos con un regalo, te agradecemos tu apoyo mientras comenzamos este nuevo capítulo juntos.',
 	} satisfies Bilingual,
 };
 
@@ -52,7 +52,7 @@ export const paymentOptions: PaymentOption[] = [
 			en: 'Send through your bank using Zelle.',
 			es: 'Envía desde tu banco usando Zelle.',
 		},
-		buttonText: { en: 'Give with Zelle', es: 'Regalar con Zelle' },
+		buttonText: { en: 'Give with Zelle: Rene Perez / 818-568-2932', es: 'Regalar con Zelle: Rene Perez / 818-568-2932' },
 		href: '#',
 	},
 	{
@@ -106,7 +106,7 @@ export const giftIdeas: GiftIdea[] = [
 	},
 	{
 		id: 'general',
-		title: { en: 'General Honeymoon Fund', es: 'Fondo general de luna de miel' },
+		title: { en: 'General Gift', es: 'Regalo general' },
 		amount: { en: 'Any Amount', es: 'Cualquier monto' },
 	},
 ];

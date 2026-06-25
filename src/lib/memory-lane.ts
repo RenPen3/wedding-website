@@ -26,8 +26,8 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 		id: '2015',
 		year: '2015',
 		caption: {
-			en: 'Where our story began',
-			es: 'Donde comenzó nuestra historia',
+			en: 'Where our story began and where it will continue. Dummy text for the caption.',
+			es: 'Donde comenzó nuestra historia y donde continuará. Texto dummy para el caption.',
 		},
 		image: '/story/memory-lane/mem-1.jpg',
 	},
@@ -35,8 +35,8 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 		id: '2017',
 		year: '2017',
 		caption: {
-			en: 'From strangers to something special',
-			es: 'De desconocidos a algo especial',
+			en: 'From strangers to something special. Dummy text for the caption.',
+			es: 'De desconocidos a algo especial. Texto dummy para el caption.',
 		},
 		image: '/story/memory-lane/mem-2.jpg',
 	},
@@ -44,8 +44,8 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 		id: '2019',
 		year: '2019',
 		caption: {
-			en: 'The first time we said “I love you”',
-			es: 'La primera vez que dijimos “te amo”',
+			en: 'The first time we said “I love you” And everything changed. Dummy text for the caption.',
+			es: 'La primera vez que dijimos “te amo” Y todo cambió. Texto dummy para el caption.',
 		},
 		image: '/story/memory-lane/mem-3.jpg',
 	},
@@ -53,8 +53,8 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 		id: '2022',
 		year: '2022',
 		caption: {
-			en: 'Even the pandemic couldn’t pause us',
-			es: 'Ni la pandemia pudo detenernos',
+			en: 'Even the pandemic couldn’t pause us. Dummy text for the caption.',
+			es: 'Ni la pandemia pudo detenernos. Texto dummy para el caption.',
 		},
 		image: '/story/memory-lane/mem-4.jpg',
 	},
@@ -62,7 +62,7 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 		id: '2024',
 		year: '2024',
 		caption: {
-			en: 'Growing stronger side by side',
+			en: 'Growing stronger side by side. Dummy text for the caption.',
 			es: 'Creciendo juntos, más fuertes',
 		},
 		image: '/story/memory-lane/mem-5.jpg',
@@ -71,8 +71,8 @@ export const memoryLaneItems: MemoryLaneItem[] = [
 		id: '2026',
 		year: '2026',
 		caption: {
-			en: 'From a question to a lifetime promise',
-			es: 'De una pregunta a una promesa de por vida',
+			en: 'From a question to a lifetime promise. Dummy text for the caption.',
+			es: 'De una pregunta a una promesa de por vida Texto dummy para el caption.',
 		},
 		image: '/story/memory-lane/mem-6.jpg',
 	},

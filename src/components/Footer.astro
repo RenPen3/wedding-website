@@ -69,10 +69,11 @@ const qrSvg = await QRCode.toString(qrTargetUrl, {
 					</ul>
 				</div>
 				<span class="footer-contact-divider" aria-hidden="true">|</span>
-				<a class="footer-contact-email" href={`mailto:${CONTACT_EMAIL}`}>
-					<span data-strand="en">Email Us</span>
-					<span data-strand="es">Escríbenos</span>
-				</a>
+				<span class="footer-contact-email-wrap">
+					<span data-strand="en">Email us: </span>
+					<span data-strand="es">Escríbenos: </span>
+					<a class="footer-contact-email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+				</span>
 			</div>
 		</div>
 		<p class="mt-6 text-xs text-ivory/50">
