@@ -1,54 +1,41 @@
 ---
 /**
- * Invitation GIF preloader — shown once per session on the homepage.
- * Early `invitation-intro-seen` on <html> prevents flash (MainLayout).
+ * Invitation video preloader — shown once per session on the homepage.
+ * Plays once, then auto-dismisses after the video duration.
  */
-const INTRO_GIF_SRC = '/images/our-intro.gif';
+const INTRO_VIDEO_SRC = '/videos/preloader_invitation.mp4';
+/** Used if video duration is unavailable (seconds) */
+const INTRO_DISMISS_FALLBACK_SEC = 10;
 ---
 
 <div
 	id="invitation-intro"
 	class="invitation-intro"
 	data-invitation-intro
-	role="dialog"
-	aria-modal="true"
-	aria-labelledby="invitation-intro-heading"
+	data-dismiss-fallback={INTRO_DISMISS_FALLBACK_SEC}
+	aria-busy="true"
+	aria-label="Wedding invitation intro"
 >
-	<button
-		type="button"
-		class="invitation-intro__skip"
-		data-invitation-skip
-		aria-label="Skip invitation intro. Saltar introducción."
-	>
-		<span data-strand="en">Skip Intro</span>
-		<span data-strand="es">Saltar intro</span>
-	</button>
-
 	<div class="invitation-intro__backdrop" aria-hidden="true">
 		<div class="invitation-intro__glow" aria-hidden="true"></div>
 	</div>
 
 	<div class="invitation-intro__stage">
-		<h2 id="invitation-intro-heading" class="sr-only">
+		<h2 class="sr-only">
 			<span data-strand="en">Our wedding invitation</span>
 			<span data-strand="es">Nuestra invitación de boda</span>
 		</h2>
 
-		<img
-			class="invitation-intro__gif"
-			src={INTRO_GIF_SRC}
-			alt="Jocelyn and René wedding invitation"
-			width="960"
-			height="540"
-			decoding="async"
-			fetchpriority="high"
-		/>
+		<video
+			class="invitation-intro__media"
+			src={INTRO_VIDEO_SRC}
+			autoplay
+			muted
+			playsinline
+			preload="auto"
+			aria-hidden="true"
+		></video>
 	</div>
-
-	<button type="button" class="invitation-intro__continue" data-invitation-continue>
-		<span data-strand="en">Enter Site</span>
-		<span data-strand="es">Entrar al sitio</span>
-	</button>
 </div>
 
 <script>
@@ -62,9 +49,11 @@ const INTRO_GIF_SRC = '/images/our-intro.gif';
 	if (!overlay) {
 		/* no-op */
 	} else {
-		const skipBtn = overlay.querySelector<HTMLButtonElement>('[data-invitation-skip]');
-		const continueBtn = overlay.querySelector<HTMLButtonElement>('[data-invitation-continue]');
+		const video = overlay.querySelector<HTMLVideoElement>('.invitation-intro__media');
+		const fallbackSec = Number(overlay.dataset.dismissFallback) || 10;
 		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		let dismissTimer: ReturnType<typeof setTimeout> | undefined;
 
 		const markSeen = () => {
 			try {
@@ -79,9 +68,9 @@ const INTRO_GIF_SRC = '/images/our-intro.gif';
 
 		const dismiss = () => {
 			if (overlay.classList.contains('is-dismissed')) return;
+			window.clearTimeout(dismissTimer);
 			overlay.classList.add('is-dismissed', 'is-exiting');
-			overlay.removeAttribute('role');
-			overlay.removeAttribute('aria-modal');
+			overlay.removeAttribute('aria-busy');
 			markSeen();
 			unlockScroll();
 
@@ -97,9 +86,14 @@ const INTRO_GIF_SRC = '/images/our-intro.gif';
 				(e) => {
 					if (e.target === overlay) removeOverlay();
 				},
-				{ once: true }
+				{ once: true },
 			);
 			window.setTimeout(removeOverlay, 1100);
+		};
+
+		const scheduleDismiss = (seconds: number) => {
+			window.clearTimeout(dismissTimer);
+			dismissTimer = window.setTimeout(dismiss, Math.max(0, seconds) * 1000);
 		};
 
 		const alreadySeen =
@@ -116,15 +110,38 @@ const INTRO_GIF_SRC = '/images/our-intro.gif';
 			overlay.remove();
 		} else {
 			root.classList.add(ACTIVE_CLASS);
-			if (reducedMotion) overlay.classList.add('is-reduced-motion');
 
-			skipBtn?.addEventListener('click', dismiss);
-			continueBtn?.addEventListener('click', dismiss);
+			if (reducedMotion) {
+				overlay.classList.add('is-reduced-motion');
+				video?.pause();
+				scheduleDismiss(Math.min(fallbackSec, 3));
+			} else if (video) {
+				let dismissScheduled = false;
 
-			window.setTimeout(() => {
-				overlay.classList.add('is-ready');
-				continueBtn?.focus({ preventScroll: true });
-			}, reducedMotion ? 0 : 400);
+				const scheduleFromVideo = () => {
+					if (dismissScheduled) return;
+					dismissScheduled = true;
+
+					const duration =
+						Number.isFinite(video.duration) && video.duration > 0
+							? video.duration
+							: fallbackSec;
+					scheduleDismiss(duration);
+				};
+
+				if (video.readyState >= 1) {
+					scheduleFromVideo();
+				} else {
+					video.addEventListener('loadedmetadata', scheduleFromVideo, { once: true });
+					window.setTimeout(scheduleFromVideo, 1500);
+				}
+
+				video.addEventListener('ended', dismiss, { once: true });
+			} else {
+				scheduleDismiss(fallbackSec);
+			}
+
+			window.setTimeout(() => overlay.classList.add('is-ready'), reducedMotion ? 0 : 400);
 		}
 	}
 </script>
@@ -182,43 +199,7 @@ const INTRO_GIF_SRC = '/images/our-intro.gif';
 		display: none;
 	}
 
-	.invitation-intro__skip {
-		position: absolute;
-		top: clamp(0.85rem, 3vw, 1.5rem);
-		right: clamp(0.85rem, 3vw, 1.5rem);
-		z-index: 5;
-		padding: 0.5rem 0.9rem;
-		font-family: var(--font-sans);
-		font-size: 0.75rem;
-		font-weight: 500;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: var(--color-brown-soft);
-		background: rgb(255 255 255 / 0.5);
-		border: 1px solid rgb(155 123 142 / 0.2);
-		border-radius: 9999px;
-		cursor: pointer;
-		backdrop-filter: blur(10px);
-		transition:
-			color 0.25s ease,
-			background-color 0.25s ease,
-			border-color 0.25s ease,
-			box-shadow 0.25s ease;
-	}
-
-	.invitation-intro__skip:hover {
-		color: var(--color-plum);
-		background: rgb(255 255 255 / 0.82);
-		border-color: rgb(155 123 142 / 0.32);
-		box-shadow: 0 4px 20px rgb(42 26 50 / 0.08);
-	}
-
-	.invitation-intro__skip:focus-visible {
-		outline: 2px solid var(--color-mauve);
-		outline-offset: 2px;
-	}
-
-	/* ── Full-screen GIF ─────────────────────────────────────────── */
+	/* ── Full-screen video ───────────────────────────────────────── */
 	.invitation-intro__stage {
 		position: absolute;
 		inset: 0;
@@ -228,49 +209,12 @@ const INTRO_GIF_SRC = '/images/our-intro.gif';
 		animation: intro-stage-in 0.9s var(--ease-out-soft) both;
 	}
 
-	.invitation-intro__gif {
+	.invitation-intro__media {
 		display: block;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 		object-position: center;
-	}
-
-	.invitation-intro__continue {
-		position: absolute;
-		left: 50%;
-		bottom: clamp(1.25rem, 4vw, 2rem);
-		z-index: 5;
-		transform: translateX(-50%);
-		padding: 0.65rem 1.75rem;
-		font-family: var(--font-sans);
-		font-size: 0.75rem;
-		font-weight: 600;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--color-plum-deep);
-		background: linear-gradient(180deg, #faf6f0, #f0e8dc);
-		border: 1px solid rgb(155 123 142 / 0.3);
-		border-radius: 9999px;
-		box-shadow: 0 4px 16px rgb(42 26 50 / 0.08);
-		cursor: pointer;
-		transition:
-			color 0.25s ease,
-			border-color 0.25s ease,
-			box-shadow 0.25s ease,
-			transform 0.25s ease;
-	}
-
-	.invitation-intro__continue:hover {
-		color: var(--color-plum);
-		border-color: rgb(155 123 142 / 0.45);
-		box-shadow: 0 6px 22px rgb(155 123 142 / 0.22);
-		transform: translateX(-50%) translateY(-1px);
-	}
-
-	.invitation-intro__continue:focus-visible {
-		outline: 2px solid var(--color-mauve);
-		outline-offset: 3px;
 	}
 
 	@keyframes intro-stage-in {
