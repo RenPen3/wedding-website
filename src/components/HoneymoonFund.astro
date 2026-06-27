@@ -152,6 +152,23 @@ const paymentButtonClass =
 									{ target: '_blank', rel: 'noopener noreferrer' }
 								:	{})}
 							>
+								<div class="honeymoon-gift-icon">
+									{
+										idea.image ? (
+											<img
+												src={idea.image}
+												alt=""
+												width="72"
+												height="72"
+												loading="lazy"
+												decoding="async"
+												class="honeymoon-gift-icon__img"
+											/>
+										) : (
+											<span class="honeymoon-gift-icon__placeholder" />
+										)
+									}
+								</div>
 								<p class="font-serif text-lg leading-snug text-plum">
 									<span data-strand="en">{idea.title.en}</span>
 									<span data-strand="es">{idea.title.es}</span>
@@ -182,6 +199,34 @@ const paymentButtonClass =
 	.honeymoon-gift {
 		text-decoration: none;
 		color: inherit;
+	}
+
+	.honeymoon-gift-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		margin-bottom: 0.75rem;
+		flex-shrink: 0;
+	}
+
+	.honeymoon-gift-icon__img {
+		display: block;
+		max-width: 100%;
+		max-height: 100%;
+		width: auto;
+		height: auto;
+		object-fit: contain;
+	}
+
+	.honeymoon-gift-icon__placeholder {
+		display: block;
+		width: 3rem;
+		height: 3rem;
+		border-radius: 9999px;
+		border: 1px dashed rgb(155 123 142 / 0.35);
+		background: rgb(250 246 240 / 0.6);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

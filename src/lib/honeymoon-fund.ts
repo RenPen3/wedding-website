@@ -63,7 +63,7 @@ export const paymentOptions: PaymentOption[] = [
 			es: 'Envía un regalo seguro por PayPal.',
 		},
 		buttonText: { en: 'Give with PayPal', es: 'Regalar con PayPal' },
-		href: '#',
+		href: 'https://paypal.me/curveejay',
 	},
 	{
 		id: 'card-box',
@@ -79,6 +79,8 @@ export type GiftIdea = {
 	id: string;
 	title: Bilingual;
 	amount: Bilingual;
+	/** Optional pictogram above the title — path under /public */
+	image?: string;
 	/** Payment URL — defaults to Venmo when omitted */
 	href?: string;
 };
@@ -88,26 +90,31 @@ export const giftIdeas: GiftIdea[] = [
 		id: 'dinner',
 		title: { en: 'Dinner for Two', es: 'Cena para dos' },
 		amount: { en: '$100', es: '$100' },
+		image: '/images/dinner2.png',
 	},
 	{
-		id: 'massage',
-		title: { en: 'Couples Massage', es: 'Masaje en pareja' },
+		id: 'roundtrip',
+		title: { en: 'Roundtrip fund', es: 'Fondo de ida y vuelta' },
 		amount: { en: '$150', es: '$150' },
+		image: '/images/roundtrip.png',
 	},
 	{
-		id: 'excursion',
-		title: { en: 'Excursion or Activity', es: 'Excursión o actividad' },
+		id: 'getaway',
+		title: { en: 'Weekend Getaway', es: 'Escapada de fin de semana' },
 		amount: { en: '$200', es: '$200' },
+		image: '/images/luggage.png',
 	},
 	{
 		id: 'hotel',
 		title: { en: 'Hotel Stay', es: 'Estancia en hotel' },
 		amount: { en: '$250', es: '$250' },
+		image: '/images/bedding.png',
 	},
 	{
 		id: 'general',
 		title: { en: 'General Gift', es: 'Regalo general' },
 		amount: { en: 'Any Amount', es: 'Cualquier monto' },
+		image: '/images/gift.png',
 	},
 ];
 
