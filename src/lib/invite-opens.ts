@@ -1,20 +1,23 @@
 /**
- * Server-side invite open tracking (Supabase invite_opens table).
- * Never import from client scripts — use POST /api/invite-open instead.
+ * Server-side invite open tracking (Netlify Blobs).
+ * Client scripts should POST to `/.netlify/functions/track-invite-open`.
  */
 import { formatGuestNamesList, parseGuestNames } from './guest-names';
 import { createAdminSupabase } from './supabase';
 import { getGuestByInviteCode, guestSlug } from './guest-search';
 import { loadInvitedGuests, normalizeName } from './rsvp-store';
 
-export type InviteOpenRow = {
-	id: string;
-	invite_code: string;
-	guest_name: string | null;
-	opened_at: string;
-	user_agent: string | null;
-	page_path: string | null;
+type BlobInviteOpenRecord = {
+	slug: string;
+	opened: boolean;
+	firstOpenedAt: string;
+	lastOpenedAt: string;
+	openCount: number;
 };
+
+async function loadBlobStore() {
+	return import('../../netlify/lib/invite-open-store.js');
+}
 
 export type InviteOpenSummary = {
 	invite_code: string;
@@ -77,113 +80,41 @@ export async function recordInviteOpen(payload: {
 		return { ok: false, error: 'Invalid invite code' };
 	}
 
-	const client = createAdminSupabase();
-	if (!client) {
-		console.error('[invite-opens] SUPABASE_SERVICE_ROLE_KEY missing — cannot record open');
-		return { ok: false, error: 'Invite tracking is not configured' };
-	}
-
-	let guest_name = payload.guest_name?.trim() || null;
-	if (!guest_name) {
-		guest_name = await resolveGuestNameForInviteCode(invite_code);
-	}
-
-	console.log('[invite-opens] recordInviteOpen:', {
-		invite_code,
-		guest_matched: Boolean(guest_name),
-		guest_name: guest_name ?? null,
-		page_path: payload.page_path ?? null,
-	});
-
-	const user_agent = payload.user_agent?.trim().slice(0, 500) || null;
-	const page_path = payload.page_path?.trim().slice(0, 500) || null;
-
-	const { error } = await client.from('invite_opens').insert({
-		invite_code,
-		guest_name,
-		user_agent,
-		page_path,
-	});
-
-	if (error) {
-		console.error('[invite-opens] insert failed:', error.message, error.details ?? '', error.hint ?? '');
-		return { ok: false, error: error.message };
-	}
-
-	console.log('[invite-opens] insert success:', invite_code, guest_name ?? '(unknown guest)');
-	return { ok: true };
-}
-
-function aggregateInviteOpens(rows: InviteOpenRow[]): InviteOpenSummary[] {
-	const byCode = new Map<string, InviteOpenSummary>();
-
-	for (const row of rows) {
-		const code = normalizeInviteCode(row.invite_code);
-		if (!code) continue;
-
-		const existing = byCode.get(code);
-		if (!existing) {
-			byCode.set(code, {
-				invite_code: code,
-				guest_name: row.guest_name,
-				first_opened_at: row.opened_at,
-				last_opened_at: row.opened_at,
-				open_count: 1,
-			});
-			continue;
+	try {
+		const store = await loadBlobStore();
+		if (!store.isValidInviteSlug(invite_code)) {
+			return { ok: false, error: 'Invalid invite code' };
 		}
 
-		if (row.guest_name && !existing.guest_name) existing.guest_name = row.guest_name;
-		if (row.opened_at < existing.first_opened_at) existing.first_opened_at = row.opened_at;
-		if (row.opened_at > existing.last_opened_at) existing.last_opened_at = row.opened_at;
-		existing.open_count += 1;
+		const record = await store.recordInviteOpen(invite_code);
+		console.log('[invite-opens] recordInviteOpen:', {
+			invite_code,
+			open_count: record.openCount,
+			page_path: payload.page_path ?? null,
+		});
+		return { ok: true };
+	} catch (err) {
+		const message = err instanceof Error ? err.message : 'Failed to record invite open';
+		console.error('[invite-opens] record failed:', invite_code, message);
+		return { ok: false, error: message };
 	}
+}
 
-	return Array.from(byCode.values()).sort((a, b) =>
-		b.last_opened_at.localeCompare(a.last_opened_at)
-	);
+function mapBlobRecord(record: BlobInviteOpenRecord): InviteOpenSummary {
+	return {
+		invite_code: normalizeInviteCode(record.slug),
+		guest_name: null,
+		first_opened_at: record.firstOpenedAt,
+		last_opened_at: record.lastOpenedAt,
+		open_count: record.openCount,
+	};
 }
 
 export async function fetchInviteOpenSummaries(): Promise<InviteOpenSummary[]> {
-	const client = createAdminSupabase();
-	if (!client) {
-		throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin invite stats');
-	}
-
-	const { data, error } = await client
-		.from('invite_open_summary')
-		.select('invite_code, guest_name, first_opened_at, last_opened_at, open_count')
-		.order('last_opened_at', { ascending: false });
-
-	if (!error) {
-		console.log('[invite-opens] loaded invite_open_summary rows:', data?.length ?? 0);
-		return (data ?? []) as InviteOpenSummary[];
-	}
-
-	console.warn('[invite-opens] invite_open_summary unavailable:', error.message, '— aggregating invite_opens.');
-
-	const { data: rows, error: rowsError } = await client
-		.from('invite_opens')
-		.select('invite_code, guest_name, opened_at')
-		.order('opened_at', { ascending: false });
-
-	if (rowsError) {
-		throw new Error(rowsError.message);
-	}
-
-	const summaries = aggregateInviteOpens(
-		(rows ?? []).map((row) => ({
-			id: '',
-			invite_code: String(row.invite_code),
-			guest_name: row.guest_name != null ? String(row.guest_name) : null,
-			opened_at: String(row.opened_at),
-			user_agent: null,
-			page_path: null,
-		}))
-	);
-
-	console.log('[invite-opens] aggregated invite_opens rows:', summaries.length);
-	return summaries;
+	const store = await loadBlobStore();
+	const records = (await store.getAllInviteOpens()) as BlobInviteOpenRecord[];
+	console.log('[invite-opens] loaded blob invite opens:', records.length);
+	return records.map(mapBlobRecord);
 }
 
 type RsvpResponseRow = {

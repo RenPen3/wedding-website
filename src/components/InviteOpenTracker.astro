@@ -1,11 +1,11 @@
 ---
-/** Tracks invite link opens once per browser session (client → POST /api/invite-open). */
+/** Tracks invite link opens once per browser session (client → Netlify Function). */
 ---
 
 <script>
-	const SESSION_PREFIX = 'wedding-invite-tracked:';
+	const TRACK_URL = '/.netlify/functions/track-invite-open';
 
-	function readInviteCodeFromUrl(): string | null {
+	function readInviteSlugFromUrl(): string | null {
 		const params = new URLSearchParams(window.location.search);
 		const fromQuery = (params.get('code') ?? params.get('invite') ?? '').trim().toLowerCase();
 		if (fromQuery) return fromQuery;
@@ -22,38 +22,29 @@
 		return null;
 	}
 
-	async function trackInviteOpen(inviteCode: string) {
-		const storageKey = SESSION_PREFIX + inviteCode;
+	function trackInviteOpen(slug: string) {
+		const storageKey = `invite_open_logged_${slug}`;
+
 		try {
-			if (sessionStorage.getItem(storageKey) === '1') return;
+			if (sessionStorage.getItem(storageKey)) return;
+			sessionStorage.setItem(storageKey, 'true');
 		} catch {
 			/* sessionStorage unavailable */
 		}
 
-		try {
-			const res = await fetch('/api/invite-open', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					invite_code: inviteCode,
-					page_path: window.location.pathname + window.location.search,
-				}),
-			});
-
-			if (res.ok) {
-				try {
-					sessionStorage.setItem(storageKey, '1');
-				} catch {
-					/* ignore */
-				}
-			}
-		} catch {
-			/* non-blocking — do not affect page UX */
-		}
+		fetch(TRACK_URL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ slug }),
+		}).catch(() => {
+			// Fail silently. Do not block page UX.
+		});
 	}
 
-	const inviteCode = readInviteCodeFromUrl();
-	if (inviteCode) {
-		void trackInviteOpen(inviteCode);
+	const slug = readInviteSlugFromUrl();
+	if (slug) {
+		trackInviteOpen(slug);
 	}
 </script>

@@ -8,7 +8,7 @@ export default defineConfig({
 	output: 'server',
 	adapter: netlify({
 		// Seed file for first-run blob init and local file fallback
-		includeFiles: ['src/data/wedding-state.json'],
+		includeFiles: ['src/data/wedding-state.json', 'src/data/invite-opens.json'],
 	}),
 	vite: {
 		plugins: [tailwindcss()],

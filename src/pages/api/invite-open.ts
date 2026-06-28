@@ -13,7 +13,9 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	const invite_code = normalizeInviteCode(String(body.invite_code ?? body.code ?? ''));
+	const invite_code = normalizeInviteCode(
+		String(body.slug ?? body.invite_code ?? body.code ?? ''),
+	);
 	console.log('[api/invite-open] slug received:', invite_code);
 
 	if (!isValidInviteCode(invite_code)) {

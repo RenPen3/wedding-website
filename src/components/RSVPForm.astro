@@ -1,25 +1,32 @@
 ---
 type Props = {
 	inviteCode?: string;
+	showHeader?: boolean;
 };
 
-const { inviteCode = '' } = Astro.props;
+const { inviteCode = '', showHeader = true } = Astro.props;
 ---
 
-<div class="relative overflow-visible rounded-3xl border border-mauve/20 bg-cream/90 p-8 shadow-sm md:p-10">
-	<h3 class="font-serif text-2xl text-plum md:text-3xl">RSVP</h3>
-	<p class="mt-2 text-brown-soft">
-		<span data-strand="en">Please respond by August 1, 2026.</span>
-		<span data-strand="es">Por favor responde antes del 1 de agosto de 2026.</span>
-	</p>
+<div class="relative overflow-visible rounded-3xl border border-mauve/20 bg-cream/92 p-8 shadow-lg backdrop-blur-sm md:p-10">
+	{
+		showHeader && (
+			<>
+				<h3 class="font-serif text-2xl text-plum md:text-3xl">RSVP</h3>
+				<p class="mt-2 text-brown-soft">
+					<span data-strand="en">Please respond by August 1, 2026.</span>
+					<span data-strand="es">Por favor responde antes del 1 de agosto de 2026.</span>
+				</p>
+			</>
+		)
+	}
 
-	<div id="rsvp-success" class="mt-8 hidden space-y-6" aria-live="polite">
+	<div id="rsvp-success" class:list={['space-y-6', showHeader ? 'mt-8' : '', 'hidden']} aria-live="polite">
 		<p class="font-serif text-2xl text-plum md:text-3xl" id="rsvp-success-heading"></p>
 		<div id="rsvp-success-names" class="space-y-3 rounded-2xl border border-mauve/15 bg-white/60 px-5 py-4"></div>
 		<p id="rsvp-success-message" class="text-brown-soft leading-relaxed"></p>
 	</div>
 
-	<form id="rsvp-form" class="mt-8 space-y-6">
+	<form id="rsvp-form" class:list={['space-y-6', showHeader ? 'mt-8' : '']}>
 		<input type="hidden" id="rsvp-guest-id" name="guestId" value="" />
 		<input type="hidden" id="rsvp-invite-code" name="inviteCode" value={inviteCode} />
 		<input type="hidden" id="rsvp-guest-name" name="name" value="" />

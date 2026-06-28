@@ -233,10 +233,6 @@ const SESSION_KEY = 'wedding_admin_token';
 		return `<span class="admin-badge admin-badge--${variant}">${text}</span>`;
 	}
 
-	function openBadge(g) {
-		return hasOpened(g) ? badge('Opened', 'opened') : badge('Not opened', 'muted');
-	}
-
 	function rsvpBadge(g) {
 		const s = rsvpStatus(g);
 		if (s === 'attending') return badge('Attending', 'attending');
@@ -311,10 +307,10 @@ const SESSION_KEY = 'wedding_admin_token';
 						<button type="button" class="admin-copy mt-2" data-url="${escapeHtml(inviteUrl)}">Copy link</button>
 					</td>
 					<td data-label="Opens">
-						<div class="flex flex-wrap gap-1">${openBadge(g)}</div>
-						<p class="mt-1 text-xs text-brown-soft">Count: ${g.open_count ?? 0}</p>
-						<p class="text-xs text-brown-muted">First: ${fmtDate(g.first_opened_at)}</p>
-						<p class="text-xs text-brown-muted">Last: ${fmtDate(g.last_opened_at)}</p>
+						<p class="text-sm text-plum">Opened: ${hasOpened(g) ? 'Yes' : 'No'}</p>
+						<p class="mt-1 text-xs text-brown-soft">Open count: ${g.open_count ?? 0}</p>
+						<p class="text-xs text-brown-muted">First opened: ${fmtDate(g.first_opened_at)}</p>
+						<p class="text-xs text-brown-muted">Last opened: ${fmtDate(g.last_opened_at)}</p>
 					</td>
 					<td data-label="RSVP">${rsvpBadge(g)}</td>
 					<td data-label="Attending" class="font-medium">${attending}</td>
@@ -369,6 +365,63 @@ const SESSION_KEY = 'wedding_admin_token';
 			:	'<p class="text-xs text-brown-soft">—</p>';
 	}
 
+	function computeStatsFromGuests(guests) {
+		return guests.reduce(
+			(acc, g) => {
+				acc.total += 1;
+				if (hasOpened(g)) acc.opened += 1;
+				else acc.notOpened += 1;
+
+				const status = rsvpStatus(g);
+				if (status === 'pending') acc.rsvpPending += 1;
+				else if (status === 'attending') {
+					acc.rsvpAttending += 1;
+					acc.totalAttending += g.rsvp_total_attending ?? 0;
+				} else {
+					acc.rsvpDeclined += 1;
+				}
+
+				return acc;
+			},
+			{
+				total: 0,
+				opened: 0,
+				notOpened: 0,
+				rsvpAttending: 0,
+				rsvpDeclined: 0,
+				rsvpPending: 0,
+				totalAttending: 0,
+			},
+		);
+	}
+
+	function mergeInviteOpens(guests, records) {
+		const openBySlug = new Map(
+			(records ?? []).map((record) => [String(record.slug ?? '').toLowerCase(), record]),
+		);
+
+		return guests.map((guest) => {
+			const open = openBySlug.get(String(guest.invite_code ?? '').toLowerCase());
+			if (!open) {
+				return {
+					...guest,
+					invite_opened: false,
+					first_opened_at: null,
+					last_opened_at: null,
+					open_count: 0,
+				};
+			}
+
+			return {
+				...guest,
+				invite_opened: Boolean(open.opened) || (open.openCount ?? 0) > 0,
+				first_opened_at: open.firstOpenedAt ?? null,
+				last_opened_at: open.lastOpenedAt ?? null,
+				open_count: open.openCount ?? 0,
+			};
+		});
+	}
+
 	async function loadGuests() {
 		const token = getToken();
 		if (!token) {
@@ -381,23 +434,34 @@ const SESSION_KEY = 'wedding_admin_token';
 		loadErrorEl?.classList.add('hidden');
 
 		try {
-			const res = await fetch('/api/admin/guests', {
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			const data = await res.json();
+			const authHeaders = { Authorization: `Bearer ${token}` };
+			const [guestsRes, opensRes] = await Promise.all([
+				fetch('/api/admin/guests', { headers: authHeaders }),
+				fetch('/.netlify/functions/get-invite-opens', { headers: authHeaders }),
+			]);
+			const data = await guestsRes.json();
 
-			if (res.status === 401) {
+			if (guestsRes.status === 401) {
 				clearToken();
 				showLogin();
 				return;
 			}
 
-			if (!res.ok || !data.ok) {
+			if (!guestsRes.ok || !data.ok) {
 				throw new Error(data.error ?? 'Failed to load guests');
 			}
 
-			allGuests = data.guests ?? [];
-			updateStats(data.stats);
+			let guests = data.guests ?? [];
+
+			if (opensRes.ok) {
+				const opensData = await opensRes.json();
+				if (opensData.ok) {
+					guests = mergeInviteOpens(guests, opensData.records ?? []);
+				}
+			}
+
+			allGuests = guests;
+			updateStats(computeStatsFromGuests(allGuests));
 			loadingEl?.classList.add('hidden');
 			statsEl?.classList.remove('hidden');
 			filtersEl?.classList.remove('hidden');

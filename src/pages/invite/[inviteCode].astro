@@ -1,23 +1,6 @@
 ---
-import {
-	isValidInviteCode,
-	normalizeInviteCode,
-	recordInviteOpen,
-} from '../../lib/invite-opens';
-
-const code = normalizeInviteCode(Astro.params.inviteCode ?? '');
+const code = (Astro.params.inviteCode ?? '').trim().toLowerCase();
 const target = code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp';
-
-if (code && isValidInviteCode(code)) {
-	const result = await recordInviteOpen({
-		invite_code: code,
-		page_path: `/invite/${code}`,
-		user_agent: Astro.request.headers.get('user-agent'),
-	});
-	console.log('[invite] server-side track:', code, result.ok ? 'success' : result.error);
-} else if (code) {
-	console.warn('[invite] invalid slug:', code);
-}
 ---
 
 <!doctype html>
@@ -33,13 +16,28 @@ if (code && isValidInviteCode(code)) {
 			Opening your invitation…
 		</p>
 		<script define:vars={{ code, target }}>
-			const SESSION_PREFIX = 'wedding-invite-tracked:';
-
 			if (code) {
+				const storageKey = `invite_open_logged_${code}`;
+
 				try {
-					sessionStorage.setItem(SESSION_PREFIX + code, '1');
-				} catch (_) {}
+					if (!sessionStorage.getItem(storageKey)) {
+						sessionStorage.setItem(storageKey, 'true');
+
+						fetch('/.netlify/functions/track-invite-open', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({ slug: code }),
+						}).catch(() => {
+							// Fail silently. Do not block invite page.
+						});
+					}
+				} catch (_) {
+					/* sessionStorage unavailable */
+				}
 			}
+
 			window.location.replace(target);
 		</script>
 	</body>
