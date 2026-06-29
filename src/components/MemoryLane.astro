@@ -273,12 +273,14 @@ import { storyIntro } from '../lib/our-story';
 		overflow: hidden;
 		border-radius: 1rem;
 		box-shadow: 0 6px 28px rgb(61 38 69 / 0.08);
+		width: 100%;
+		height: clamp(11rem, 42vw, 14rem);
 	}
 
 	.memory-lane__photo {
 		display: block;
 		width: 100%;
-		height: clamp(11rem, 42vw, 14rem);
+		height: 100%;
 		object-fit: cover;
 	}
 
@@ -346,7 +348,7 @@ import { storyIntro } from '../lib/our-story';
 		.memory-lane__item--text-left .memory-lane__copy {
 			margin-left: auto;
 			max-width: 22rem;
-			text-align: center;
+			text-align: right;
 		}
 
 		.memory-lane__item--text-right .memory-lane__copy {
@@ -356,6 +358,7 @@ import { storyIntro } from '../lib/our-story';
 
 		.memory-lane__media {
 			width: min(100%, 560px);
+			height: clamp(12.5rem, 18vw, 16.25rem);
 		}
 
 		.memory-lane__item--text-left .memory-lane__col--right .memory-lane__media {
@@ -364,11 +367,6 @@ import { storyIntro } from '../lib/our-story';
 
 		.memory-lane__item--text-right .memory-lane__col--left .memory-lane__media {
 			margin-left: auto;
-		}
-
-		.memory-lane__photo {
-			width: min(100%, 560px);
-			height: clamp(12.5rem, 18vw, 16.25rem);
 		}
 
 		.memory-lane__title {
@@ -397,7 +395,7 @@ import { storyIntro } from '../lib/our-story';
 			padding-left: 2.5rem;
 		}
 
-		.memory-lane__photo {
+		.memory-lane__media {
 			width: 560px;
 			max-width: 100%;
 			height: 240px;
