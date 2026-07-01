@@ -3,6 +3,7 @@ type DetailLine = {
 	label: { en: string; es: string };
 	value: { en: string; es: string };
 	multiline?: boolean;
+	dividerAfter?: boolean;
 };
 
 const details: DetailLine[] = [
@@ -12,7 +13,7 @@ const details: DetailLine[] = [
 	},
 	{
 		label: { en: 'Ceremony Starts', es: 'Inicio de la ceremonia' },
-		value: { en: '4:00 PM', es: '4:00 p. m.' },
+		value: { en: '4:30 PM', es: '4:30 p. m.' },
 	},
 	{
 		label: { en: 'Cocktail Hour', es: 'Hora del cóctel' },
@@ -33,6 +34,7 @@ const details: DetailLine[] = [
 	{
 		label: { en: 'Dress Code', es: 'Código de vestimenta' },
 		value: { en: 'Garden Formal Attire', es: 'Vestimenta formal de jardín' },
+		dividerAfter: true,
 	},
 	{
 		label: { en: 'Adults-Only Celebration', es: 'Celebración solo para adultos' },
@@ -50,11 +52,18 @@ const details: DetailLine[] = [
 		<span data-strand="en">Wedding Details</span>
 		<span data-strand="es">Detalles de la boda</span>
 	</h2>
+	<div class="rsvp-details__divider" aria-hidden="true"></div>
 
 	<ul class="rsvp-details__list">
 		{
 			details.map((item) => (
-				<li class:list={['rsvp-details__line', item.multiline && 'rsvp-details__line--multiline']}>
+				<li
+					class:list={[
+						'rsvp-details__line',
+						item.dividerAfter && 'rsvp-details__line--divider-after',
+						item.multiline && 'rsvp-details__line--multiline',
+					]}
+				>
 					<span class="rsvp-details__label">
 						<span data-strand="en">{item.label.en}:</span>
 						<span data-strand="es">{item.label.es}:</span>
@@ -74,18 +83,24 @@ const details: DetailLine[] = [
 		margin-top: 2rem;
 		width: 100%;
 		text-align: center;
-		color: var(--color-plum-deep);
 	}
 
 	.rsvp-details__heading {
 		margin: 0;
-		font-size: 1.75rem;
+		font-size: 1.875rem;
 		font-weight: 600;
-		color: var(--color-plum-deep);
+		color: var(--color-plum);
+	}
+
+	.rsvp-details__divider {
+		margin: 0.875rem auto 0;
+		height: 1px;
+		width: 4rem;
+		background: rgb(155 123 142 / 0.6);
 	}
 
 	.rsvp-details__list {
-		margin: 1rem auto 0;
+		margin: 1.125rem auto 0;
 		max-width: 32rem;
 		padding: 0;
 		list-style: none;
@@ -93,35 +108,57 @@ const details: DetailLine[] = [
 
 	.rsvp-details__line {
 		margin: 0;
-		padding: 0.375rem 0;
-		font-size: 0.9375rem;
-		line-height: 1.6;
-		color: var(--color-plum-deep);
+		padding: 0.4375rem 0;
+		font-size: 1rem;
+		line-height: 1.65;
+		color: var(--color-brown-soft);
 	}
 
-	.rsvp-details__label,
+	.rsvp-details__label {
+		font-family: var(--font-serif);
+		font-weight: 600;
+		color: var(--color-plum);
+	}
+
 	.rsvp-details__value {
-		color: inherit;
-		font-weight: 400;
+		color: var(--color-brown-soft);
+	}
+
+	.rsvp-details__line--divider-after {
+		margin-bottom: 0.625rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid rgb(155 123 142 / 0.2);
+	}
+
+	.rsvp-details__line--multiline {
+		margin-top: 0.25rem;
 	}
 
 	.rsvp-details__line--multiline .rsvp-details__label {
 		display: block;
-		margin-bottom: 0.25rem;
+		margin-bottom: 0.375rem;
 	}
 
 	.rsvp-details__line--multiline .rsvp-details__value {
 		display: block;
 		max-width: 26rem;
 		margin: 0 auto;
+		font-size: 0.975rem;
+		line-height: 1.7;
+		color: var(--color-brown-muted);
 	}
 
 	@media (min-width: 640px) {
 		.rsvp-details__heading {
-			font-size: 2rem;
+			font-size: 2.125rem;
 		}
 
 		.rsvp-details__line {
+			font-size: 1.0625rem;
+			padding: 0.375rem 0;
+		}
+
+		.rsvp-details__line--multiline .rsvp-details__value {
 			font-size: 1rem;
 		}
 	}

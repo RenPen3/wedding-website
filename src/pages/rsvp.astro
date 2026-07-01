@@ -15,23 +15,60 @@ const inviteCode = Astro.url.searchParams.get('code') ?? '';
 			class="mx-auto flex min-h-[100svh] min-h-[100dvh] w-full max-w-2xl flex-col justify-center px-6 py-[calc(var(--site-nav-height,6.5rem)+2.5rem)] md:px-8 md:py-[calc(var(--site-nav-height,6.5rem)+3rem)]"
 			data-reveal
 		>
-			<h1 class="text-center font-serif text-4xl text-plum-deep md:text-5xl">RSVP</h1>
-			<p class="mx-auto mt-4 max-w-md text-center text-plum-deep md:text-lg">
-				<span data-strand="en"
-					>We’d love to celebrate with you. Please RSVP by August 1, 2026—find your name below to get
-					started.</span
-				>
-				<span data-strand="es"
-					>Nos encantaría celebrar contigo. Por favor confirma tu asistencia antes del 1 de agosto de
-					2026—busca tu nombre abajo para comenzar.</span>
+			<h1 class="text-center font-serif text-[2.75rem] text-plum md:text-5xl">RSVP</h1>
+			<p class="rsvp-page__intro mx-auto mt-4 max-w-lg text-center text-lg text-brown-soft md:max-w-3xl md:text-xl">
+				<span data-strand="en">
+					<span class="rsvp-page__intro-line1 block"
+						>We’d love to celebrate with you. Please RSVP by <span class="whitespace-nowrap"
+							>August 1, 2026</span
+						></span
+					>
+					<span class="rsvp-page__intro-line2 block">Find your name below to get started.</span>
+				</span>
+				<span data-strand="es">
+					<span class="rsvp-page__intro-line1 block"
+						>Nos encantaría celebrar contigo. Por favor confirma tu asistencia antes del <span
+							class="whitespace-nowrap">1 de agosto de 2026</span
+						></span
+					>
+					<span class="rsvp-page__intro-line2 block">Busca tu nombre abajo para comenzar.</span>
+				</span>
 			</p>
 
 			<RsvpWeddingDetails />
 
-			<div class="mt-8 md:mt-10">
+			<div class="rsvp-page__form mt-8 md:mt-10">
 				<RSVPForm inviteCode={inviteCode} showHeader={false} />
 			</div>
 		</div>
 	</main>
 	<Footer />
 </MainLayout>
+
+<style>
+	.rsvp-page__intro-line2 {
+		margin-top: 0.35rem;
+	}
+
+	@media (min-width: 768px) {
+		.rsvp-page__intro-line1 {
+			white-space: nowrap;
+		}
+
+		html.lang-es .rsvp-page__intro-line1 {
+			white-space: normal;
+		}
+	}
+
+	.rsvp-page__form :global(label.text-sm) {
+		font-size: 1rem;
+	}
+
+	.rsvp-page__form :global(input),
+	.rsvp-page__form :global(textarea),
+	.rsvp-page__form :global(button),
+	.rsvp-page__form :global(.text-brown-soft),
+	.rsvp-page__form :global(.text-brown-muted) {
+		font-size: 1.0625rem;
+	}
+</style>
