@@ -2,29 +2,21 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import RSVPForm from '../components/RSVPForm.astro';
+import RsvpWeddingDetails from '../components/RsvpWeddingDetails.astro';
 import Footer from '../components/Footer.astro';
 
 const inviteCode = Astro.url.searchParams.get('code') ?? '';
-const RSVP_BG_IMAGE = '/images/rsvp_bg_img_2.jpg';
 ---
 
-<MainLayout title="RSVP — Jocelyn & René">
+<MainLayout title="RSVP — Jocelyn & René" showInvitationIntro>
 	<Navbar />
-	<main class="rsvp-page">
-		<div class="rsvp-page__backdrop" aria-hidden="true">
-			<div
-				class="rsvp-page__image"
-				style={`background-image: url('${RSVP_BG_IMAGE}');`}
-			></div>
-			<div class="rsvp-page__overlay"></div>
-		</div>
-
+	<main class="bg-ivory">
 		<div
-			class="rsvp-page__content relative z-10 mx-auto flex min-h-[100svh] min-h-[100dvh] w-full max-w-xl flex-col justify-center px-6 py-[calc(var(--site-nav-height,6.5rem)+2.5rem)] md:px-8 md:py-[calc(var(--site-nav-height,6.5rem)+3rem)]"
+			class="mx-auto flex min-h-[100svh] min-h-[100dvh] w-full max-w-2xl flex-col justify-center px-6 py-[calc(var(--site-nav-height,6.5rem)+2.5rem)] md:px-8 md:py-[calc(var(--site-nav-height,6.5rem)+3rem)]"
 			data-reveal
 		>
-			<h1 class="text-center font-serif text-4xl text-cream md:text-5xl">RSVP</h1>
-			<p class="mx-auto mt-4 max-w-md text-center text-ivory/90">
+			<h1 class="text-center font-serif text-4xl text-plum-deep md:text-5xl">RSVP</h1>
+			<p class="mx-auto mt-4 max-w-md text-center text-plum-deep md:text-lg">
 				<span data-strand="en"
 					>We’d love to celebrate with you. Please RSVP by August 1, 2026—find your name below to get
 					started.</span
@@ -33,6 +25,9 @@ const RSVP_BG_IMAGE = '/images/rsvp_bg_img_2.jpg';
 					>Nos encantaría celebrar contigo. Por favor confirma tu asistencia antes del 1 de agosto de
 					2026—busca tu nombre abajo para comenzar.</span>
 			</p>
+
+			<RsvpWeddingDetails />
+
 			<div class="mt-8 md:mt-10">
 				<RSVPForm inviteCode={inviteCode} showHeader={false} />
 			</div>
@@ -40,51 +35,3 @@ const RSVP_BG_IMAGE = '/images/rsvp_bg_img_2.jpg';
 	</main>
 	<Footer />
 </MainLayout>
-
-<style>
-	.rsvp-page {
-		position: relative;
-		overflow: hidden;
-		background: var(--color-plum-deep);
-	}
-
-	.rsvp-page__backdrop {
-		position: absolute;
-		inset: 0;
-	}
-
-	.rsvp-page__image {
-		position: absolute;
-		inset: 0;
-		background-size: cover;
-		background-position: center;
-		background-repeat: no-repeat;
-		transform: scale(1.02);
-	}
-
-	.rsvp-page__overlay {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			180deg,
-			rgb(42 26 50 / 0.55) 0%,
-			rgb(42 26 50 / 0.42) 45%,
-			rgb(42 26 50 / 0.62) 100%
-		);
-	}
-
-	@media (max-width: 767px) {
-		.rsvp-page__image {
-			background-position: center top;
-		}
-
-		.rsvp-page__overlay {
-			background: linear-gradient(
-				180deg,
-				rgb(42 26 50 / 0.62) 0%,
-				rgb(42 26 50 / 0.48) 50%,
-				rgb(42 26 50 / 0.68) 100%
-			);
-		}
-	}
-</style>

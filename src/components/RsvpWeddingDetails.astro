@@ -1,0 +1,128 @@
+---
+type DetailLine = {
+	label: { en: string; es: string };
+	value: { en: string; es: string };
+	multiline?: boolean;
+};
+
+const details: DetailLine[] = [
+	{
+		label: { en: 'Doors Open', es: 'Apertura de puertas' },
+		value: { en: '3:30 PM', es: '3:30 p. m.' },
+	},
+	{
+		label: { en: 'Ceremony Starts', es: 'Inicio de la ceremonia' },
+		value: { en: '4:00 PM', es: '4:00 p. m.' },
+	},
+	{
+		label: { en: 'Cocktail Hour', es: 'Hora del cóctel' },
+		value: { en: 'After the ceremony', es: 'Después de la ceremonia' },
+	},
+	{
+		label: { en: 'Reception', es: 'Recepción' },
+		value: { en: 'To follow', es: 'A continuación' },
+	},
+	{
+		label: { en: 'Event Ends', es: 'Fin del evento' },
+		value: { en: '10:00 PM', es: '10:00 p. m.' },
+	},
+	{
+		label: { en: 'Location', es: 'Ubicación' },
+		value: { en: 'Tesoro Adobe Historic Park', es: 'Tesoro Adobe Historic Park' },
+	},
+	{
+		label: { en: 'Dress Code', es: 'Código de vestimenta' },
+		value: { en: 'Garden Formal Attire', es: 'Vestimenta formal de jardín' },
+	},
+	{
+		label: { en: 'Adults-Only Celebration', es: 'Celebración solo para adultos' },
+		value: {
+			en: 'We love your little ones, but this evening will be adults-only so everyone can relax and celebrate.',
+			es: 'Adoramos a los pequeños, pero esta velada será solo para adultos para que todos puedan relajarse y celebrar.',
+		},
+		multiline: true,
+	},
+];
+---
+
+<section class="rsvp-details" aria-labelledby="rsvp-details-heading">
+	<h2 id="rsvp-details-heading" class="rsvp-details__heading font-serif">
+		<span data-strand="en">Wedding Details</span>
+		<span data-strand="es">Detalles de la boda</span>
+	</h2>
+
+	<ul class="rsvp-details__list">
+		{
+			details.map((item) => (
+				<li class:list={['rsvp-details__line', item.multiline && 'rsvp-details__line--multiline']}>
+					<span class="rsvp-details__label">
+						<span data-strand="en">{item.label.en}:</span>
+						<span data-strand="es">{item.label.es}:</span>
+					</span>{' '}
+					<span class="rsvp-details__value">
+						<span data-strand="en">{item.value.en}</span>
+						<span data-strand="es">{item.value.es}</span>
+					</span>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	.rsvp-details {
+		margin-top: 2rem;
+		width: 100%;
+		text-align: center;
+		color: var(--color-plum-deep);
+	}
+
+	.rsvp-details__heading {
+		margin: 0;
+		font-size: 1.75rem;
+		font-weight: 600;
+		color: var(--color-plum-deep);
+	}
+
+	.rsvp-details__list {
+		margin: 1rem auto 0;
+		max-width: 32rem;
+		padding: 0;
+		list-style: none;
+	}
+
+	.rsvp-details__line {
+		margin: 0;
+		padding: 0.375rem 0;
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: var(--color-plum-deep);
+	}
+
+	.rsvp-details__label,
+	.rsvp-details__value {
+		color: inherit;
+		font-weight: 400;
+	}
+
+	.rsvp-details__line--multiline .rsvp-details__label {
+		display: block;
+		margin-bottom: 0.25rem;
+	}
+
+	.rsvp-details__line--multiline .rsvp-details__value {
+		display: block;
+		max-width: 26rem;
+		margin: 0 auto;
+	}
+
+	@media (min-width: 640px) {
+		.rsvp-details__heading {
+			font-size: 2rem;
+		}
+
+		.rsvp-details__line {
+			font-size: 1rem;
+		}
+	}
+</style>
