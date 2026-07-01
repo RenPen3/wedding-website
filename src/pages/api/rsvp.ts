@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getGuestById } from '../../lib/guest-search';
+import { getGuestById, getGuestByInviteCode } from '../../lib/guest-search';
 import { findInvitedGuest, saveRsvp } from '../../lib/rsvp-store';
 import { syncRsvpToSupabase } from '../../lib/rsvp-supabase';
 
@@ -29,7 +29,6 @@ export const POST: APIRoute = async ({ request }) => {
 	const message = String(body.message ?? '').trim();
 	const guestId = String(body.guestId ?? body.guest_id ?? '').trim() || null;
 	let inviteCode = String(body.inviteCode ?? body.invite_code ?? '').trim() || null;
-	const maxGuestsFromBody = Number(body.maxGuests ?? body.max_guests ?? 0);
 
 	let guestNames: string[] = [];
 	const rawGuestNames = body.guest_names ?? body.guestNames;
@@ -49,9 +48,6 @@ export const POST: APIRoute = async ({ request }) => {
 		}
 	}
 
-	const guestCountFromBody = Number(body.guestCount ?? body.guest_count ?? 0);
-	const totalAttendingFromBody = Number(body.total_attending ?? body.totalAttending ?? 0);
-
 	if (!name) {
 		return new Response(JSON.stringify({ ok: false, error: 'Guest name is required' }), {
 			status: 400,
@@ -59,15 +55,15 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	const guestCount =
-		attending ?
-			guestNames.length ||
-				(Number.isInteger(guestCountFromBody) && guestCountFromBody >= 1 ? guestCountFromBody : 0) ||
-				(Number.isInteger(totalAttendingFromBody) && totalAttendingFromBody >= 1 ?
-					totalAttendingFromBody
-				:	1)
-		:	0;
-	const totalAttending = attending ? guestCount : 0;
+	if (attending && guestNames.length === 0) {
+		return new Response(
+			JSON.stringify({ ok: false, error: 'Please provide at least one attending guest name.' }),
+			{ status: 400, headers: { 'Content-Type': 'application/json' } }
+		);
+	}
+
+	const guestCount = attending ? guestNames.length : 0;
+	const totalAttending = attending ? guestNames.length : 0;
 
 	let listGuest: Awaited<ReturnType<typeof getGuestById>> = null;
 
@@ -89,6 +85,17 @@ export const POST: APIRoute = async ({ request }) => {
 				headers: { 'Content-Type': 'application/json' },
 			});
 		}
+	} else if (inviteCode) {
+		try {
+			listGuest = await getGuestByInviteCode(inviteCode);
+		} catch (err) {
+			const detail = err instanceof Error ? err.message : 'Unknown error';
+			console.error('[api/rsvp] getGuestByInviteCode failed:', detail);
+			return new Response(
+				JSON.stringify({ ok: false, error: 'Could not verify guest. Please try again.' }),
+				{ status: 500, headers: { 'Content-Type': 'application/json' } }
+			);
+		}
 	}
 
 	const invitedGuest = listGuest
@@ -106,17 +113,27 @@ export const POST: APIRoute = async ({ request }) => {
 		inviteCode = listGuest.invite_code;
 	}
 
-	const maxGuests =
-		listGuest?.maxGuests ??
-		(Number.isFinite(maxGuestsFromBody) && maxGuestsFromBody >= 1 ? Math.floor(maxGuestsFromBody) : invitedGuest.maxGuests);
+	// Always enforce seat limit from guest-list.json — never trust client-submitted counts.
+	const maxGuests = invitedGuest.maxGuests;
 
-	console.log('[api/rsvp] selected guest:', invitedGuest.name, 'maxGuests:', maxGuests, 'total_attending:', totalAttending);
+	console.log(
+		'[api/rsvp] selected guest:',
+		invitedGuest.name,
+		'reserved seats:',
+		maxGuests,
+		'total_attending:',
+		totalAttending
+	);
+
+	if (!attending) {
+		guestNames = [];
+	}
 
 	if (attending && totalAttending > maxGuests) {
 		return new Response(
 			JSON.stringify({
 				ok: false,
-				error: `Your invite allows up to ${maxGuests} guest(s). Please remove extra names.`,
+				error: `Your invitation reserves up to ${maxGuests} seat(s). Please remove extra names.`,
 			}),
 			{ status: 400, headers: { 'Content-Type': 'application/json' } }
 		);

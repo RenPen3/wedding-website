@@ -2,7 +2,10 @@
  * Server-side guest search for the RSVP name dropdown.
  * Reads from src/data/guest-list.json — use from API routes only.
  */
-import { getRsvpForGuest, loadInvitedGuests, normalizeName } from './rsvp-store';
+import { buildGuestListIndex, guestSlug, type GuestListEntry } from './guest-list';
+import { getRsvpForGuest, normalizeName } from './rsvp-store';
+
+export { guestSlug };
 
 export type GuestSearchResult = {
 	id: string;
@@ -10,6 +13,7 @@ export type GuestSearchResult = {
 	first_name: string;
 	last_name: string;
 	full_name: string;
+	/** Seats reserved on this invitation (from guest-list.json). */
 	maxGuests: number;
 	invite_code: string;
 };
@@ -23,22 +27,6 @@ export type GuestLookupResult = GuestSearchResult & {
 	} | null;
 };
 
-type GuestListEntry = {
-	guest: { name: string; maxGuests: number };
-	id: string;
-	invite_code: string;
-};
-
-export function guestSlug(name: string): string {
-	return name
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9\s-]/g, '')
-		.replace(/\s+/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/^-+|-+$/g, '');
-}
-
 function splitName(full: string): { first_name: string; last_name: string } {
 	const parts = full.trim().split(/\s+/).filter(Boolean);
 	if (parts.length === 0) return { first_name: '', last_name: '' };
@@ -46,27 +34,15 @@ function splitName(full: string): { first_name: string; last_name: string } {
 	return { first_name: parts[0], last_name: parts.slice(1).join(' ') };
 }
 
-function buildGuestIndex(): GuestListEntry[] {
-	const slugCounts = new Map<string, number>();
-
-	return loadInvitedGuests().map((guest) => {
-		const base = guestSlug(guest.name);
-		const occurrence = (slugCounts.get(base) ?? 0) + 1;
-		slugCounts.set(base, occurrence);
-		const id = occurrence === 1 ? base : `${base}-${occurrence}`;
-		return { guest, id, invite_code: id };
-	});
-}
-
 function toSearchResult(entry: GuestListEntry): GuestSearchResult {
-	const { first_name, last_name } = splitName(entry.guest.name);
+	const { first_name, last_name } = splitName(entry.name);
 	return {
 		id: entry.id,
-		name: entry.guest.name,
+		name: entry.name,
 		first_name,
 		last_name,
-		full_name: entry.guest.name,
-		maxGuests: entry.guest.maxGuests,
+		full_name: entry.name,
+		maxGuests: entry.maxGuests,
 		invite_code: entry.invite_code,
 	};
 }
@@ -112,8 +88,8 @@ export async function searchGuests(query: string, limit = 8): Promise<GuestSearc
 	const q = query.trim();
 	if (q.length < 2) return [];
 
-	const matches = buildGuestIndex()
-		.filter((entry) => namesMatch(q, entry.guest.name))
+	const matches = buildGuestListIndex()
+		.filter((entry) => namesMatch(q, entry.name))
 		.map(toSearchResult)
 		.sort((a, b) => a.full_name.localeCompare(b.full_name))
 		.slice(0, limit);
@@ -127,20 +103,20 @@ export async function getGuestById(id: string): Promise<GuestLookupResult | null
 	const trimmed = id.trim();
 	if (!trimmed) return null;
 
-	const entry = buildGuestIndex().find((row) => row.id === trimmed);
+	const entry = buildGuestListIndex().find((row) => row.id === trimmed);
 	if (!entry) return null;
 
 	const base = toSearchResult(entry);
-	return { ...base, rsvp: await lookupRsvp(entry.guest.name) };
+	return { ...base, rsvp: await lookupRsvp(entry.name) };
 }
 
 export async function getGuestByInviteCode(code: string): Promise<GuestLookupResult | null> {
 	const normalized = code.trim().toLowerCase();
 	if (!normalized) return null;
 
-	const entry = buildGuestIndex().find((row) => row.invite_code === normalized);
+	const entry = buildGuestListIndex().find((row) => row.invite_code === normalized);
 	if (!entry) return null;
 
 	const base = toSearchResult(entry);
-	return { ...base, rsvp: await lookupRsvp(entry.guest.name) };
+	return { ...base, rsvp: await lookupRsvp(entry.name) };
 }

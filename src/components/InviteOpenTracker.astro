@@ -1,13 +1,22 @@
 ---
 /** Tracks invite link opens once per browser session (client → Netlify Function). */
+import { INVITE_CODE_PARAM } from '../lib/invite-link';
 ---
 
-<script>
+<script define:vars={{ INVITE_CODE_PARAM }}>
 	const TRACK_URL = '/.netlify/functions/track-invite-open';
+	const INVITE_STORAGE_KEY = 'wedding_invite_code';
 
-	function readInviteSlugFromUrl(): string | null {
+	function readInviteSlugFromUrl() {
 		const params = new URLSearchParams(window.location.search);
-		const fromQuery = (params.get('code') ?? params.get('invite') ?? '').trim().toLowerCase();
+		const fromQuery = (
+			params.get(INVITE_CODE_PARAM) ??
+			params.get('code') ??
+			params.get('invite') ??
+			''
+		)
+			.trim()
+			.toLowerCase();
 		if (fromQuery) return fromQuery;
 
 		const match = window.location.pathname.match(/^\/invite\/([^/?#]+)/i);
@@ -22,7 +31,39 @@
 		return null;
 	}
 
-	function trackInviteOpen(slug: string) {
+	function persistInviteCode(code) {
+		if (!code) return;
+		try {
+			sessionStorage.setItem(INVITE_STORAGE_KEY, code);
+		} catch {
+			/* sessionStorage unavailable */
+		}
+	}
+
+	function getStoredInviteCode() {
+		try {
+			return sessionStorage.getItem(INVITE_STORAGE_KEY)?.trim().toLowerCase() ?? '';
+		} catch {
+			return '';
+		}
+	}
+
+	function buildRsvpHref(code) {
+		const qs = new URLSearchParams({ [INVITE_CODE_PARAM]: code });
+		return `/rsvp?${qs.toString()}`;
+	}
+
+	function updateRsvpLinks(code) {
+		if (!code) return;
+		const rsvpUrl = buildRsvpHref(code);
+		document.querySelectorAll('[data-rsvp-link], a[href="/rsvp"], a[href^="/rsvp?"]').forEach((el) => {
+			if (el instanceof HTMLAnchorElement) {
+				el.href = rsvpUrl;
+			}
+		});
+	}
+
+	function trackInviteOpen(slug) {
 		const storageKey = `invite_open_logged_${slug}`;
 
 		try {
@@ -37,7 +78,7 @@
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ slug }),
+			body: JSON.stringify({ slug, invite_code: slug }),
 		}).catch(() => {
 			// Fail silently. Do not block page UX.
 		});
@@ -45,6 +86,12 @@
 
 	const slug = readInviteSlugFromUrl();
 	if (slug) {
+		persistInviteCode(slug);
 		trackInviteOpen(slug);
+	}
+
+	const activeCode = slug || getStoredInviteCode();
+	if (activeCode) {
+		updateRsvpLinks(activeCode);
 	}
 </script>

@@ -25,7 +25,7 @@ export function parseGuestNames(raw: unknown): string[] {
 	return [];
 }
 
-/** All non-blank attending names from the RSVP form (includes the main invitee). */
+/** Non-blank attending names exactly as entered on the RSVP form. */
 export function allAttendingGuestNames(allNames: string[]): string[] {
 	return allNames.map((n) => n.trim()).filter(Boolean);
 }

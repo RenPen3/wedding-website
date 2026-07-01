@@ -4,12 +4,13 @@ import Navbar from '../components/Navbar.astro';
 import RSVPForm from '../components/RSVPForm.astro';
 import RsvpWeddingDetails from '../components/RsvpWeddingDetails.astro';
 import Footer from '../components/Footer.astro';
+import { readInviteCodeFromSearchParams } from '../lib/invite-link';
 
-const inviteCode = Astro.url.searchParams.get('code') ?? '';
+const inviteCode = readInviteCodeFromSearchParams(Astro.url.searchParams);
 ---
 
 <MainLayout title="RSVP — Jocelyn & René" showInvitationIntro>
-	<Navbar />
+	<Navbar inviteCode={inviteCode} />
 	<main class="bg-ivory">
 		<div
 			class="mx-auto flex min-h-[100svh] min-h-[100dvh] w-full max-w-2xl flex-col justify-center px-6 py-[calc(var(--site-nav-height,6.5rem)+2.5rem)] md:px-8 md:py-[calc(var(--site-nav-height,6.5rem)+3rem)]"
@@ -23,7 +24,11 @@ const inviteCode = Astro.url.searchParams.get('code') ?? '';
 							>August 1, 2026</span
 						></span
 					>
-					<span class="rsvp-page__intro-line2 block">Find your name below to get started.</span>
+					{
+						inviteCode ?
+							<span class="rsvp-page__intro-line2 block">Complete your response below.</span>
+						:	<span class="rsvp-page__intro-line2 block">Find your name below to get started.</span>
+					}
 				</span>
 				<span data-strand="es">
 					<span class="rsvp-page__intro-line1 block"
@@ -31,7 +36,11 @@ const inviteCode = Astro.url.searchParams.get('code') ?? '';
 							class="whitespace-nowrap">1 de agosto de 2026</span
 						></span
 					>
-					<span class="rsvp-page__intro-line2 block">Busca tu nombre abajo para comenzar.</span>
+					{
+						inviteCode ?
+							<span class="rsvp-page__intro-line2 block">Completa tu respuesta abajo.</span>
+						:	<span class="rsvp-page__intro-line2 block">Busca tu nombre abajo para comenzar.</span>
+					}
 				</span>
 			</p>
 

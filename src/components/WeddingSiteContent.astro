@@ -7,9 +7,15 @@ import FAQ from './FAQ.astro';
 import RSVPForm from './RSVPForm.astro';
 import PhotoGallery from './PhotoGallery.astro';
 import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE } from '../lib/site-urls';
+
+type Props = {
+	inviteCode?: string;
+};
+
+const { inviteCode = '' } = Astro.props;
 ---
 
-<Hero />
+<Hero inviteCode={inviteCode} />
 <Countdown />
 <WeddingDetails />
 <section id="rsvp" class="relative z-10 scroll-mt-24 bg-plum-deep py-20 text-cream md:py-28" data-reveal>
@@ -27,7 +33,7 @@ import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE } from '../lib
 			</span>
 		</p>
 		<div class="mt-10">
-			<RSVPForm />
+			<RSVPForm inviteCode={inviteCode} showHeader={false} />
 		</div>
 
 		<div class="rsvp-help">

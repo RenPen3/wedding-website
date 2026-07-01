@@ -1,6 +1,12 @@
 ---
+/** Legacy /invite/{code} URLs → homepage with invite_code (tracking runs on homepage). */
+import { INVITE_CODE_PARAM } from '../../lib/invite-link';
+
 const code = (Astro.params.inviteCode ?? '').trim().toLowerCase();
-const target = code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp';
+const target =
+	code ?
+		`/?${INVITE_CODE_PARAM}=${encodeURIComponent(code)}`
+	:	'/';
 ---
 
 <!doctype html>
@@ -9,38 +15,15 @@ const target = code ? `/rsvp?code=${encodeURIComponent(code)}` : '/rsvp';
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" href="/favicon.ico" sizes="32x32" />
-		<link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 		<meta name="robots" content="noindex, nofollow" />
 		<title>Opening invitation…</title>
+		<meta http-equiv="refresh" content={`0;url=${target}`} />
 	</head>
 	<body>
 		<p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center; color: #444">
 			Opening your invitation…
 		</p>
-		<script define:vars={{ code, target }}>
-			if (code) {
-				const storageKey = `invite_open_logged_${code}`;
-
-				try {
-					if (!sessionStorage.getItem(storageKey)) {
-						sessionStorage.setItem(storageKey, 'true');
-
-						fetch('/.netlify/functions/track-invite-open', {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-							},
-							body: JSON.stringify({ slug: code }),
-						}).catch(() => {
-							// Fail silently. Do not block invite page.
-						});
-					}
-				} catch (_) {
-					/* sessionStorage unavailable */
-				}
-			}
-
+		<script define:vars={{ target }}>
 			window.location.replace(target);
 		</script>
 	</body>

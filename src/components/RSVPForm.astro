@@ -31,6 +31,16 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		<input type="hidden" id="rsvp-invite-code" name="inviteCode" value={inviteCode} />
 		<input type="hidden" id="rsvp-guest-name" name="name" value="" />
 
+		<div
+			id="rsvp-invite-banner"
+			class="hidden rounded-2xl border border-mauve/15 bg-white/60 px-5 py-4 text-center"
+			aria-live="polite"
+		>
+			<p id="rsvp-invite-banner-label" class="text-xs font-medium uppercase tracking-wide text-brown-muted"></p>
+			<p id="rsvp-invite-banner-name" class="mt-1 font-serif text-2xl text-plum md:text-3xl"></p>
+			<p id="rsvp-invite-banner-seats" class="mt-2 text-sm text-brown-soft"></p>
+		</div>
+
 		<div class="relative z-10" id="rsvp-name-search-wrap">
 			<label for="rsvp-name-search" class="block text-sm font-medium text-plum">
 				<span data-strand="en">Find your name</span>
@@ -116,8 +126,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			<div id="rsvp-attending-fields" class="space-y-6">
 				<div id="rsvp-party-wrap">
 					<label class="block text-sm font-medium text-plum">
-						<span data-strand="en">Number of guests attending</span>
-						<span data-strand="es">Número de invitados</span>
+						<span data-strand="en">Number attending</span>
+						<span data-strand="es">Número de asistentes</span>
 					</label>
 					<p id="rsvp-party-hint" class="mt-1 text-sm text-brown-muted"></p>
 					<div class="mt-3 flex items-center gap-3">
@@ -154,6 +164,10 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 						<span data-strand="en">Guest names</span>
 						<span data-strand="es">Nombres de invitados</span>
 					</label>
+					<p class="mt-1 text-sm text-brown-muted">
+						<span data-strand="en">Include everyone who will attend, including yourself.</span>
+						<span data-strand="es">Incluye a todas las personas que asistirán, incluido/a tú mismo/a.</span>
+					</p>
 					<div id="rsvp-guest-names-fields" class="mt-3 space-y-3"></div>
 				</div>
 			</div>
@@ -206,6 +220,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 	};
 
 	let selectedGuest: GuestMatch | null = null;
+	let fromInviteLink = false;
 	let currentMax = 1;
 	let currentCount = 1;
 	let uiReady = false;
@@ -230,6 +245,25 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 
 	function pick<T extends Record<Lang, string>>(t: T) {
 		return t[lang()];
+	}
+
+	function reservedSeatsMessage(seats: number) {
+		return seats === 1 ?
+				pick({
+					en: 'Your invitation reserves 1 seat.',
+					es: 'Tu invitación reserva 1 asiento.',
+				})
+			:	pick({
+					en: `Your invitation reserves ${seats} seats.`,
+					es: `Tu invitación reserva ${seats} asientos.`,
+				});
+	}
+
+	function welcomeMessage(name: string, seats: number) {
+		return pick({
+			en: `Welcome, ${name}! ${reservedSeatsMessage(seats)}`,
+			es: `¡Bienvenido/a, ${name}! ${reservedSeatsMessage(seats)}`,
+		});
 	}
 
 	function clampCount(value: number, maxGuests: number) {
@@ -272,8 +306,11 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			input.autocomplete = i === 0 ? 'name' : 'off';
 			input.className =
 				'mt-1 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2';
-			input.value =
-				existing[i] ?? prev[i] ?? (i === 0 && selectedGuest ? selectedGuest.full_name : '');
+			input.value = existing[i] ?? prev[i] ?? '';
+			input.placeholder = pick({
+				en: 'Full name',
+				es: 'Nombre completo',
+			});
 
 			label.append(labelText, input);
 			container.append(label);
@@ -316,16 +353,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		decrease.disabled = currentCount <= 1;
 		increase.disabled = currentCount >= currentMax;
 
-		hint.textContent =
-			currentMax === 1 ?
-				pick({
-					en: 'Your invitation includes 1 guest.',
-					es: 'Tu invitación incluye 1 invitado.',
-				})
-			:	pick({
-					en: `Your invitation includes ${currentMax} guests.`,
-					es: `Tu invitación incluye ${currentMax} invitados.`,
-				});
+		hint.textContent = reservedSeatsMessage(currentMax);
 
 		renderGuestNameFields(currentCount);
 	}
@@ -361,8 +389,41 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		searchInput?.setAttribute('aria-expanded', 'false');
 	}
 
+	function updateInviteBanner() {
+		const banner = document.getElementById('rsvp-invite-banner');
+		const label = document.getElementById('rsvp-invite-banner-label');
+		const nameEl = document.getElementById('rsvp-invite-banner-name');
+		const seatsEl = document.getElementById('rsvp-invite-banner-seats');
+		if (!banner || !label || !nameEl || !seatsEl) return;
+
+		if (fromInviteLink && selectedGuest) {
+			label.textContent = pick({
+				en: 'Invite for',
+				es: 'Invitación para',
+			});
+			nameEl.textContent = selectedGuest.full_name;
+			seatsEl.textContent = reservedSeatsMessage(selectedGuest.maxGuests);
+			banner.classList.remove('hidden');
+		} else {
+			banner.classList.add('hidden');
+			label.textContent = '';
+			nameEl.textContent = '';
+			seatsEl.textContent = '';
+		}
+	}
+
+	function setInviteLinkMode(active: boolean) {
+		fromInviteLink = active;
+		const searchWrap = document.getElementById('rsvp-name-search-wrap');
+		const selectedWrap = document.getElementById('rsvp-selected-guest');
+		searchWrap?.classList.toggle('hidden', active);
+		selectedWrap?.classList.toggle('hidden', active || !selectedGuest);
+		updateInviteBanner();
+	}
+
 	function clearGuestSelection() {
 		selectedGuest = null;
+		fromInviteLink = false;
 		showFormBody(false);
 
 		const guestIdInput = document.getElementById('rsvp-guest-id') as HTMLInputElement | null;
@@ -379,6 +440,97 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		selectedWrap?.classList.add('hidden');
 		if (inviteInput) {
 			inviteInput.value = inviteInput.dataset.urlCode ?? '';
+		}
+		setInviteLinkMode(false);
+	}
+
+	async function applyGuestSelection(
+		guest: GuestMatch,
+		opts: { fromInvite?: boolean; existingRsvp?: LookupRsvp | null } = {}
+	) {
+		selectedGuest = guest;
+		currentMax = Math.max(1, guest.maxGuests);
+
+		console.log('[RSVPForm] selected guest:', guest.full_name, 'maxGuests:', guest.maxGuests);
+
+		const guestIdInput = document.getElementById('rsvp-guest-id') as HTMLInputElement | null;
+		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
+		const inviteInput = document.getElementById('rsvp-invite-code') as HTMLInputElement | null;
+		const firstName = document.getElementById('rsvp-first-name') as HTMLInputElement | null;
+		const lastName = document.getElementById('rsvp-last-name') as HTMLInputElement | null;
+		const selectedWrap = document.getElementById('rsvp-selected-guest');
+		const searchInput = document.getElementById('rsvp-name-search') as HTMLInputElement | null;
+
+		if (guestIdInput) guestIdInput.value = guest.id;
+		if (nameInput) nameInput.value = guest.full_name;
+		if (inviteInput && guest.invite_code) inviteInput.value = guest.invite_code;
+		if (firstName) firstName.value = guest.first_name ?? '';
+		if (lastName) lastName.value = guest.last_name ?? '';
+
+		if (opts.fromInvite) {
+			setInviteLinkMode(true);
+		} else {
+			fromInviteLink = false;
+			if (searchInput) searchInput.value = guest.full_name;
+			selectedWrap?.classList.remove('hidden');
+			updateInviteBanner();
+		}
+
+		closeDropdown();
+		showFormBody(true);
+
+		if (!opts.fromInvite) {
+			setNameStatus('found', welcomeMessage(guest.full_name, currentMax));
+		} else {
+			setNameStatus('hidden');
+		}
+
+		if (opts.existingRsvp !== undefined) {
+			applyExistingRsvp(opts.existingRsvp, currentMax);
+			return;
+		}
+
+		try {
+			const res = await fetch(`/api/guest-lookup?id=${encodeURIComponent(guest.id)}`);
+			const data = (await res.json()) as { ok?: boolean; rsvp?: LookupRsvp | null };
+			if (res.ok && data.ok) {
+				applyExistingRsvp(data.rsvp ?? null, currentMax);
+			} else {
+				applyExistingRsvp(null, currentMax);
+			}
+		} catch {
+			applyExistingRsvp(null, currentMax);
+		}
+	}
+
+	async function selectGuest(guest: GuestMatch) {
+		await applyGuestSelection(guest);
+	}
+
+	async function loadGuestFromInviteCode(code: string) {
+		const trimmed = code.trim();
+		if (!trimmed) return;
+
+		try {
+			const res = await fetch(`/api/guest-lookup?invite_code=${encodeURIComponent(trimmed)}`);
+			const data = (await res.json()) as {
+				ok?: boolean;
+				guest?: GuestMatch;
+				rsvp?: LookupRsvp | null;
+				error?: string;
+			};
+
+			if (!res.ok || !data.ok || !data.guest) {
+				console.warn('[RSVPForm] invite code lookup failed:', data.error ?? res.status);
+				return;
+			}
+
+			await applyGuestSelection(data.guest, {
+				fromInvite: true,
+				existingRsvp: data.rsvp ?? null,
+			});
+		} catch (err) {
+			console.error('[RSVPForm] invite code lookup error:', err);
 		}
 	}
 
@@ -471,67 +623,20 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		}
 	}
 
-	async function selectGuest(guest: GuestMatch) {
-		selectedGuest = guest;
-		currentMax = Math.max(1, guest.maxGuests);
-		currentCount = currentMax;
-
-		console.log('[RSVPForm] selected guest:', guest.full_name, 'maxGuests:', guest.maxGuests);
-
-		const searchInput = document.getElementById('rsvp-name-search') as HTMLInputElement | null;
-		const guestIdInput = document.getElementById('rsvp-guest-id') as HTMLInputElement | null;
-		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
-		const inviteInput = document.getElementById('rsvp-invite-code') as HTMLInputElement | null;
-		const firstName = document.getElementById('rsvp-first-name') as HTMLInputElement | null;
-		const lastName = document.getElementById('rsvp-last-name') as HTMLInputElement | null;
-		const selectedWrap = document.getElementById('rsvp-selected-guest');
-
-		if (searchInput) searchInput.value = guest.full_name;
-		if (guestIdInput) guestIdInput.value = guest.id;
-		if (nameInput) nameInput.value = guest.full_name;
-		if (inviteInput && guest.invite_code) inviteInput.value = guest.invite_code;
-		if (firstName) firstName.value = guest.first_name ?? '';
-		if (lastName) lastName.value = guest.last_name ?? '';
-		selectedWrap?.classList.remove('hidden');
-
-		closeDropdown();
-		showFormBody(true);
-		setNameStatus(
-			'found',
-			currentMax === 1 ?
-				pick({
-					en: `Welcome, ${guest.full_name}! Your invitation includes 1 guest.`,
-					es: `¡Bienvenido/a, ${guest.full_name}! Tu invitación incluye 1 invitado.`,
-				})
-			:	pick({
-					en: `Welcome, ${guest.full_name}! Your invitation includes ${currentMax} guests.`,
-					es: `¡Bienvenido/a, ${guest.full_name}! Tu invitación incluye ${currentMax} invitados.`,
-				})
-		);
-
-		try {
-			const res = await fetch(`/api/guest-lookup?id=${encodeURIComponent(guest.id)}`);
-			const data = (await res.json()) as { ok?: boolean; rsvp?: LookupRsvp | null };
-			if (res.ok && data.ok) {
-				applyExistingRsvp(data.rsvp ?? null, currentMax);
-			} else {
-				applyExistingRsvp(null, currentMax);
-			}
-		} catch {
-			applyExistingRsvp(null, currentMax);
-		}
-	}
-
 	function applyExistingRsvp(rsvp: LookupRsvp | null, maxGuests: number) {
 		if (!rsvp) {
-			currentCount = maxGuests;
+			currentCount = 1;
 			syncFormUI();
 			return;
 		}
 
 		if (rsvp.attending) {
 			document.querySelector<HTMLInputElement>('input[name="attending"][value="yes"]')!.checked = true;
-			currentCount = clampCount(rsvp.guestCount, maxGuests);
+			const savedCount =
+				rsvp.guestNames?.length ?
+					rsvp.guestNames.length
+				:	Math.max(1, rsvp.guestCount);
+			currentCount = clampCount(savedCount, maxGuests);
 		} else {
 			document.querySelector<HTMLInputElement>('input[name="attending"][value="no"]')!.checked = true;
 		}
@@ -598,6 +703,11 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		attendingRadios.forEach((radio) => radio.addEventListener('change', syncFormUI));
 
 		uiReady = true;
+
+		const inviteCode = inviteInput?.value?.trim() || inviteInput?.dataset.urlCode?.trim() || '';
+		if (inviteCode) {
+			void loadGuestFromInviteCode(inviteCode);
+		}
 	}
 
 	function renderSuccessView(rsvp: SubmittedRsvp) {
@@ -615,46 +725,33 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		heading.textContent = pick({ en: 'Thank you!', es: '¡Gracias!' });
 
 		namesEl.innerHTML = '';
-		const mainLabel = document.createElement('p');
-		mainLabel.className = 'text-xs font-medium uppercase tracking-wide text-brown-muted';
-		mainLabel.textContent = pick({ en: 'You', es: 'Tú' });
-		namesEl.append(mainLabel);
+		const inviteLabel = document.createElement('p');
+		inviteLabel.className = 'text-xs font-medium uppercase tracking-wide text-brown-muted';
+		inviteLabel.textContent = pick({ en: 'Invitation for', es: 'Invitación para' });
+		namesEl.append(inviteLabel);
 
-		const mainName = document.createElement('p');
-		mainName.className = 'font-serif text-xl text-plum';
-		mainName.textContent = rsvp.name;
-		namesEl.append(mainName);
+		const inviteName = document.createElement('p');
+		inviteName.className = 'font-serif text-xl text-plum';
+		inviteName.textContent = rsvp.name;
+		namesEl.append(inviteName);
 
-		if (rsvp.attending) {
-			const mainKey = rsvp.name.trim().toLowerCase();
-			const partyGuests = rsvp.guestNames.filter((g) => g.trim().toLowerCase() !== mainKey);
+		if (rsvp.attending && rsvp.guestNames.length > 0) {
+			const partyLabel = document.createElement('p');
+			partyLabel.className = 'mt-4 text-xs font-medium uppercase tracking-wide text-brown-muted';
+			partyLabel.textContent =
+				rsvp.guestNames.length === 1 ?
+					pick({ en: 'Attending', es: 'Asiste' })
+				:	pick({ en: 'Attending', es: 'Asisten' });
+			namesEl.append(partyLabel);
 
-			if (partyGuests.length > 0) {
-				const partyLabel = document.createElement('p');
-				partyLabel.className = 'mt-4 text-xs font-medium uppercase tracking-wide text-brown-muted';
-				partyLabel.textContent =
-					partyGuests.length === 1 ?
-						pick({ en: 'Guest attending with you', es: 'Invitado que asiste contigo' })
-					:	pick({ en: 'Guests attending with you', es: 'Invitados que asisten contigo' });
-				namesEl.append(partyLabel);
-
-				const partyList = document.createElement('ul');
-				partyList.className = 'mt-1 space-y-1 font-serif text-lg text-plum';
-				for (const guest of partyGuests) {
-					const li = document.createElement('li');
-					li.textContent = guest;
-					partyList.append(li);
-				}
-				namesEl.append(partyList);
-			} else if (rsvp.guestNames.length === 1) {
-				const soloLabel = document.createElement('p');
-				soloLabel.className = 'mt-2 text-sm text-brown-soft';
-				soloLabel.textContent = pick({
-					en: 'We have you down for the celebration.',
-					es: 'Te tenemos confirmado/a para la celebración.',
-				});
-				namesEl.append(soloLabel);
+			const partyList = document.createElement('ul');
+			partyList.className = 'mt-1 space-y-1 font-serif text-lg text-plum';
+			for (const guest of rsvp.guestNames) {
+				const li = document.createElement('li');
+				li.textContent = guest;
+				partyList.append(li);
 			}
+			namesEl.append(partyList);
 		}
 
 		if (rsvp.attending) {
@@ -705,10 +802,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		const guestId = selectedGuest?.id ||
 			String((document.getElementById('rsvp-guest-id') as HTMLInputElement | null)?.value ?? '').trim();
 		const attending = isAttending();
-		let guestCount = Number(
-			(document.getElementById('rsvp-count') as HTMLInputElement | null)?.value ?? 1
-		);
 		const guestNames = attending ? collectGuestNames() : [];
+		let guestCount = attending ? guestNames.length : 0;
 		const message = String(new FormData(form).get('message') ?? '').trim();
 		const inviteCode = String(new FormData(form).get('inviteCode') ?? '').trim();
 
@@ -733,30 +828,25 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		}
 
 		if (attending) {
-			if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > currentMax) {
-				statusEl.classList.remove('hidden', 'text-olive');
-				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent =
-					guestCount > currentMax ?
-						pick({
-							en: `Your invite allows up to ${currentMax} guest(s). Please remove extra names.`,
-							es: `Tu invitación permite hasta ${currentMax} invitado(s). Por favor elimina nombres extra.`,
-						})
-					:	pick({
-							en: `Please choose between 1 and ${currentMax} guests.`,
-							es: `Por favor elige entre 1 y ${currentMax} invitados.`,
-						});
-				return;
-			}
-			if (guestNames.length !== guestCount || guestNames.some((n) => !n)) {
+			if (guestNames.length === 0 || guestNames.some((n) => !n)) {
 				statusEl.classList.remove('hidden', 'text-olive');
 				statusEl.classList.add('text-mauve-dark');
 				statusEl.textContent = pick({
-					en: 'Please provide a name for each guest.',
-					es: 'Por favor proporciona un nombre para cada invitado.',
+					en: 'Please enter at least one name for everyone attending.',
+					es: 'Por favor ingresa al menos un nombre por cada persona que asistirá.',
 				});
 				return;
 			}
+			if (guestNames.length > currentMax) {
+				statusEl.classList.remove('hidden', 'text-olive');
+				statusEl.classList.add('text-mauve-dark');
+				statusEl.textContent = pick({
+					en: `Your invitation reserves ${currentMax} seat(s). Please remove extra names.`,
+					es: `Tu invitación reserva ${currentMax} asiento(s). Por favor elimina nombres extra.`,
+				});
+				return;
+			}
+			guestCount = guestNames.length;
 		} else {
 			guestCount = 0;
 		}
@@ -794,7 +884,6 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 					first_name: firstName,
 					last_name: lastName,
 					guestId,
-					maxGuests: selectedGuest.maxGuests,
 					attending,
 					guestCount,
 					guestNames,

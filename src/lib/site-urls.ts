@@ -1,3 +1,5 @@
+import { buildInviteHomeUrl, buildRsvpUrl } from './invite-link';
+
 export const REGISTRY_URL = 'https://www.zola.com/registry/jocelynandrene';
 export const HONEYMOON_FUND_URL = '/honeymoon-fund';
 
@@ -27,14 +29,11 @@ export function getSiteUrl(requestOrigin?: string): string {
 }
 
 export function getInviteUrl(inviteCode: string, requestOrigin?: string): string {
-	const code = inviteCode.trim();
-	return `${getSiteUrl(requestOrigin)}/invite/${encodeURIComponent(code)}`;
+	return buildInviteHomeUrl(inviteCode, requestOrigin);
 }
 
 export function getRsvpUrl(inviteCode?: string, requestOrigin?: string): string {
-	const base = `${getSiteUrl(requestOrigin)}/rsvp`;
-	if (!inviteCode?.trim()) return base;
-	return `${base}?code=${encodeURIComponent(inviteCode.trim())}`;
+	return buildRsvpUrl(inviteCode, requestOrigin);
 }
 
 export function getAdminGuestsUrl(requestOrigin?: string): string {

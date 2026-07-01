@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getStore } from '@netlify/blobs';
-import guestListJson from '../data/guest-list.json';
+import { buildGuestListIndex, type GuestListEntry } from './guest-list';
 
 export type InvitedGuest = {
 	name: string;
@@ -60,10 +60,9 @@ export function normalizeName(name: string): string {
 }
 
 export function loadInvitedGuests(): InvitedGuest[] {
-	return (guestListJson as InvitedGuest[]).map((g) => ({
-		name: g.name.trim(),
-		maxGuests:
-			typeof g.maxGuests === 'number' && g.maxGuests >= 1 ? Math.floor(g.maxGuests) : 1,
+	return buildGuestListIndex().map((entry: GuestListEntry) => ({
+		name: entry.name,
+		maxGuests: entry.maxGuests,
 	}));
 }
 
@@ -140,7 +139,7 @@ export function validateGuestCount(
 		return 'Guest count must be at least 1.';
 	}
 	if (guestCount > guest.maxGuests) {
-		return `Your invite allows up to ${guest.maxGuests} guest(s). Please remove extra names.`;
+		return `Your invitation reserves up to ${guest.maxGuests} seat(s). Please remove extra names.`;
 	}
 	return null;
 }

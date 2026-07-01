@@ -1,6 +1,6 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
-import { getInviteUrl, getSiteUrl } from '../../lib/site-urls';
+import { getSiteUrl } from '../../lib/site-urls';
 
 const requestOrigin = Astro.url.origin;
 const SITE_URL = getSiteUrl(requestOrigin);
@@ -289,7 +289,8 @@ const SESSION_KEY = 'wedding_admin_token';
 
 		tableBody.innerHTML = guests
 			.map((g) => {
-				const inviteUrl = `${SITE_URL}/invite/${encodeURIComponent(g.invite_code)}`;
+				const code = String(g.invite_code ?? '');
+				const inviteUrl = `${SITE_URL}/?invite_code=${encodeURIComponent(code)}`;
 				const status = rsvpStatus(g);
 				const attending =
 					status === 'attending' ?

@@ -3,9 +3,10 @@
  * Client scripts should POST to `/.netlify/functions/track-invite-open`.
  */
 import { formatGuestNamesList, parseGuestNames } from './guest-names';
+import { buildGuestListIndex } from './guest-list';
 import { createAdminSupabase } from './supabase';
-import { getGuestByInviteCode, guestSlug } from './guest-search';
-import { loadInvitedGuests, normalizeName } from './rsvp-store';
+import { getGuestByInviteCode } from './guest-search';
+import { normalizeName } from './rsvp-store';
 
 type BlobInviteOpenRecord = {
 	slug: string;
@@ -197,14 +198,11 @@ async function fetchLatestRsvpsByInviteCodeWithFallback(): Promise<Map<string, R
  * Intended for /admin/guests when rebuilt to use JSON + Supabase activity tables.
  */
 export async function buildGuestActivityReport(): Promise<GuestActivityRow[]> {
-	const slugCounts = new Map<string, number>();
-	const listEntries = loadInvitedGuests().map((guest) => {
-		const base = guestSlug(guest.name);
-		const n = (slugCounts.get(base) ?? 0) + 1;
-		slugCounts.set(base, n);
-		const invite_code = n === 1 ? base : `${base}-${n}`;
-		return { invite_code, guest_name: guest.name, max_guests: guest.maxGuests };
-	});
+	const listEntries = buildGuestListIndex().map((entry) => ({
+		invite_code: entry.invite_code,
+		guest_name: entry.name,
+		max_guests: entry.maxGuests,
+	}));
 
 	const [openSummaries, rsvpMap] = await Promise.all([
 		fetchInviteOpenSummaries().catch((err) => {
