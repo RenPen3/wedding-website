@@ -49,9 +49,9 @@
 	{ "name": "Yami Alacaraz", "maxGuests": 2 },
 	{ "name": "Yolanda Machado", "maxGuests": 2 },
 	{ "name": "Dany Machado", "maxGuests": 1 },
-	{ "name": "Dahlia Machado", "maxGuests": 2 },
+	{ "name": "Dalia Machado", "maxGuests": 2 },
 	{ "name": "Jocelyn Yolanda Machado", "maxGuests": 3 },
-	{ "name": "Rene Perez", "maxGuests": 3 },
+	{ "name": "Rene Perez", "maxGuests": 5 },
 	{ "name": "Freddy Krueger", "maxGuests": 2 },
 	{ "name": "Claudia2", "maxGuests": 2 }
 ]

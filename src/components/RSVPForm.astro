@@ -26,10 +26,10 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		<p id="rsvp-success-message" class="text-brown-soft leading-relaxed"></p>
 	</div>
 
-	<form id="rsvp-form" class:list={['space-y-6', showHeader ? 'mt-8' : '']}>
+	<form id="rsvp-form" class:list={['space-y-6', showHeader ? 'mt-8' : '']} autocomplete="off">
 		<input type="hidden" id="rsvp-guest-id" name="guestId" value="" />
 		<input type="hidden" id="rsvp-invite-code" name="inviteCode" value={inviteCode} />
-		<input type="hidden" id="rsvp-guest-name" name="name" value="" />
+		<input type="hidden" id="rsvp-guest-name" name="name" value="" autocomplete="off" />
 
 		<div
 			id="rsvp-invite-banner"
@@ -277,13 +277,10 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		);
 	}
 
-	function renderGuestNameFields(count: number, existing: string[] = []) {
+	function renderGuestNameFields(count: number, names: string[] = []) {
 		const container = document.getElementById('rsvp-guest-names-fields');
 		if (!container) return;
 
-		const prev = Array.from(container.querySelectorAll<HTMLInputElement>('input')).map(
-			(el) => el.value
-		);
 		container.innerHTML = '';
 
 		for (let i = 0; i < count; i++) {
@@ -301,20 +298,29 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			const input = document.createElement('input');
 			input.type = 'text';
 			input.id = `rsvp-guest-name-${i}`;
-			input.name = 'guestNameField';
+			input.name = `rsvp-attending-guest-${i}`;
 			input.required = true;
-			input.autocomplete = i === 0 ? 'name' : 'off';
+			input.autocomplete = 'off';
+			input.setAttribute('autocorrect', 'off');
+			input.setAttribute('spellcheck', 'false');
+			input.setAttribute('data-1p-ignore', 'true');
+			input.setAttribute('data-lpignore', 'true');
 			input.className =
 				'mt-1 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2';
-			input.value = existing[i] ?? prev[i] ?? '';
+			input.value = names[i]?.trim() ?? '';
 			input.placeholder = pick({
-				en: 'Full name',
-				es: 'Nombre completo',
+				en: `Guest ${i + 1} full name`,
+				es: `Invitado ${i + 1} nombre completo`,
 			});
 
 			label.append(labelText, input);
 			container.append(label);
 		}
+	}
+
+	function clearGuestNameFields() {
+		const container = document.getElementById('rsvp-guest-names-fields');
+		if (container) container.innerHTML = '';
 	}
 
 	function collectGuestNames(): string[] {
@@ -325,7 +331,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		);
 	}
 
-	function syncFormUI() {
+	function syncFormUI(opts: { preserveNames?: boolean } = {}) {
 		const partyWrap = document.getElementById('rsvp-party-wrap');
 		const attendingFields = document.getElementById('rsvp-attending-fields');
 		const hint = document.getElementById('rsvp-party-hint');
@@ -355,7 +361,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 
 		hint.textContent = reservedSeatsMessage(currentMax);
 
-		renderGuestNameFields(currentCount);
+		const names = opts.preserveNames ? collectGuestNames() : [];
+		renderGuestNameFields(currentCount, names);
 	}
 
 	function showFormBody(show: boolean) {
@@ -425,6 +432,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		selectedGuest = null;
 		fromInviteLink = false;
 		showFormBody(false);
+		clearGuestNameFields();
 
 		const guestIdInput = document.getElementById('rsvp-guest-id') as HTMLInputElement | null;
 		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
@@ -448,6 +456,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		guest: GuestMatch,
 		opts: { fromInvite?: boolean; existingRsvp?: LookupRsvp | null } = {}
 	) {
+		clearGuestNameFields();
+
 		selectedGuest = guest;
 		currentMax = Math.max(1, guest.maxGuests);
 		currentCount = currentMax;
@@ -625,6 +635,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 	}
 
 	function applyExistingRsvp(rsvp: LookupRsvp | null, maxGuests: number) {
+		clearGuestNameFields();
+
 		if (!rsvp) {
 			currentCount = maxGuests;
 			syncFormUI();
@@ -633,28 +645,25 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 
 		if (rsvp.attending) {
 			document.querySelector<HTMLInputElement>('input[name="attending"][value="yes"]')!.checked = true;
-			const savedCount =
-				rsvp.guestNames?.length ?
-					rsvp.guestNames.length
-				:	Math.max(1, rsvp.guestCount);
-			currentCount = clampCount(savedCount, maxGuests);
+			currentCount = maxGuests;
 		} else {
 			document.querySelector<HTMLInputElement>('input[name="attending"][value="no"]')!.checked = true;
 			currentCount = maxGuests;
 		}
 
 		const messageInput = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
-		if (messageInput && rsvp.message) messageInput.value = rsvp.message;
+		if (messageInput) messageInput.value = rsvp.message?.trim() ?? '';
 
 		syncFormUI();
-		if (rsvp.attending && rsvp.guestNames?.length) {
-			renderGuestNameFields(currentCount, rsvp.guestNames);
-		}
 	}
 
 	function initUI() {
 		if (uiReady) {
-			syncFormUI();
+			if (selectedGuest && isAttending()) {
+				syncFormUI({ preserveNames: true });
+			} else {
+				syncFormUI();
+			}
 			return;
 		}
 
@@ -693,21 +702,30 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		decrease?.addEventListener('click', () => {
 			if (!isAttending()) return;
 			currentCount = clampCount(currentCount - 1, currentMax);
-			syncFormUI();
+			syncFormUI({ preserveNames: true });
 		});
 
 		increase?.addEventListener('click', () => {
 			if (!isAttending()) return;
 			currentCount = clampCount(currentCount + 1, currentMax);
-			syncFormUI();
+			syncFormUI({ preserveNames: true });
 		});
 
-		attendingRadios.forEach((radio) => radio.addEventListener('change', syncFormUI));
+		attendingRadios.forEach((radio) =>
+			radio.addEventListener('change', () => {
+				if (isAttending()) {
+					syncFormUI({ preserveNames: true });
+				} else {
+					syncFormUI();
+				}
+			})
+		);
 
 		uiReady = true;
 
 		const inviteCode = inviteInput?.value?.trim() || inviteInput?.dataset.urlCode?.trim() || '';
-		if (inviteCode) {
+		if (inviteCode && inviteInput?.dataset.loadedInviteCode !== inviteCode) {
+			inviteInput.dataset.loadedInviteCode = inviteCode;
 			void loadGuestFromInviteCode(inviteCode);
 		}
 	}
@@ -780,6 +798,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		}
 		if (submittedRsvp) {
 			renderSuccessView(submittedRsvp);
+		} else if (selectedGuest && isAttending()) {
+			syncFormUI({ preserveNames: true });
 		} else {
 			syncFormUI();
 		}
