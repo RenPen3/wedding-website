@@ -17,29 +17,33 @@ const inviteCode = readInviteCodeFromSearchParams(Astro.url.searchParams);
 			data-reveal
 		>
 			<h1 class="text-center font-serif text-[2.75rem] text-plum md:text-5xl">RSVP</h1>
-			<p class="rsvp-page__intro mx-auto mt-4 max-w-lg text-center text-lg text-brown-soft md:max-w-3xl md:text-xl">
+			<p class="rsvp-page__intro text-pretty-wrap mx-auto mt-4 max-w-lg text-center text-lg text-brown-soft md:max-w-3xl md:text-xl">
 				<span data-strand="en">
 					<span class="rsvp-page__intro-line1 block"
-						>We’d love to celebrate with you. Please RSVP by <span class="whitespace-nowrap"
+						>We’d love to celebrate&nbsp;with&nbsp;you. Please RSVP by <span class="whitespace-nowrap"
 							>August 1, 2026</span
 						></span
 					>
 					{
 						inviteCode ?
-							<span class="rsvp-page__intro-line2 block">Complete your response below.</span>
-						:	<span class="rsvp-page__intro-line2 block">Find your name below to get started.</span>
+							<span class="rsvp-page__intro-line2 block">Complete your response&nbsp;below.</span>
+						:	<span class="rsvp-page__intro-line2 block"
+							>Find your name below to get&nbsp;started.</span
+						>
 					}
 				</span>
 				<span data-strand="es">
 					<span class="rsvp-page__intro-line1 block"
-						>Nos encantaría celebrar contigo. Por favor confirma tu asistencia antes del <span
+						>Nos encantaría celebrar&nbsp;contigo. Por favor confirma tu asistencia antes del <span
 							class="whitespace-nowrap">1 de agosto de 2026</span
 						></span
 					>
 					{
 						inviteCode ?
-							<span class="rsvp-page__intro-line2 block">Completa tu respuesta abajo.</span>
-						:	<span class="rsvp-page__intro-line2 block">Busca tu nombre abajo para comenzar.</span>
+							<span class="rsvp-page__intro-line2 block">Completa tu respuesta&nbsp;abajo.</span>
+						:	<span class="rsvp-page__intro-line2 block"
+							>Busca tu nombre abajo para&nbsp;comenzar.</span
+						>
 					}
 				</span>
 			</p>

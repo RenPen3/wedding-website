@@ -181,6 +181,9 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 					id="rsvp-message"
 					name="message"
 					rows="3"
+					autocomplete="off"
+					autocorrect="off"
+					spellcheck="false"
 					class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-3 text-plum-deep outline-none ring-olive/40 focus:ring-2"
 					data-ph-en="Share a note with us…"
 					data-ph-es="Comparte una nota con nosotros…"
@@ -206,7 +209,6 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		attending: boolean;
 		guestCount: number;
 		guestNames: string[];
-		message: string;
 	};
 
 	type GuestMatch = {
@@ -323,6 +325,11 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		if (container) container.innerHTML = '';
 	}
 
+	function clearMessageField() {
+		const messageInput = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
+		if (messageInput) messageInput.value = '';
+	}
+
 	function collectGuestNames(): string[] {
 		const container = document.getElementById('rsvp-guest-names-fields');
 		if (!container) return [];
@@ -409,7 +416,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 				es: 'Invitación para',
 			});
 			nameEl.textContent = selectedGuest.full_name;
-			seatsEl.textContent = reservedSeatsMessage(selectedGuest.maxGuests);
+			seatsEl.textContent = welcomeMessage(selectedGuest.full_name, selectedGuest.maxGuests);
 			banner.classList.remove('hidden');
 		} else {
 			banner.classList.add('hidden');
@@ -433,6 +440,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		fromInviteLink = false;
 		showFormBody(false);
 		clearGuestNameFields();
+		clearMessageField();
 
 		const guestIdInput = document.getElementById('rsvp-guest-id') as HTMLInputElement | null;
 		const nameInput = document.getElementById('rsvp-guest-name') as HTMLInputElement | null;
@@ -457,6 +465,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		opts: { fromInvite?: boolean; existingRsvp?: LookupRsvp | null } = {}
 	) {
 		clearGuestNameFields();
+		clearMessageField();
 
 		selectedGuest = guest;
 		currentMax = Math.max(1, guest.maxGuests);
@@ -490,10 +499,10 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		closeDropdown();
 		showFormBody(true);
 
-		if (!opts.fromInvite) {
-			setNameStatus('found', welcomeMessage(guest.full_name, currentMax));
-		} else {
+		if (opts.fromInvite) {
 			setNameStatus('hidden');
+		} else {
+			setNameStatus('found', welcomeMessage(guest.full_name, currentMax));
 		}
 
 		if (opts.existingRsvp !== undefined) {
@@ -636,6 +645,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 
 	function applyExistingRsvp(rsvp: LookupRsvp | null, maxGuests: number) {
 		clearGuestNameFields();
+		clearMessageField();
 
 		if (!rsvp) {
 			currentCount = maxGuests;
@@ -650,9 +660,6 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			document.querySelector<HTMLInputElement>('input[name="attending"][value="no"]')!.checked = true;
 			currentCount = maxGuests;
 		}
-
-		const messageInput = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
-		if (messageInput) messageInput.value = rsvp.message?.trim() ?? '';
 
 		syncFormUI();
 	}
@@ -798,8 +805,17 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		}
 		if (submittedRsvp) {
 			renderSuccessView(submittedRsvp);
-		} else if (selectedGuest && isAttending()) {
-			syncFormUI({ preserveNames: true });
+		} else if (selectedGuest) {
+			if (fromInviteLink) {
+				updateInviteBanner();
+			} else {
+				setNameStatus('found', welcomeMessage(selectedGuest.full_name, currentMax));
+			}
+			if (isAttending()) {
+				syncFormUI({ preserveNames: true });
+			} else {
+				syncFormUI();
+			}
 		} else {
 			syncFormUI();
 		}

@@ -29,7 +29,10 @@ const details: DetailLine[] = [
 	},
 	{
 		label: { en: 'Location', es: 'Ubicación' },
-		value: { en: 'Tesoro Adobe Historic Park', es: 'Tesoro Adobe Historic Park' },
+		value: {
+			en: 'Tesoro Adobe Historic Park',
+			es: 'Tesoro Adobe Historic Park',
+		},
 	},
 	{
 		label: { en: 'Dress Code', es: 'Código de vestimenta' },
@@ -39,8 +42,8 @@ const details: DetailLine[] = [
 	{
 		label: { en: 'Adults-Only Celebration', es: 'Celebración solo para adultos' },
 		value: {
-			en: 'We love your little ones, but this evening will be adults-only so everyone can relax and celebrate.',
-			es: 'Adoramos a los pequeños, pero esta velada será solo para adultos para que todos puedan relajarse y celebrar.',
+			en: 'We love your little ones, but this evening will be adults-only so everyone can relax and\u00a0celebrate.',
+			es: 'Adoramos a los pequeños, pero esta velada será solo para adultos para que todos puedan relajarse y\u00a0celebrar.',
 		},
 		multiline: true,
 	},
@@ -48,13 +51,13 @@ const details: DetailLine[] = [
 ---
 
 <section class="rsvp-details" aria-labelledby="rsvp-details-heading">
-	<h2 id="rsvp-details-heading" class="rsvp-details__heading font-serif">
+	<h2 id="rsvp-details-heading" class="rsvp-details__heading text-balance-wrap font-serif">
 		<span data-strand="en">Wedding Details</span>
 		<span data-strand="es">Detalles de la boda</span>
 	</h2>
 	<div class="rsvp-details__divider" aria-hidden="true"></div>
 
-	<ul class="rsvp-details__list">
+	<ul class="rsvp-details__list text-pretty-wrap">
 		{
 			details.map((item) => (
 				<li

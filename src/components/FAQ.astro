@@ -6,8 +6,8 @@ const faqs = [
 			es: '¿Cuándo debo confirmar mi asistencia?',
 		},
 		a: {
-			en: 'Please respond by August 1st. If we do not receive a response by this date, we will assume you are unable to attend.',
-			es: 'Por favor responde antes del 1 de agosto. Si no recibimos tu respuesta para esa fecha, asumiremos que no podrás asistir.',
+			en: 'Please respond by August 1st. If we do not receive a response by this date, we will assume you are unable to\u00a0attend.',
+			es: 'Por favor responde antes del 1 de agosto. Si no recibimos tu respuesta para esa fecha, asumiremos que no podrás\u00a0asistir.',
 		},
 	},
 	{
@@ -16,8 +16,8 @@ const faqs = [
 			es: '¿Están bienvenidos los niños?',
 		},
 		a: {
-			en: 'We love your little ones, but this evening will be adults-only so everyone can relax and celebrate.',
-			es: 'Adoramos a los pequenyos, pero esta fiesta será solo para adultos para que todos puedan celebrar tranquilos.',
+			en: 'We love your little ones, but this evening will be adults-only so everyone can relax and\u00a0celebrate.',
+			es: 'Adoramos a los pequenyos, pero esta fiesta será solo para adultos para que todos puedan celebrar\u00a0tranquilos.',
 		},
 	},
 	{
@@ -26,8 +26,8 @@ const faqs = [
 			es: '¿Puedo traer un acompañante?',
 		},
 		a: {
-			en: 'Your invitation will note the number of seats reserved for your party. If you need a change, please reach out before you RSVP.',
-			es: 'Tu invitación indicará cuántos lugares están reservados para tu grupo. Si necesitas algún cambio, escríbenos antes de confirmar.',
+			en: 'Your invitation will note the number of seats reserved for your party. If you need a change, please reach out before you\u00a0RSVP.',
+			es: 'Tu invitación indicará cuántos lugares están reservados para tu grupo. Si necesitas algún cambio, escríbenos antes de\u00a0confirmar.',
 		},
 	},
 	{
@@ -56,8 +56,8 @@ const faqs = [
 			es: '¿Podemos tomar fotos durante la ceremonia?',
 		},
 		a: {
-			en: 'We kindly ask guests to be fully present during the ceremony. Photos are welcome during the reception.',
-			es: 'Pedimos amablemente que los invitados estén completamente presentes durante la ceremonia. Las fotos son bienvenidas durante la recepción.',
+			en: 'We kindly ask guests to be fully present during the ceremony. Photos are welcome during the\u00a0reception.',
+			es: 'Pedimos amablemente que los invitados estén completamente presentes durante la ceremonia. Las fotos son bienvenidas durante la\u00a0recepción.',
 		},
 	},
 	{
@@ -66,8 +66,8 @@ const faqs = [
 			es: '¿A qué hora deben llegar los invitados?',
 		},
 		a: {
-			en: 'Please arrive 20–30 minutes before the ceremony so everyone can be seated on time.',
-			es: 'Por favor lleguen de 20 a 30 minutos antes de la ceremonia para que todos puedan estar sentados a tiempo.',
+			en: 'Please arrive 20–30 minutes before the ceremony so everyone can be seated on\u00a0time.',
+			es: 'Por favor lleguen de 20 a 30 minutos antes de la ceremonia para que todos puedan estar sentados a\u00a0tiempo.',
 		},
 	},
 	{
@@ -96,8 +96,8 @@ const faqs = [
 			es: '¿Cuál es el código de vestimenta?',
 		},
 		a: {
-			en: 'Garden formal attire. Think elegant, romantic, and comfortable for an outdoor celebration.',
-			es: 'Vestimenta formal de jardín. Piensa en algo elegante, romántico y cómodo para una celebración al aire libre.',
+			en: 'Garden formal attire. Think elegant, romantic, and comfortable for an outdoor\u00a0celebration.',
+			es: 'Vestimenta formal de jardín. Piensa en algo elegante, romántico y cómodo para una celebración al aire\u00a0libre.',
 		},
 	},
 	{
@@ -138,7 +138,7 @@ const { homeStyle = false } = Astro.props;
 		)
 	}
 	<div class="relative mx-auto max-w-3xl px-6 md:px-8">
-		<h2 class="text-center font-serif text-3xl text-plum md:text-4xl">
+		<h2 class="text-balance-wrap text-center font-serif text-3xl text-plum md:text-4xl">
 			<span data-strand="en">Questions</span>
 			<span data-strand="es">Preguntas</span>
 		</h2>
@@ -154,11 +154,11 @@ const { homeStyle = false } = Astro.props;
 							:	'border-mauve/15 bg-cream/80',
 						]}
 					>
-						<dt class="font-serif text-xl text-plum">
+						<dt class="text-balance-wrap font-serif text-xl text-plum">
 							<span data-strand="en">{item.q.en}</span>
 							<span data-strand="es">{item.q.es}</span>
 						</dt>
-						<dd class="mt-3 leading-relaxed text-brown-soft">
+						<dd class="text-pretty-wrap mt-3 leading-relaxed text-brown-soft">
 							<span data-strand="en">{item.a.en}</span>
 							<span data-strand="es">{item.a.es}</span>
 						</dd>
