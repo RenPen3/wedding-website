@@ -126,8 +126,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			<div id="rsvp-attending-fields" class="space-y-6">
 				<div id="rsvp-party-wrap">
 					<label class="block text-sm font-medium text-plum">
-						<span data-strand="en">Number attending</span>
-						<span data-strand="es">Número de asistentes</span>
+						<span data-strand="en">Guests attending</span>
+						<span data-strand="es">Invitados que asisten</span>
 					</label>
 					<p id="rsvp-party-hint" class="mt-1 text-sm text-brown-muted"></p>
 					<div class="mt-3 flex items-center gap-3">
@@ -450,6 +450,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 	) {
 		selectedGuest = guest;
 		currentMax = Math.max(1, guest.maxGuests);
+		currentCount = currentMax;
 
 		console.log('[RSVPForm] selected guest:', guest.full_name, 'maxGuests:', guest.maxGuests);
 
@@ -625,7 +626,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 
 	function applyExistingRsvp(rsvp: LookupRsvp | null, maxGuests: number) {
 		if (!rsvp) {
-			currentCount = 1;
+			currentCount = maxGuests;
 			syncFormUI();
 			return;
 		}
@@ -639,6 +640,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			currentCount = clampCount(savedCount, maxGuests);
 		} else {
 			document.querySelector<HTMLInputElement>('input[name="attending"][value="no"]')!.checked = true;
+			currentCount = maxGuests;
 		}
 
 		const messageInput = document.getElementById('rsvp-message') as HTMLTextAreaElement | null;
