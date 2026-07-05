@@ -73,15 +73,20 @@ import { INVITE_CODE_PARAM } from '../lib/invite-link';
 			/* sessionStorage unavailable */
 		}
 
+		const sessionId = window.posthog?.get_session_id?.() || '';
+
 		fetch(TRACK_URL, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				'X-PostHog-Session-Id': sessionId,
 			},
 			body: JSON.stringify({ slug, invite_code: slug }),
 		}).catch(() => {
 			// Fail silently. Do not block page UX.
 		});
+
+		window.posthog?.capture('invite_opened', { invite_code: slug });
 	}
 
 	const slug = readInviteSlugFromUrl();

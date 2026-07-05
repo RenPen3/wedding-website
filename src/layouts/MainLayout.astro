@@ -3,6 +3,7 @@ import '../styles/global.css';
 import ScrollReveal from '../components/ScrollReveal.astro';
 import InvitationIntro from '../components/InvitationIntro.astro';
 import InviteOpenTracker from '../components/InviteOpenTracker.astro';
+import PostHog from '../components/posthog.astro';
 
 type Props = {
 	title?: string;
@@ -47,6 +48,7 @@ const {
 		<meta name="description" content={description} />
 		{noindex && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
+		<PostHog />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link

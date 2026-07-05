@@ -187,6 +187,25 @@ const paymentButtonClass =
 	</div>
 </section>
 
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		document.querySelectorAll<HTMLAnchorElement>('a.honeymoon-btn').forEach((el) => {
+			el.addEventListener('click', () => {
+				const title = el.closest('article')?.querySelector('[data-strand="en"]')?.textContent?.trim() ?? '';
+				window.posthog?.capture('honeymoon_fund_option_clicked', { option_title: title });
+			});
+		});
+
+		document.querySelectorAll<HTMLAnchorElement>('a.honeymoon-gift').forEach((el) => {
+			el.addEventListener('click', () => {
+				const title = el.querySelector('p.font-serif [data-strand="en"]')?.textContent?.trim() ?? '';
+				const amount = el.querySelector('p.font-serif.text-2xl [data-strand="en"]')?.textContent?.trim() ?? '';
+				window.posthog?.capture('gift_idea_clicked', { gift_title: title, amount });
+			});
+		});
+	});
+</script>
+
 <style>
 	.honeymoon-card {
 		background-image: linear-gradient(

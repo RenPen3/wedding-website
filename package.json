@@ -17,6 +17,8 @@
     "@supabase/supabase-js": "^2.105.4",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.6",
+    "posthog-js": "^1.396.6",
+    "posthog-node": "^5.39.4",
     "qrcode": "^1.5.4",
     "tailwindcss": "^4.3.0"
   },

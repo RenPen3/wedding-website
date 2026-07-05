@@ -914,9 +914,14 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		);
 
 		try {
+			const sessionId = window.posthog?.get_session_id?.() || null;
+
 			const res = await fetch('/api/rsvp', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: {
+					'Content-Type': 'application/json',
+					'X-PostHog-Session-Id': sessionId || '',
+				},
 				body: JSON.stringify({
 					name,
 					first_name: firstName,
@@ -944,6 +949,11 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 					});
 				return;
 			}
+
+			window.posthog?.capture('rsvp_form_submitted', {
+				attending,
+				guest_count: attending ? guestCount : 0,
+			});
 
 			renderSuccessView({ name, attending, guestNames });
 		} catch {
