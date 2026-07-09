@@ -133,7 +133,7 @@ const SESSION_KEY = 'wedding_admin_token';
 							<option value="all">All</option>
 							<option value="pending">Pending</option>
 							<option value="attending">Attending</option>
-							<option value="declined">Not Attending</option>
+							<option value="not-attending">Not Attending</option>
 						</select>
 					</div>
 				</div>
@@ -211,28 +211,45 @@ const SESSION_KEY = 'wedding_admin_token';
 		return String(g.guest_name ?? g.invite_code ?? '—');
 	}
 
-	function guestAttendanceCategory(g) {
-		if (!g.rsvp_submitted) return 'pending';
+	const RSVP_FILTER = {
+		ALL: 'all',
+		PENDING: 'pending',
+		ATTENDING: 'attending',
+		NOT_ATTENDING: 'not-attending',
+	};
 
+	function guestAttendingCount(g) {
 		const total = Number(g.rsvp_total_attending ?? 0);
-		const namesCount = Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list.length : 0;
-		const effectiveCount = total > 0 ? total : namesCount;
+		if (Number.isFinite(total) && total > 0) return total;
+		const names = Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list.length : 0;
+		return names;
+	}
 
-		if (g.rsvp_attending === true || effectiveCount > 0) return 'attending';
-		if (g.rsvp_attending === false) return 'declined';
+	/** Uses rsvp_submitted, rsvp_attending, rsvp_total_attending, rsvp_guest_names_list */
+	function guestAttendanceCategory(g) {
+		if (!g.rsvp_submitted) return RSVP_FILTER.PENDING;
 
-		return 'pending';
+		const count = guestAttendingCount(g);
+		if (g.rsvp_attending === true || count > 0) return RSVP_FILTER.ATTENDING;
+
+		return RSVP_FILTER.NOT_ATTENDING;
+	}
+
+	function matchesRsvpFilter(g, filterValue) {
+		if (filterValue === RSVP_FILTER.ALL) return true;
+		return guestAttendanceCategory(g) === filterValue;
 	}
 
 	function rsvpStatus(g) {
-		return guestAttendanceCategory(g);
+		const category = guestAttendanceCategory(g);
+		if (category === RSVP_FILTER.ATTENDING) return 'attending';
+		if (category === RSVP_FILTER.NOT_ATTENDING) return 'declined';
+		return 'pending';
 	}
 
 	function rowAttendingCount(g) {
 		if (!g.rsvp_submitted || g.rsvp_attending === false) return 0;
-		const total = Number(g.rsvp_total_attending ?? 0);
-		if (total > 0) return total;
-		return parseNamesInput(formatNamesForInput(g)).length;
+		return guestAttendingCount(g);
 	}
 
 	function hasOpened(g) {
@@ -394,6 +411,7 @@ const SESSION_KEY = 'wedding_admin_token';
 			if (attendingInput) attendingInput.value = String(rowAttendingCount(updated));
 			syncRowFieldState(row);
 			updateStats(computeStatsFromGuests(allGuests));
+			renderTable();
 
 			if (saveBtn) {
 				saveBtn.textContent = 'Saved';
@@ -422,11 +440,10 @@ const SESSION_KEY = 'wedding_admin_token';
 
 	function getFilteredGuests() {
 		const q = (searchInput?.value ?? '').trim().toLowerCase();
-		const rsvp = rsvpFilter?.value ?? 'all';
+		const filterValue = rsvpFilter?.value ?? RSVP_FILTER.ALL;
 
 		return allGuests.filter((g) => {
-			const category = guestAttendanceCategory(g);
-			if (rsvp !== 'all' && category !== rsvp) return false;
+			if (!matchesRsvpFilter(g, filterValue)) return false;
 
 			if (!q) return true;
 			const haystack = [
@@ -514,14 +531,13 @@ const SESSION_KEY = 'wedding_admin_token';
 							aria-label="Attending count"
 							${rsvpValue === 'pending' || rsvpValue === 'not_rsvpd' ? 'disabled' : ''}
 						/>
-						<p class="mt-1 text-xs text-brown-muted">0 = not attending</p>
 					</td>
 					<td data-label="Details">
 						<label class="admin-inline-label">Names</label>
 						<textarea
 							rows="3"
 							class="admin-inline-input admin-inline-names mt-1 w-full min-w-[10rem] max-w-[16rem]"
-							placeholder="Juan Perez, Maria Perez"
+							placeholder="Guest name(s)"
 							${namesDisabled ? 'disabled' : ''}
 						>${escapeHtml(namesValue)}</textarea>
 					</td>
@@ -580,10 +596,10 @@ const SESSION_KEY = 'wedding_admin_token';
 				else acc.notOpened += 1;
 
 				const status = guestAttendanceCategory(g);
-				if (status === 'pending') acc.rsvpPending += 1;
-				else if (status === 'attending') {
+				if (status === RSVP_FILTER.PENDING) acc.rsvpPending += 1;
+				else if (status === RSVP_FILTER.ATTENDING) {
 					acc.rsvpAttending += 1;
-					acc.totalAttending += rowAttendingCount(g);
+					acc.totalAttending += guestAttendingCount(g);
 				} else {
 					acc.rsvpDeclined += 1;
 				}
@@ -767,6 +783,7 @@ const SESSION_KEY = 'wedding_admin_token';
 
 	searchInput?.addEventListener('input', renderTable);
 	rsvpFilter?.addEventListener('change', renderTable);
+	rsvpFilter?.addEventListener('input', renderTable);
 
 	if (getToken()) {
 		loadGuests();
