@@ -133,7 +133,7 @@ const SESSION_KEY = 'wedding_admin_token';
 							<option value="all">All</option>
 							<option value="pending">Pending</option>
 							<option value="attending">Attending</option>
-							<option value="declined">Not attending</option>
+							<option value="declined">Not Attending</option>
 						</select>
 					</div>
 				</div>
@@ -211,11 +211,28 @@ const SESSION_KEY = 'wedding_admin_token';
 		return String(g.guest_name ?? g.invite_code ?? '—');
 	}
 
-	function rsvpStatus(g) {
+	function guestAttendanceCategory(g) {
 		if (!g.rsvp_submitted) return 'pending';
-		if (g.rsvp_attending === true) return 'attending';
+
+		const total = Number(g.rsvp_total_attending ?? 0);
+		const namesCount = Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list.length : 0;
+		const effectiveCount = total > 0 ? total : namesCount;
+
+		if (g.rsvp_attending === true || effectiveCount > 0) return 'attending';
 		if (g.rsvp_attending === false) return 'declined';
+
 		return 'pending';
+	}
+
+	function rsvpStatus(g) {
+		return guestAttendanceCategory(g);
+	}
+
+	function rowAttendingCount(g) {
+		if (!g.rsvp_submitted || g.rsvp_attending === false) return 0;
+		const total = Number(g.rsvp_total_attending ?? 0);
+		if (total > 0) return total;
+		return parseNamesInput(formatNamesForInput(g)).length;
 	}
 
 	function hasOpened(g) {
@@ -232,14 +249,8 @@ const SESSION_KEY = 'wedding_admin_token';
 
 	function rowRsvpValue(g) {
 		if (!g.rsvp_submitted) return 'pending';
+		if (g.rsvp_attending === false && rowAttendingCount(g) === 0) return 'not_rsvpd';
 		return 'rsvpd';
-	}
-
-	function rowAttendingValue(g) {
-		if (!g.rsvp_submitted) return 'pending';
-		if (g.rsvp_attending === true) return 'yes';
-		if (g.rsvp_attending === false) return 'no';
-		return 'pending';
 	}
 
 	function formatNamesForInput(g) {
@@ -276,54 +287,47 @@ const SESSION_KEY = 'wedding_admin_token';
 
 	function syncRowFieldState(row) {
 		const rsvp = row.querySelector('.admin-inline-rsvp')?.value ?? 'pending';
-		const attending = row.querySelector('.admin-inline-attending');
-		const totalInput = row.querySelector('.admin-inline-total');
+		const attendingInput = row.querySelector('.admin-inline-attending');
 		const namesInput = row.querySelector('.admin-inline-names');
-		const detailsEnabled = rsvp === 'rsvpd' && attending?.value === 'yes';
+		const attendingCount = Number(attendingInput?.value ?? 0);
 
 		if (rsvp === 'pending') {
-			if (attending) attending.value = 'pending';
-			attending?.setAttribute('disabled', 'true');
-		} else if (rsvp === 'not_rsvpd') {
-			if (attending) attending.value = 'no';
-			attending?.setAttribute('disabled', 'true');
-		} else {
-			attending?.removeAttribute('disabled');
+			if (attendingInput) attendingInput.value = '0';
+			attendingInput?.setAttribute('disabled', 'true');
+			namesInput?.setAttribute('disabled', 'true');
+			return;
 		}
 
-		if (detailsEnabled) {
-			totalInput?.removeAttribute('disabled');
-			namesInput?.removeAttribute('disabled');
-		} else {
-			totalInput?.setAttribute('disabled', 'true');
+		if (rsvp === 'not_rsvpd') {
+			if (attendingInput) attendingInput.value = '0';
+			attendingInput?.setAttribute('disabled', 'true');
 			namesInput?.setAttribute('disabled', 'true');
+			return;
 		}
+
+		attendingInput?.removeAttribute('disabled');
+		if (attendingCount > 0) namesInput?.removeAttribute('disabled');
+		else namesInput?.setAttribute('disabled', 'true');
 	}
 
 	function buildSavePayload(row) {
 		const inviteCode = row.getAttribute('data-invite-code');
 		const rsvp = row.querySelector('.admin-inline-rsvp')?.value ?? 'pending';
-		const attending = row.querySelector('.admin-inline-attending')?.value ?? 'pending';
-		const totalGuests = Number(row.querySelector('.admin-inline-total')?.value ?? 0);
+		const attendingCount = Math.max(0, Number(row.querySelector('.admin-inline-attending')?.value ?? 0));
 		const guestNames = parseNamesInput(row.querySelector('.admin-inline-names')?.value ?? '');
 
 		if (rsvp === 'pending') {
 			return { invite_code: inviteCode, rsvpStatus: 'pending' };
 		}
-		if (rsvp === 'not_rsvpd') {
-			return { invite_code: inviteCode, rsvpStatus: 'declined', totalGuests: 0, guestNames: [] };
-		}
-		if (attending === 'pending') {
-			throw new Error('Select Yes or No for attending.');
-		}
-		if (attending === 'no') {
+
+		if (rsvp === 'not_rsvpd' || attendingCount === 0) {
 			return { invite_code: inviteCode, rsvpStatus: 'declined', totalGuests: 0, guestNames: [] };
 		}
 
 		return {
 			invite_code: inviteCode,
 			rsvpStatus: 'attending',
-			totalGuests: totalGuests > 0 ? totalGuests : guestNames.length,
+			totalGuests: attendingCount,
 			guestNames,
 		};
 	}
@@ -386,6 +390,9 @@ const SESSION_KEY = 'wedding_admin_token';
 			}
 
 			if (submittedEl) submittedEl.textContent = submittedDisplay(updated);
+			const attendingInput = row.querySelector('.admin-inline-attending');
+			if (attendingInput) attendingInput.value = String(rowAttendingCount(updated));
+			syncRowFieldState(row);
 			updateStats(computeStatsFromGuests(allGuests));
 
 			if (saveBtn) {
@@ -418,8 +425,8 @@ const SESSION_KEY = 'wedding_admin_token';
 		const rsvp = rsvpFilter?.value ?? 'all';
 
 		return allGuests.filter((g) => {
-			const status = rsvpStatus(g);
-			if (rsvp !== 'all' && status !== rsvp) return false;
+			const category = guestAttendanceCategory(g);
+			if (rsvp !== 'all' && category !== rsvp) return false;
 
 			if (!q) return true;
 			const haystack = [
@@ -466,14 +473,9 @@ const SESSION_KEY = 'wedding_admin_token';
 				const inviteUrl = `${SITE_URL}/?invite_code=${encodeURIComponent(code)}`;
 				const maxGuests = Number(g.max_guests ?? 1);
 				const rsvpValue = rowRsvpValue(g);
-				const attendingValue = rowAttendingValue(g);
-				const namesCount = parseNamesInput(formatNamesForInput(g)).length;
-				const totalGuests =
-					rsvpValue === 'rsvpd' && attendingValue === 'yes' ?
-						Number(g.rsvp_total_attending ?? (namesCount || 1))
-					:	1;
+				const attendingCount = rowAttendingCount(g);
 				const namesValue = formatNamesForInput(g);
-				const detailsDisabled = !(rsvpValue === 'rsvpd' && attendingValue === 'yes');
+				const namesDisabled = rsvpValue !== 'rsvpd' || attendingCount === 0;
 
 				return `<tr class="guest-row" data-invite-code="${escapeHtml(code)}">
 					<td data-label="Guest">
@@ -503,33 +505,24 @@ const SESSION_KEY = 'wedding_admin_token';
 						)}
 					</td>
 					<td data-label="Attending">
-						${inlineSelect(
-							'attending',
-							attendingValue,
-							[
-								['pending', 'Pending'],
-								['yes', 'Yes'],
-								['no', 'No'],
-							],
-							'admin-inline-input admin-inline-attending w-full min-w-[6rem]'
-						)}
-					</td>
-					<td data-label="Details">
-						<label class="admin-inline-label">Total guests</label>
 						<input
 							type="number"
-							min="1"
+							min="0"
 							max="${maxGuests}"
-							value="${totalGuests}"
-							class="admin-inline-input admin-inline-total mt-1 w-full min-w-[5rem]"
-							${detailsDisabled ? 'disabled' : ''}
+							value="${attendingCount}"
+							class="admin-inline-input admin-inline-attending mt-1 w-full min-w-[4rem]"
+							aria-label="Attending count"
+							${rsvpValue === 'pending' || rsvpValue === 'not_rsvpd' ? 'disabled' : ''}
 						/>
-						<label class="admin-inline-label mt-2">Names</label>
+						<p class="mt-1 text-xs text-brown-muted">0 = not attending</p>
+					</td>
+					<td data-label="Details">
+						<label class="admin-inline-label">Names</label>
 						<textarea
 							rows="3"
 							class="admin-inline-input admin-inline-names mt-1 w-full min-w-[10rem] max-w-[16rem]"
 							placeholder="Juan Perez, Maria Perez"
-							${detailsDisabled ? 'disabled' : ''}
+							${namesDisabled ? 'disabled' : ''}
 						>${escapeHtml(namesValue)}</textarea>
 					</td>
 					<td data-label="Submitted">
@@ -551,6 +544,7 @@ const SESSION_KEY = 'wedding_admin_token';
 		tableBody.querySelectorAll('.guest-row').forEach((row) => {
 			syncRowFieldState(row);
 			row.querySelector('.admin-inline-rsvp')?.addEventListener('change', () => syncRowFieldState(row));
+			row.querySelector('.admin-inline-attending')?.addEventListener('input', () => syncRowFieldState(row));
 			row.querySelector('.admin-inline-attending')?.addEventListener('change', () => syncRowFieldState(row));
 		});
 
@@ -585,11 +579,11 @@ const SESSION_KEY = 'wedding_admin_token';
 				if (hasOpened(g)) acc.opened += 1;
 				else acc.notOpened += 1;
 
-				const status = rsvpStatus(g);
+				const status = guestAttendanceCategory(g);
 				if (status === 'pending') acc.rsvpPending += 1;
 				else if (status === 'attending') {
 					acc.rsvpAttending += 1;
-					acc.totalAttending += g.rsvp_total_attending ?? 0;
+					acc.totalAttending += rowAttendingCount(g);
 				} else {
 					acc.rsvpDeclined += 1;
 				}
