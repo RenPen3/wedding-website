@@ -45,33 +45,33 @@ const SESSION_KEY = 'wedding_admin_token';
 		</div>
 
 		<!-- Dashboard -->
-		<div id="admin-dashboard" class="hidden pb-20 pt-10 md:pt-12">
-			<div class="mx-auto max-w-7xl px-4 md:px-8">
-				<header class="flex flex-wrap items-end justify-between gap-4 border-b border-mauve/15 pb-6">
-					<div>
-						<h1 class="font-serif text-4xl text-plum">Guest invitations</h1>
+		<div id="admin-dashboard" class="hidden pb-20 pt-8 sm:pt-10 md:pt-12">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<header class="flex flex-col gap-4 border-b border-mauve/15 pb-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+					<div class="min-w-0">
+						<h1 class="font-serif text-3xl text-plum sm:text-4xl">Guest invitations</h1>
 						<p class="mt-1 text-sm text-brown-soft">
 							Tracking opens and RSVPs · <span id="guest-count-label">—</span> guests
 						</p>
 					</div>
-					<div class="flex flex-wrap gap-2">
+					<div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
 						<a
 							href="/admin/slideshow"
-							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+							class="w-full rounded-full border border-mauve/25 bg-cream px-5 py-2.5 text-center text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum sm:w-auto"
 						>
 							AI Slideshow
 						</a>
 						<button
 							type="button"
 							id="admin-clear-rsvps"
-							class="rounded-full border border-mauve-dark/30 bg-cream px-5 py-2 text-sm font-medium text-mauve-dark transition hover:border-mauve-dark hover:bg-mauve-dark hover:text-cream"
+							class="w-full rounded-full border border-mauve-dark/30 bg-cream px-5 py-2.5 text-center text-sm font-medium text-mauve-dark transition hover:border-mauve-dark hover:bg-mauve-dark hover:text-cream sm:w-auto"
 						>
 							Clear test RSVPs
 						</button>
 						<button
 							type="button"
 							id="admin-sign-out"
-							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+							class="w-full rounded-full border border-mauve/25 bg-cream px-5 py-2.5 text-center text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum sm:w-auto"
 						>
 							Sign out
 						</button>
@@ -82,7 +82,7 @@ const SESSION_KEY = 'wedding_admin_token';
 				<p id="admin-loading" class="mt-8 text-brown-soft">Loading guests…</p>
 
 				<!-- Summary cards -->
-				<div id="admin-stats" class="mt-8 hidden grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+				<div id="admin-stats" class="mt-6 hidden grid grid-cols-2 gap-2 sm:mt-8 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-7">
 					<div class="admin-stat-card">
 						<p class="admin-stat-card__label">Total guests</p>
 						<p class="admin-stat-card__value" data-stat="total">0</p>
@@ -114,17 +114,17 @@ const SESSION_KEY = 'wedding_admin_token';
 				</div>
 
 				<!-- Filters -->
-				<div id="admin-filters" class="mt-8 hidden flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-					<div class="flex-1">
+				<div id="admin-filters" class="mt-6 hidden grid gap-4 sm:mt-8 md:grid-cols-2 lg:flex lg:items-end lg:justify-between">
+					<div class="min-w-0 lg:flex-1">
 						<label for="admin-search" class="block text-sm font-medium text-plum">Search</label>
 						<input
 							type="search"
 							id="admin-search"
 							placeholder="Name, invite code, or message…"
-							class="mt-2 w-full max-w-md rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+							class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2 md:max-w-md lg:max-w-md"
 						/>
 					</div>
-					<div>
+					<div class="md:max-w-xs lg:shrink-0">
 						<label for="admin-rsvp-filter" class="block text-sm font-medium text-plum">RSVP filter</label>
 						<select
 							id="admin-rsvp-filter"
@@ -138,7 +138,7 @@ const SESSION_KEY = 'wedding_admin_token';
 				</div>
 
 				<!-- Table -->
-				<div id="admin-table-wrap" class="mt-6 hidden overflow-x-auto rounded-2xl border border-mauve/20 bg-cream shadow-sm">
+				<div id="admin-table-wrap" class="admin-table-wrap mt-4 hidden sm:mt-6">
 					<table class="admin-table min-w-full text-left text-sm">
 						<thead>
 							<tr>
@@ -584,11 +584,11 @@ const SESSION_KEY = 'wedding_admin_token';
 						<p class="font-mono text-xs text-plum">${escapeHtml(g.invite_code)}</p>
 						<button type="button" class="admin-copy mt-2" data-url="${escapeHtml(inviteUrl)}">Copy link</button>
 					</td>
-					<td data-label="Opens">
+					<td data-label="Opens" class="admin-table__cell--opens">
 						<p class="text-sm text-plum">Opened: ${hasOpened(g) ? 'Yes' : 'No'}</p>
-						<p class="mt-1 text-xs text-brown-soft">Open count: ${g.open_count ?? 0}</p>
-						<p class="text-xs text-brown-muted">First opened: ${fmtDate(g.first_opened_at)}</p>
-						<p class="text-xs text-brown-muted">Last opened: ${fmtDate(g.last_opened_at)}</p>
+						<p class="admin-opens-detail mt-1 text-xs text-brown-soft">Open count: ${g.open_count ?? 0}</p>
+						<p class="admin-opens-detail text-xs text-brown-muted">First opened: ${fmtDate(g.first_opened_at)}</p>
+						<p class="admin-opens-detail text-xs text-brown-muted">Last opened: ${fmtDate(g.last_opened_at)}</p>
 					</td>
 					<td data-label="RSVP" class="admin-table__cell--rsvp">
 						<label class="admin-rsvp-check">
@@ -824,30 +824,52 @@ const SESSION_KEY = 'wedding_admin_token';
 </script>
 
 <style>
-	.admin-stat-card {
+	.admin-guests {
+		padding-bottom: max(5rem, env(safe-area-inset-bottom));
+	}
+
+	.admin-guests .admin-stat-card {
 		border-radius: 1rem;
 		border: 1px solid rgb(155 123 142 / 0.2);
 		background: var(--color-cream);
-		padding: 0.75rem 1rem;
+		padding: 0.625rem 0.75rem;
 		box-shadow: 0 1px 3px rgb(42 26 50 / 0.06);
 	}
 
-	.admin-stat-card__label {
-		font-size: 0.75rem;
+	@media (min-width: 640px) {
+		.admin-guests .admin-stat-card {
+			padding: 0.75rem 1rem;
+		}
+	}
+
+	.admin-guests .admin-stat-card__label {
+		font-size: 0.6875rem;
 		font-weight: 500;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: var(--color-brown-soft);
 	}
 
-	.admin-stat-card__value {
+	@media (min-width: 640px) {
+		.admin-guests .admin-stat-card__label {
+			font-size: 0.75rem;
+		}
+	}
+
+	.admin-guests .admin-stat-card__value {
 		margin-top: 0.25rem;
 		font-family: var(--font-serif);
-		font-size: 1.5rem;
+		font-size: 1.375rem;
 		color: var(--color-plum);
 	}
 
-	.admin-badge {
+	@media (min-width: 640px) {
+		.admin-guests .admin-stat-card__value {
+			font-size: 1.5rem;
+		}
+	}
+
+	.admin-guests .admin-badge {
 		display: inline-flex;
 		border-radius: 9999px;
 		padding: 0.125rem 0.625rem;
@@ -855,32 +877,32 @@ const SESSION_KEY = 'wedding_admin_token';
 		font-weight: 500;
 	}
 
-	.admin-badge--opened,
-	.admin-badge--attending {
+	.admin-guests .admin-badge--opened,
+	.admin-guests .admin-badge--attending {
 		background: rgb(107 115 73 / 0.15);
 		color: var(--color-olive);
 	}
 
-	.admin-badge--declined {
+	.admin-guests .admin-badge--declined {
 		background: rgb(155 123 142 / 0.15);
 		color: var(--color-mauve-dark);
 	}
 
-	.admin-badge--pending {
+	.admin-guests .admin-badge--pending {
 		background: rgb(160 139 114 / 0.15);
 		color: var(--color-brown-soft);
 	}
 
-	.admin-badge--muted {
+	.admin-guests .admin-badge--muted {
 		background: rgb(155 123 142 / 0.1);
 		color: var(--color-brown-muted);
 	}
 
-	.admin-copy {
+	.admin-guests .admin-copy {
 		border-radius: 9999px;
 		border: 1px solid rgb(155 123 142 / 0.25);
 		background: #fff;
-		padding: 0.25rem 0.75rem;
+		padding: 0.375rem 0.875rem;
 		font-size: 0.75rem;
 		font-weight: 500;
 		color: var(--color-plum);
@@ -890,12 +912,27 @@ const SESSION_KEY = 'wedding_admin_token';
 			background-color 0.2s;
 	}
 
-	.admin-copy:hover {
+	.admin-guests .admin-copy:hover {
 		border-color: var(--color-plum);
 		background: var(--color-ivory);
 	}
 
-	.admin-table thead {
+	.admin-guests .admin-table-wrap {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		border-radius: 1rem;
+		border: 1px solid rgb(155 123 142 / 0.2);
+		background: var(--color-cream);
+		box-shadow: 0 1px 3px rgb(42 26 50 / 0.06);
+	}
+
+	@media (min-width: 640px) {
+		.admin-guests .admin-table-wrap {
+			border-radius: 1.25rem;
+		}
+	}
+
+	.admin-guests .admin-table thead {
 		border-bottom: 1px solid rgb(155 123 142 / 0.2);
 		background: rgb(255 255 255 / 0.8);
 		font-size: 0.75rem;
@@ -905,22 +942,22 @@ const SESSION_KEY = 'wedding_admin_token';
 		color: var(--color-olive);
 	}
 
-	.admin-table th {
-		padding: 1rem 1.125rem;
+	.admin-guests .admin-table th {
+		padding: 0.875rem 1rem;
 		white-space: nowrap;
 	}
 
-	.admin-table td {
-		padding: 1.25rem 1.125rem;
+	.admin-guests .admin-table td {
+		padding: 1rem;
 		vertical-align: top;
 		color: var(--color-brown-soft);
 	}
 
-	.admin-table__cell--rsvp {
+	.admin-guests .admin-table__cell--rsvp {
 		min-width: 5.5rem;
 	}
 
-	.admin-rsvp-check {
+	.admin-guests .admin-rsvp-check {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
@@ -928,66 +965,175 @@ const SESSION_KEY = 'wedding_admin_token';
 		padding: 0.25rem 0;
 	}
 
-	.admin-rsvp-check input[type='checkbox'] {
-		width: 1rem;
-		height: 1rem;
+	.admin-guests .admin-rsvp-check input[type='checkbox'] {
+		width: 1.125rem;
+		height: 1.125rem;
 		accent-color: var(--color-plum);
 		cursor: pointer;
 	}
 
-	.admin-table__cell--details {
+	.admin-guests .admin-table__cell--details {
 		min-width: 14rem;
 	}
 
-	.admin-table__cell--attending {
+	.admin-guests .admin-table__cell--attending {
 		min-width: 5.5rem;
 	}
 
-	.admin-table__cell--manage {
+	.admin-guests .admin-table__cell--manage {
 		min-width: 6.5rem;
 	}
 
-	.admin-table tbody tr {
+	.admin-guests .admin-table tbody tr {
 		background: rgb(255 255 255 / 0.4);
 		border-top: 1px solid rgb(155 123 142 / 0.15);
 		transition: background-color 0.2s;
 	}
 
-	.admin-table tbody tr:hover {
+	.admin-guests .admin-table tbody tr:hover {
 		background: rgb(255 255 255 / 0.7);
 	}
 
+	/* Desktop: traditional table */
+	@media (min-width: 1024px) {
+		.admin-guests .admin-table {
+			min-width: 52rem;
+		}
+
+		.admin-guests .admin-table th,
+		.admin-guests .admin-table td {
+			padding: 1rem 1.125rem;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] .admin-inline-attending {
+			max-width: 6rem;
+		}
+	}
+
+	/* Tablet + mobile: card rows */
 	@media (max-width: 1023px) {
-		.admin-table thead {
+		.admin-guests .admin-table-wrap {
+			overflow: visible;
+			border: none;
+			background: transparent;
+			box-shadow: none;
+		}
+
+		.admin-guests .admin-table thead {
 			display: none;
 		}
 
-		.admin-table tbody tr.guest-row {
+		.admin-guests .admin-table tbody {
 			display: block;
-			margin-bottom: 1rem;
-			border-radius: 0.75rem;
-			border: 1px solid rgb(155 123 142 / 0.15);
+		}
+
+		.admin-guests .admin-table tbody tr.guest-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 0.75rem 1rem;
+			margin-bottom: 0.875rem;
 			padding: 1rem;
+			border-radius: 1rem;
+			border: 1px solid rgb(155 123 142 / 0.2);
+			background: var(--color-cream);
+			box-shadow: 0 1px 3px rgb(42 26 50 / 0.06);
 		}
 
-		.admin-table td {
+		.admin-guests .admin-table tbody tr.guest-row:hover {
+			background: rgb(255 255 255 / 0.85);
+		}
+
+		.admin-guests .admin-table td {
 			display: block;
-			padding: 0.5rem 0;
+			padding: 0;
 		}
 
-		.admin-table td::before {
+		.admin-guests .admin-table td::before {
 			content: attr(data-label);
 			display: block;
-			margin-bottom: 0.25rem;
-			font-size: 0.75rem;
+			margin-bottom: 0.375rem;
+			font-size: 0.6875rem;
 			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: 0.05em;
 			color: var(--color-olive);
 		}
+
+		.admin-guests .admin-table td[data-label='Guest'],
+		.admin-guests .admin-table td[data-label='Invite'],
+		.admin-guests .admin-table td[data-label='Opens'] {
+			grid-column: 1 / -1;
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP'],
+		.admin-guests .admin-table td[data-label='Attending'] {
+			align-self: end;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] .admin-inline-attending {
+			width: 100%;
+		}
+
+		.admin-guests .admin-copy {
+			margin-top: 0.5rem;
+		}
 	}
 
-	.admin-inline-label {
+	/* Mobile: tighter layout, compact opens */
+	@media (max-width: 639px) {
+		.admin-guests .admin-table tbody tr.guest-row {
+			grid-template-columns: 1fr;
+			padding: 0.875rem;
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP'],
+		.admin-guests .admin-table td[data-label='Attending'] {
+			grid-column: 1 / -1;
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP'] {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.75rem;
+			padding-top: 0.25rem;
+			border-top: 1px solid rgb(155 123 142 / 0.12);
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP']::before {
+			margin-bottom: 0;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.75rem;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending']::before {
+			margin-bottom: 0;
+			flex-shrink: 0;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] .admin-inline-attending {
+			width: 5.5rem;
+			flex-shrink: 0;
+		}
+
+		.admin-guests .admin-opens-detail {
+			display: none;
+		}
+	}
+
+	/* Tablet: RSVP + Attending side by side */
+	@media (min-width: 640px) and (max-width: 1023px) {
+		.admin-guests .admin-table tbody tr.guest-row {
+			padding: 1.125rem 1.25rem;
+		}
+	}
+
+	.admin-guests .admin-inline-label {
 		display: block;
 		margin-bottom: 0.375rem;
 		font-size: 0.6875rem;
@@ -997,7 +1143,7 @@ const SESSION_KEY = 'wedding_admin_token';
 		color: var(--color-brown-muted);
 	}
 
-	.admin-inline-input {
+	.admin-guests .admin-inline-input {
 		border-radius: 0.75rem;
 		border: 1px solid rgb(155 123 142 / 0.25);
 		background: #fff;
@@ -1007,19 +1153,25 @@ const SESSION_KEY = 'wedding_admin_token';
 		outline: none;
 	}
 
-	.admin-inline-input:focus {
+	.admin-guests .admin-inline-input:focus {
 		box-shadow: 0 0 0 2px rgb(107 115 73 / 0.35);
 	}
 
-	.admin-inline-input:disabled {
+	.admin-guests .admin-inline-input:disabled {
 		background: rgb(255 255 255 / 0.5);
 		color: var(--color-brown-muted);
 		cursor: not-allowed;
 	}
 
-	.admin-inline-names {
+	.admin-guests .admin-inline-names {
 		resize: vertical;
 		min-height: 5rem;
 		margin-top: 0.25rem;
+	}
+
+	.admin-guests #admin-empty {
+		border-radius: 1rem;
+		border: 1px solid rgb(155 123 142 / 0.2);
+		background: var(--color-cream);
 	}
 </style>
