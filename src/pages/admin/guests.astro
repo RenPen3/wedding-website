@@ -150,6 +150,7 @@ const SESSION_KEY = 'wedding_admin_token';
 								<th>Attending</th>
 								<th>Details</th>
 								<th>Submitted</th>
+								<th>Manage</th>
 							</tr>
 						</thead>
 						<tbody id="admin-table-body"></tbody>
@@ -271,6 +272,229 @@ const SESSION_KEY = 'wedding_admin_token';
 		});
 	}
 
+	function sourceBadge(g) {
+		if (g.rsvp_source === 'manual') return badge('Manual entry', 'muted');
+		if (g.rsvp_submitted && g.rsvp_source === 'guest') return badge('Guest form', 'muted');
+		return '';
+	}
+
+	function initialRsvpFormState(g) {
+		const status = rsvpStatus(g);
+		const maxGuests = Number(g.max_guests ?? 1);
+		const names = Array.isArray(g.rsvp_guest_names_list) ? [...g.rsvp_guest_names_list] : [];
+		let partySize = 1;
+
+		if (status === 'attending') {
+			partySize = Math.max(1, Number(g.rsvp_total_attending ?? names.length ?? 1));
+			while (names.length < partySize) names.push('');
+			if (names.length > partySize) names.length = partySize;
+		}
+
+		return {
+			status,
+			partySize,
+			names,
+			message: String(g.rsvp_message ?? ''),
+			maxGuests,
+		};
+	}
+
+	function renderGuestNameFields(names, maxGuests) {
+		return names
+			.map(
+				(name, index) => `
+					<div>
+						<label class="admin-rsvp-form__label">Guest ${index + 1} name</label>
+						<input
+							type="text"
+							class="admin-rsvp-name-input mt-1 w-full rounded-xl border border-mauve/25 bg-white px-3 py-2 text-sm text-plum-deep outline-none ring-olive/40 focus:ring-2"
+							data-name-index="${index}"
+							value="${escapeHtml(name)}"
+							placeholder="Full name"
+						/>
+					</div>
+				`
+			)
+			.join('');
+	}
+
+	function renderRsvpEditForm(g) {
+		const code = String(g.invite_code ?? '');
+		const state = initialRsvpFormState(g);
+		const showPartyFields = state.status === 'attending';
+
+		return `
+			<form class="admin-rsvp-form space-y-4" data-invite-code="${escapeHtml(code)}">
+				<div class="grid gap-4 md:grid-cols-2">
+					<div>
+						<label class="admin-rsvp-form__label">RSVP status</label>
+						<select
+							name="rsvpStatus"
+							class="admin-rsvp-status mt-1 w-full rounded-xl border border-mauve/25 bg-white px-3 py-2 text-sm text-plum-deep outline-none ring-olive/40 focus:ring-2"
+						>
+							<option value="pending" ${state.status === 'pending' ? 'selected' : ''}>Not RSVP'd</option>
+							<option value="attending" ${state.status === 'attending' ? 'selected' : ''}>Attending</option>
+							<option value="declined" ${state.status === 'declined' ? 'selected' : ''}>Not attending</option>
+						</select>
+					</div>
+					<div class="admin-rsvp-party-wrap ${showPartyFields ? '' : 'hidden'}">
+						<label class="admin-rsvp-form__label">Party size</label>
+						<input
+							type="number"
+							name="partySize"
+							min="1"
+							max="${state.maxGuests}"
+							value="${state.partySize}"
+							class="admin-rsvp-party-size mt-1 w-full rounded-xl border border-mauve/25 bg-white px-3 py-2 text-sm text-plum-deep outline-none ring-olive/40 focus:ring-2"
+						/>
+						<p class="mt-1 text-xs text-brown-muted">Max ${state.maxGuests} for this invitation</p>
+					</div>
+				</div>
+
+				<div class="admin-rsvp-names-wrap ${showPartyFields ? '' : 'hidden'}">
+					<p class="admin-rsvp-form__label">Attending guest names</p>
+					<div class="admin-rsvp-names mt-2 grid gap-3 sm:grid-cols-2">
+						${renderGuestNameFields(state.names, state.maxGuests)}
+					</div>
+				</div>
+
+				<div>
+					<label class="admin-rsvp-form__label">Message (optional)</label>
+					<textarea
+						name="message"
+						rows="2"
+						class="mt-1 w-full rounded-xl border border-mauve/25 bg-white px-3 py-2 text-sm text-plum-deep outline-none ring-olive/40 focus:ring-2"
+						placeholder="Dietary needs, song requests, etc."
+					>${escapeHtml(state.message)}</textarea>
+				</div>
+
+				<div class="flex flex-wrap items-center gap-3">
+					<button
+						type="submit"
+						class="admin-rsvp-save rounded-full bg-plum px-5 py-2 text-sm font-medium text-cream transition hover:bg-mauve-dark"
+					>
+						Update RSVP
+					</button>
+					<p class="admin-rsvp-form-error hidden text-sm text-mauve-dark" role="alert"></p>
+					<p class="admin-rsvp-form-success hidden text-sm text-olive" role="status"></p>
+				</div>
+			</form>
+		`;
+	}
+
+	function bindRsvpForm(form, guest) {
+		const statusSelect = form.querySelector('.admin-rsvp-status');
+		const partyWrap = form.querySelector('.admin-rsvp-party-wrap');
+		const namesWrap = form.querySelector('.admin-rsvp-names-wrap');
+		const partySizeInput = form.querySelector('.admin-rsvp-party-size');
+		const namesContainer = form.querySelector('.admin-rsvp-names');
+		const maxGuests = Number(guest.max_guests ?? 1);
+
+		function currentNames() {
+			return [...form.querySelectorAll('.admin-rsvp-name-input')].map((input) => input.value);
+		}
+
+		function syncNameFields() {
+			if (!namesContainer || !partySizeInput) return;
+			const count = Math.max(1, Math.min(maxGuests, Number(partySizeInput.value) || 1));
+			partySizeInput.value = String(count);
+			const existing = currentNames();
+			const next = Array.from({ length: count }, (_, index) => existing[index] ?? '');
+			namesContainer.innerHTML = renderGuestNameFields(next, maxGuests);
+		}
+
+		function syncVisibility() {
+			const attending = statusSelect?.value === 'attending';
+			partyWrap?.classList.toggle('hidden', !attending);
+			namesWrap?.classList.toggle('hidden', !attending);
+			if (attending) syncNameFields();
+		}
+
+		statusSelect?.addEventListener('change', syncVisibility);
+		partySizeInput?.addEventListener('change', syncNameFields);
+		partySizeInput?.addEventListener('input', syncNameFields);
+
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const token = getToken();
+			if (!token) {
+				showLogin();
+				return;
+			}
+
+			const errorEl = form.querySelector('.admin-rsvp-form-error');
+			const successEl = form.querySelector('.admin-rsvp-form-success');
+			const saveBtn = form.querySelector('.admin-rsvp-save');
+			errorEl?.classList.add('hidden');
+			successEl?.classList.add('hidden');
+
+			const inviteCode = form.getAttribute('data-invite-code');
+			const rsvpStatus = statusSelect?.value ?? 'pending';
+			const partySize = Number(partySizeInput?.value ?? 0);
+			const guestNames =
+				rsvpStatus === 'attending' ?
+					[...form.querySelectorAll('.admin-rsvp-name-input')].map((input) => input.value.trim())
+				:	[];
+			const message = String(form.querySelector('[name="message"]')?.value ?? '').trim();
+
+			const originalLabel = saveBtn?.textContent ?? 'Update RSVP';
+			saveBtn?.setAttribute('disabled', 'true');
+			if (saveBtn) saveBtn.textContent = 'Saving…';
+
+			try {
+				const res = await fetch('/api/admin/rsvps', {
+					method: 'PUT',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						invite_code: inviteCode,
+						rsvpStatus,
+						totalGuests: rsvpStatus === 'attending' ? partySize : 0,
+						guestNames,
+						message,
+					}),
+				});
+				const data = await res.json();
+
+				if (res.status === 401) {
+					clearToken();
+					showLogin();
+					return;
+				}
+
+				if (!res.ok || !data.ok) {
+					throw new Error(data.error ?? 'Failed to save RSVP');
+				}
+
+				const updated = data.guest;
+				const index = allGuests.findIndex(
+					(row) => String(row.invite_code) === String(updated.invite_code)
+				);
+				if (index >= 0) {
+					allGuests[index] = { ...allGuests[index], ...updated };
+				}
+
+				updateStats(computeStatsFromGuests(allGuests));
+				renderTable();
+
+				if (successEl) {
+					successEl.textContent = 'RSVP updated.';
+					successEl.classList.remove('hidden');
+				}
+			} catch (err) {
+				if (errorEl) {
+					errorEl.textContent = err instanceof Error ? err.message : 'Could not save RSVP.';
+					errorEl.classList.remove('hidden');
+				}
+			} finally {
+				saveBtn?.removeAttribute('disabled');
+				if (saveBtn) saveBtn.textContent = originalLabel;
+			}
+		});
+	}
+
 	function renderTable() {
 		const guests = getFilteredGuests();
 		if (!tableBody) return;
@@ -297,8 +521,9 @@ const SESSION_KEY = 'wedding_admin_token';
 						String(g.rsvp_total_attending ?? '—')
 					: status === 'declined' ? '0'
 					: '—';
+				const editId = `rsvp-edit-${code}`;
 
-				return `<tr>
+				return `<tr class="guest-summary-row">
 					<td data-label="Guest">
 						<p class="font-medium text-plum">${escapeHtml(guestName(g))}</p>
 						<p class="mt-0.5 text-xs text-brown-muted">Max guests: ${g.max_guests ?? '—'}</p>
@@ -313,7 +538,10 @@ const SESSION_KEY = 'wedding_admin_token';
 						<p class="text-xs text-brown-muted">First opened: ${fmtDate(g.first_opened_at)}</p>
 						<p class="text-xs text-brown-muted">Last opened: ${fmtDate(g.last_opened_at)}</p>
 					</td>
-					<td data-label="RSVP">${rsvpBadge(g)}</td>
+					<td data-label="RSVP">
+						${rsvpBadge(g)}
+						${sourceBadge(g) ? `<div class="mt-1">${sourceBadge(g)}</div>` : ''}
+					</td>
 					<td data-label="Attending" class="font-medium">${attending}</td>
 					<td data-label="Details">
 						<p class="text-xs font-medium text-brown-muted">Attending names</p>
@@ -323,6 +551,24 @@ const SESSION_KEY = 'wedding_admin_token';
 					</td>
 					<td data-label="Submitted">
 						<p class="text-xs whitespace-nowrap">${fmtDate(g.rsvp_submitted_at)}</p>
+					</td>
+					<td data-label="Manage">
+						<button
+							type="button"
+							class="admin-edit-rsvp rounded-full border border-mauve/25 bg-white px-4 py-2 text-xs font-medium text-plum transition hover:border-plum hover:bg-ivory"
+							data-edit-target="${escapeHtml(editId)}"
+							aria-expanded="false"
+						>
+							Edit RSVP
+						</button>
+					</td>
+				</tr>
+				<tr id="${escapeHtml(editId)}" class="guest-rsvp-edit hidden">
+					<td colspan="8" class="!p-0">
+						<div class="border-t border-mauve/15 bg-ivory/60 px-4 py-5 md:px-6">
+							<p class="mb-4 text-sm font-medium text-plum">Manual RSVP for ${escapeHtml(guestName(g))}</p>
+							${renderRsvpEditForm(g)}
+						</div>
 					</td>
 				</tr>`;
 			})
@@ -340,6 +586,34 @@ const SESSION_KEY = 'wedding_admin_token';
 					}, 2000);
 				} catch {
 					btn.textContent = 'Copy failed';
+				}
+			});
+		});
+
+		tableBody.querySelectorAll('.admin-edit-rsvp').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const targetId = btn.getAttribute('data-edit-target');
+				const panel = targetId ? document.getElementById(targetId) : null;
+				if (!panel) return;
+
+				const isHidden = panel.classList.contains('hidden');
+				tableBody.querySelectorAll('.guest-rsvp-edit').forEach((row) => row.classList.add('hidden'));
+				tableBody.querySelectorAll('.admin-edit-rsvp').forEach((toggle) => {
+					toggle.setAttribute('aria-expanded', 'false');
+					toggle.textContent = 'Edit RSVP';
+				});
+
+				if (isHidden) {
+					panel.classList.remove('hidden');
+					btn.setAttribute('aria-expanded', 'true');
+					btn.textContent = 'Close';
+					const form = panel.querySelector('.admin-rsvp-form');
+					if (form && !form.dataset.bound) {
+						const inviteCode = form.getAttribute('data-invite-code');
+						const guest = allGuests.find((row) => String(row.invite_code) === inviteCode);
+						if (guest) bindRsvpForm(form, guest);
+						form.dataset.bound = 'true';
+					}
 				}
 			});
 		});
@@ -550,6 +824,7 @@ const SESSION_KEY = 'wedding_admin_token';
 			}
 
 			window.alert(`Cleared ${data.removed} RSVP${data.removed === 1 ? '' : 's'}.`);
+			await loadGuests();
 		} catch (err) {
 			window.alert(err instanceof Error ? err.message : 'Could not clear RSVPs.');
 		} finally {
@@ -676,7 +951,27 @@ const SESSION_KEY = 'wedding_admin_token';
 			display: none;
 		}
 
-		.admin-table tbody tr {
+		.admin-table tbody tr.guest-summary-row {
+			display: block;
+			margin-bottom: 0;
+			border-radius: 0.75rem 0.75rem 0 0;
+			border: 1px solid rgb(155 123 142 / 0.15);
+			padding: 1rem;
+		}
+
+		.admin-table tbody tr.guest-rsvp-edit {
+			display: block;
+			margin-bottom: 1rem;
+			border-radius: 0 0 0.75rem 0.75rem;
+			border: 1px solid rgb(155 123 142 / 0.15);
+			border-top: none;
+		}
+
+		.admin-table tbody tr.guest-rsvp-edit.hidden {
+			display: none;
+		}
+
+		.admin-table tbody tr:not(.guest-summary-row):not(.guest-rsvp-edit) {
 			display: block;
 			margin-bottom: 1rem;
 			border-radius: 0.75rem;
@@ -699,5 +994,18 @@ const SESSION_KEY = 'wedding_admin_token';
 			letter-spacing: 0.05em;
 			color: var(--color-olive);
 		}
+
+		.admin-table tr.guest-rsvp-edit td::before {
+			content: none;
+		}
+	}
+
+	.admin-rsvp-form__label {
+		display: block;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-olive);
 	}
 </style>

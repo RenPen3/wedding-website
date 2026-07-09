@@ -43,6 +43,7 @@ export type GuestActivityRow = {
 	rsvp_guest_names_list: string[];
 	rsvp_message: string | null;
 	rsvp_submitted_at: string | null;
+	rsvp_source: 'guest' | 'manual' | null;
 };
 
 export type GuestActivityStats = {
@@ -129,6 +130,7 @@ type RsvpResponseRow = {
 	guest_names_jsonb?: unknown;
 	message: string | null;
 	submitted_at: string | null;
+	rsvp_source: string | null;
 };
 
 function guestNamesFromRow(row: RsvpResponseRow): unknown {
@@ -143,17 +145,36 @@ async function fetchLatestRsvpsByInviteCode(): Promise<Map<string, RsvpResponseR
 	const { data, error } = await client
 		.from('rsvp_responses')
 		.select(
-			'invite_code, first_name, last_name, attending, total_attending, guest_count, guest_names, guest_names_jsonb, message, submitted_at'
+			'invite_code, first_name, last_name, attending, total_attending, guest_count, guest_names, guest_names_jsonb, message, submitted_at, rsvp_source'
 		)
 		.not('invite_code', 'is', null)
 		.order('submitted_at', { ascending: false });
 
 	if (error) {
+		const missingSource = error.message.includes('rsvp_source');
+		if (missingSource) {
+			const fallback = await client
+				.from('rsvp_responses')
+				.select(
+					'invite_code, first_name, last_name, attending, total_attending, guest_count, guest_names, guest_names_jsonb, message, submitted_at'
+				)
+				.not('invite_code', 'is', null)
+				.order('submitted_at', { ascending: false });
+			if (fallback.error) {
+				console.error('[invite-opens] rsvp_responses fetch failed:', fallback.error.message);
+				return new Map();
+			}
+			return buildLatestRsvpMap((fallback.data ?? []) as RsvpResponseRow[]);
+		}
+
 		console.error('[invite-opens] rsvp_responses fetch failed:', error.message, error.details ?? '');
 		return new Map();
 	}
 
-	const rows = (data ?? []) as RsvpResponseRow[];
+	return buildLatestRsvpMap((data ?? []) as RsvpResponseRow[]);
+}
+
+function buildLatestRsvpMap(rows: RsvpResponseRow[]): Map<string, RsvpResponseRow> {
 	console.log('[invite-opens] loaded rsvp_responses rows:', rows.length);
 
 	const map = new Map<string, RsvpResponseRow>();
@@ -165,6 +186,7 @@ async function fetchLatestRsvpsByInviteCode(): Promise<Map<string, RsvpResponseR
 	return map;
 }
 
+/** Fallback when the primary RSVP query returns no rows (e.g. sparse data). */
 async function fetchLatestRsvpsByInviteCodeWithFallback(): Promise<Map<string, RsvpResponseRow>> {
 	const full = await fetchLatestRsvpsByInviteCode();
 	if (full.size > 0) return full;
@@ -184,13 +206,7 @@ async function fetchLatestRsvpsByInviteCodeWithFallback(): Promise<Map<string, R
 	}
 
 	console.log('[invite-opens] loaded rsvp_responses fallback rows:', data?.length ?? 0);
-	const map = new Map<string, RsvpResponseRow>();
-	for (const row of (data ?? []) as RsvpResponseRow[]) {
-		const code = normalizeInviteCode(String(row.invite_code ?? ''));
-		if (!code || map.has(code)) continue;
-		map.set(code, row);
-	}
-	return map;
+	return buildLatestRsvpMap((data ?? []) as RsvpResponseRow[]);
 }
 
 /**
@@ -245,6 +261,10 @@ export async function buildGuestActivityReport(): Promise<GuestActivityRow[]> {
 				rsvp_guest_names_list: rsvpNamesList,
 				rsvp_message: rsvp?.message ?? null,
 				rsvp_submitted_at: rsvp?.submitted_at ?? null,
+				rsvp_source:
+					rsvp?.rsvp_source === 'manual' || rsvp?.rsvp_source === 'guest' ?
+						rsvp.rsvp_source
+					:	null,
 			};
 		})
 		.sort((a, b) => normalizeName(a.guest_name).localeCompare(normalizeName(b.guest_name)));

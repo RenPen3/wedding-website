@@ -9,6 +9,8 @@ export type InvitedGuest = {
 	maxGuests: number;
 };
 
+export type RsvpSource = 'guest' | 'manual';
+
 export type SavedRsvp = {
 	name: string;
 	firstName: string;
@@ -18,6 +20,7 @@ export type SavedRsvp = {
 	guestNames: string[];
 	message: string;
 	submittedAt: string;
+	rsvpSource: RsvpSource;
 };
 
 const BLOB_STORE = 'wedding-rsvps';
@@ -129,6 +132,21 @@ export async function getRsvpForGuest(name: string): Promise<SavedRsvp | null> {
 	return rsvps.find((r) => normalizeName(r.name) === norm) ?? null;
 }
 
+/** Removes a saved RSVP for the invited guest (used when resetting to pending). */
+export async function deleteRsvpForGuest(name: string): Promise<boolean> {
+	const norm = normalizeName(name);
+	if (!norm) return false;
+
+	let removed = false;
+	await (writeChain = writeChain.then(async () => {
+		const rsvps = await readRsvps();
+		const next = rsvps.filter((r) => normalizeName(r.name) !== norm);
+		removed = next.length !== rsvps.length;
+		if (removed) await writeRsvps(next);
+	}));
+	return removed;
+}
+
 export function validateGuestCount(
 	guest: InvitedGuest,
 	attending: boolean,
@@ -172,7 +190,7 @@ export async function saveRsvp(
 		guestNames: string[];
 		message: string;
 	},
-	options?: { guest?: InvitedGuest }
+	options?: { guest?: InvitedGuest; source?: RsvpSource; submittedAt?: string }
 ): Promise<{ ok: true; rsvp: SavedRsvp } | { ok: false; error: string }> {
 	const guest = options?.guest ?? findInvitedGuest(payload.name);
 	if (!guest) {
@@ -195,7 +213,8 @@ export async function saveRsvp(
 		guestCount,
 		guestNames: payload.attending ? payload.guestNames.map((n) => n.trim()) : [],
 		message: payload.message.trim(),
-		submittedAt: new Date().toISOString(),
+		submittedAt: options?.submittedAt ?? new Date().toISOString(),
+		rsvpSource: options?.source ?? 'guest',
 	};
 
 	await (writeChain = writeChain.then(async () => {
