@@ -470,7 +470,7 @@ const SESSION_KEY = 'wedding_admin_token';
 				const namesCount = parseNamesInput(formatNamesForInput(g)).length;
 				const totalGuests =
 					rsvpValue === 'rsvpd' && attendingValue === 'yes' ?
-						Number(g.rsvp_total_attending ?? namesCount || 1)
+						Number(g.rsvp_total_attending ?? (namesCount || 1))
 					:	1;
 				const namesValue = formatNamesForInput(g);
 				const detailsDisabled = !(rsvpValue === 'rsvpd' && attendingValue === 'yes');
