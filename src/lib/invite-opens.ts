@@ -137,6 +137,25 @@ function guestNamesFromRow(row: RsvpResponseRow): unknown {
 	return row.guest_names_jsonb ?? row.guest_names;
 }
 
+function resolveRsvpTotalAttending(
+	rsvp: RsvpResponseRow | undefined,
+	namesList: string[],
+	attending: boolean | null
+): number | null {
+	if (!rsvp) return null;
+
+	const total = rsvp.total_attending;
+	const count = rsvp.guest_count;
+
+	if (typeof total === 'number' && total > 0) return total;
+	if (typeof count === 'number' && count > 0) return count;
+	if (namesList.length > 0) return namesList.length;
+	if (attending === true) return total ?? count ?? 1;
+	if (attending === false) return 0;
+
+	return null;
+}
+
 /** Latest RSVP per invite_code from rsvp_responses (for future admin dashboard). */
 async function fetchLatestRsvpsByInviteCode(): Promise<Map<string, RsvpResponseRow>> {
 	const client = createAdminSupabase();
@@ -244,6 +263,7 @@ export async function buildGuestActivityReport(): Promise<GuestActivityRow[]> {
 
 			const rsvpNamesRaw = rsvp ? guestNamesFromRow(rsvp) : null;
 			const rsvpNamesList = parseGuestNames(rsvpNamesRaw);
+			const rsvpAttending = rsvp?.attending ?? null;
 
 			return {
 				invite_code: code,
@@ -254,9 +274,8 @@ export async function buildGuestActivityReport(): Promise<GuestActivityRow[]> {
 				last_opened_at: opens?.last_opened_at ?? null,
 				open_count: opens?.open_count ?? 0,
 				rsvp_submitted: Boolean(rsvp),
-				rsvp_attending: rsvp?.attending ?? null,
-				rsvp_total_attending:
-					rsvp?.total_attending ?? rsvp?.guest_count ?? (rsvpNamesList.length || null),
+				rsvp_attending: rsvpAttending,
+				rsvp_total_attending: resolveRsvpTotalAttending(rsvp, rsvpNamesList, rsvpAttending),
 				rsvp_guest_names: rsvpNamesList.length ? formatGuestNamesList(rsvpNamesRaw) : null,
 				rsvp_guest_names_list: rsvpNamesList,
 				rsvp_message: rsvp?.message ?? null,

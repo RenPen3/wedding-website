@@ -4,7 +4,7 @@ import {
 	type GuestActivityRow,
 	normalizeInviteCode,
 } from './invite-opens';
-import { deleteRsvpForGuest, saveRsvp } from './rsvp-store';
+import { deleteRsvpForGuest, saveRsvp, type SavedRsvp } from './rsvp-store';
 import { deleteRsvpFromSupabase, syncRsvpToSupabase } from './rsvp-supabase';
 
 export type AdminRsvpStatus = 'pending' | 'attending' | 'declined';
@@ -16,6 +16,42 @@ export type AdminRsvpPayload = {
 	guestNames?: string[];
 	message?: string;
 };
+
+function padGuestNames(names: string[], count: number, fallbackName: string): string[] {
+	const padded = names.map((name) => name.trim()).filter(Boolean);
+	while (padded.length < count) {
+		padded.push(fallbackName);
+	}
+	return padded.slice(0, count);
+}
+
+function guestActivityFromSave(
+	entry: { name: string; maxGuests: number },
+	rsvp: SavedRsvp,
+	inviteCode: string,
+	existing?: GuestActivityRow | null
+): GuestActivityRow {
+	const names = rsvp.attending ? rsvp.guestNames : [];
+	const total = rsvp.attending ? rsvp.guestCount : 0;
+
+	return {
+		invite_code: inviteCode,
+		guest_name: entry.name,
+		max_guests: entry.maxGuests,
+		invite_opened: existing?.invite_opened ?? false,
+		first_opened_at: existing?.first_opened_at ?? null,
+		last_opened_at: existing?.last_opened_at ?? null,
+		open_count: existing?.open_count ?? 0,
+		rsvp_submitted: true,
+		rsvp_attending: rsvp.attending,
+		rsvp_total_attending: total,
+		rsvp_guest_names: names.length ? names.join(', ') : null,
+		rsvp_guest_names_list: names,
+		rsvp_message: rsvp.message || null,
+		rsvp_submitted_at: rsvp.submittedAt,
+		rsvp_source: rsvp.rsvpSource,
+	};
+}
 
 function guestRowForCode(rows: GuestActivityRow[], inviteCode: string): GuestActivityRow | null {
 	const code = normalizeInviteCode(inviteCode);
@@ -59,7 +95,7 @@ export async function saveAdminRsvp(
 
 	const attending = payload.rsvpStatus === 'attending';
 	const guestCount = attending ? totalGuests : 0;
-	const attendingNames = attending ? guestNames : [];
+	let attendingNames = attending ? guestNames : [];
 
 	if (attending) {
 		if (!Number.isInteger(guestCount) || guestCount < 1) {
@@ -71,9 +107,7 @@ export async function saveAdminRsvp(
 				error: `This invitation reserves up to ${entry.maxGuests} seat(s).`,
 			};
 		}
-		if (attendingNames.length !== guestCount) {
-			return { ok: false, error: 'Please provide a name for each guest.' };
-		}
+		attendingNames = padGuestNames(attendingNames, guestCount, entry.name);
 		if (attendingNames.some((name) => !name)) {
 			return { ok: false, error: 'All guest names are required.' };
 		}
@@ -102,11 +136,8 @@ export async function saveAdminRsvp(
 		return { ok: false, error: sync.error };
 	}
 
-	const guests = await buildGuestActivityReport();
-	const guest = guestRowForCode(guests, inviteCode);
-	if (!guest) {
-		return { ok: false, error: 'Could not load updated guest data.' };
-	}
+	const reportGuests = await buildGuestActivityReport();
+	const existing = guestRowForCode(reportGuests, inviteCode);
 
-	return { ok: true, guest };
+	return { ok: true, guest: guestActivityFromSave(entry, result.rsvp, inviteCode, existing) };
 }

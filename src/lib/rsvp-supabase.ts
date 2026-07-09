@@ -165,7 +165,7 @@ export async function syncRsvpToSupabase(
 	const normalizedFromForm = normalizeSlug(inviteCode ?? '');
 	const code = normalizedFromForm || syntheticInviteCode(rsvp.name);
 	const allGuestNames = rsvp.attending ? allAttendingGuestNames(rsvp.guestNames) : [];
-	const totalAttending = rsvp.attending ? allGuestNames.length : 0;
+	const totalAttending = rsvp.attending ? Math.max(rsvp.guestCount, allGuestNames.length) : 0;
 
 	console.log('[rsvp-supabase] sync start:', {
 		invite_code: code,

@@ -31,9 +31,16 @@ function parseGuestNames(raw: unknown): string[] {
 
 function parseRsvpStatus(raw: unknown): AdminRsvpStatus | null {
 	const value = String(raw ?? '').trim().toLowerCase();
-	if (value === 'pending' || value === 'not_rsvpd' || value === 'not-rsvpd') return 'pending';
-	if (value === 'attending' || value === 'yes') return 'attending';
-	if (value === 'declined' || value === 'not_attending' || value === 'not-attending' || value === 'no') {
+	if (value === 'pending') return 'pending';
+	if (value === 'rsvpd' || value === 'attending' || value === 'yes') return 'attending';
+	if (
+		value === 'declined' ||
+		value === 'not_rsvpd' ||
+		value === 'not-rsvpd' ||
+		value === 'not_attending' ||
+		value === 'not-attending' ||
+		value === 'no'
+	) {
 		return 'declined';
 	}
 	return null;
