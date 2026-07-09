@@ -147,7 +147,7 @@ const SESSION_KEY = 'wedding_admin_token';
 								<th>Opens</th>
 								<th>RSVP</th>
 								<th>Attending</th>
-								<th>Details</th>
+								<!-- <th>Details</th> -->
 							</tr>
 						</thead>
 						<tbody id="admin-table-body"></tbody>
@@ -565,6 +565,16 @@ const SESSION_KEY = 'wedding_admin_token';
 				const namesValue = formatNamesForInput(g);
 				const namesDisabled = attendingCount === 0;
 
+				// <td data-label="Details" class="admin-table__cell--details">
+				// 		<label class="admin-inline-label">Names</label>
+				// 		<textarea
+				// 			rows="3"
+				// 			class="admin-inline-input admin-inline-names w-full min-w-[12rem] max-w-[18rem]"
+				// 			placeholder="Guest name(s)"
+				// 			${namesDisabled ? 'disabled' : ''}
+				// 		>${escapeHtml(namesValue)}</textarea>
+				// 	</td>
+
 				return `<tr class="guest-row" data-invite-code="${escapeHtml(code)}">
 					<td data-label="Guest">
 						<p class="font-medium text-plum">${escapeHtml(guestName(g))}</p>
@@ -600,15 +610,6 @@ const SESSION_KEY = 'wedding_admin_token';
 							class="admin-inline-input admin-inline-attending w-full min-w-[4.5rem]"
 							aria-label="Attending count"
 						/>
-					</td>
-					<td data-label="Details" class="admin-table__cell--details">
-						<label class="admin-inline-label">Names</label>
-						<textarea
-							rows="3"
-							class="admin-inline-input admin-inline-names w-full min-w-[12rem] max-w-[18rem]"
-							placeholder="Guest name(s)"
-							${namesDisabled ? 'disabled' : ''}
-						>${escapeHtml(namesValue)}</textarea>
 					</td>
 				</tr>`;
 			})
