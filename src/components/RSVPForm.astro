@@ -26,7 +26,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		<p id="rsvp-success-message" class="text-brown-soft leading-relaxed"></p>
 	</div>
 
-	<form id="rsvp-form" class:list={['space-y-6', showHeader ? 'mt-8' : '']} autocomplete="off">
+	<form id="rsvp-form" class:list={['space-y-6', showHeader ? 'mt-8' : '']} autocomplete="off" novalidate>
 		<input type="hidden" id="rsvp-guest-id" name="guestId" value="" />
 		<input type="hidden" id="rsvp-invite-code" name="inviteCode" value={inviteCode} />
 		<input type="hidden" id="rsvp-guest-name" name="name" value="" autocomplete="off" />
@@ -301,7 +301,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			input.type = 'text';
 			input.id = `rsvp-guest-name-${i}`;
 			input.name = `rsvp-attending-guest-${i}`;
-			input.required = true;
+			input.required = isAttending();
 			input.autocomplete = 'off';
 			input.setAttribute('autocorrect', 'off');
 			input.setAttribute('spellcheck', 'false');
@@ -357,6 +357,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 
 		if (!attending) {
 			hidden.value = '0';
+			clearGuestNameFields();
 			return;
 		}
 
@@ -737,6 +738,16 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		}
 	}
 
+	function showRsvpStatus(message: string, tone: 'sending' | 'error' = 'sending') {
+		const el = document.getElementById('rsvp-status');
+		if (!el) return;
+
+		el.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
+		if (tone === 'error') el.classList.add('text-mauve-dark');
+		el.textContent = message;
+		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+	}
+
 	function renderSuccessView(rsvp: SubmittedRsvp) {
 		const form = document.getElementById('rsvp-form');
 		const success = document.getElementById('rsvp-success');
@@ -846,42 +857,46 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		const inviteCode = String(new FormData(form).get('inviteCode') ?? '').trim();
 
 		if (!selectedGuest || !guestId) {
-			statusEl.classList.remove('hidden', 'text-olive');
-			statusEl.classList.add('text-mauve-dark');
-			statusEl.textContent = pick({
-				en: 'Please select your name from the list.',
-				es: 'Por favor selecciona tu nombre de la lista.',
-			});
+			showRsvpStatus(
+				pick({
+					en: 'Please select your name from the list.',
+					es: 'Por favor selecciona tu nombre de la lista.',
+				}),
+				'error'
+			);
 			return;
 		}
 
 		if (!name) {
-			statusEl.classList.remove('hidden', 'text-olive');
-			statusEl.classList.add('text-mauve-dark');
-			statusEl.textContent = pick({
-				en: 'Please enter your name first.',
-				es: 'Por favor ingresa tu nombre primero.',
-			});
+			showRsvpStatus(
+				pick({
+					en: 'Please enter your name first.',
+					es: 'Por favor ingresa tu nombre primero.',
+				}),
+				'error'
+			);
 			return;
 		}
 
 		if (attending) {
 			if (guestNames.length === 0 || guestNames.some((n) => !n)) {
-				statusEl.classList.remove('hidden', 'text-olive');
-				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent = pick({
-					en: 'Please enter at least one name for everyone attending.',
-					es: 'Por favor ingresa al menos un nombre por cada persona que asistirá.',
-				});
+				showRsvpStatus(
+					pick({
+						en: 'Please enter at least one name for everyone attending.',
+						es: 'Por favor ingresa al menos un nombre por cada persona que asistirá.',
+					}),
+					'error'
+				);
 				return;
 			}
 			if (guestNames.length > currentMax) {
-				statusEl.classList.remove('hidden', 'text-olive');
-				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent = pick({
-					en: `Your invitation reserves ${currentMax} seat(s). Please remove extra names.`,
-					es: `Tu invitación reserva ${currentMax} asiento(s). Por favor elimina nombres extra.`,
-				});
+				showRsvpStatus(
+					pick({
+						en: `Your invitation reserves ${currentMax} seat(s). Please remove extra names.`,
+						es: `Tu invitación reserva ${currentMax} asiento(s). Por favor elimina nombres extra.`,
+					}),
+					'error'
+				);
 				return;
 			}
 			guestCount = guestNames.length;
@@ -889,8 +904,7 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			guestCount = 0;
 		}
 
-		statusEl.classList.remove('hidden', 'text-olive', 'text-mauve-dark');
-		statusEl.textContent = pick({ en: 'Sending…', es: 'Enviando…' });
+		showRsvpStatus(pick({ en: 'Sending…', es: 'Enviando…' }));
 
 		const firstName =
 			selectedGuest.first_name ??
@@ -940,13 +954,14 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			const data = (await res.json()) as { ok?: boolean; error?: string };
 
 			if (!res.ok || !data.ok) {
-				statusEl.classList.add('text-mauve-dark');
-				statusEl.textContent =
+				showRsvpStatus(
 					data.error ??
-					pick({
-						en: 'Something went wrong. Please try again.',
-						es: 'Algo salió mal. Por favor intenta de nuevo.',
-					});
+						pick({
+							en: 'Something went wrong. Please try again.',
+							es: 'Algo salió mal. Por favor intenta de nuevo.',
+						}),
+					'error'
+				);
 				return;
 			}
 
@@ -957,11 +972,13 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 
 			renderSuccessView({ name, attending, guestNames });
 		} catch {
-			statusEl.classList.add('text-mauve-dark');
-			statusEl.textContent = pick({
-				en: 'Network error. Please try again.',
-				es: 'Error de red. Por favor intenta de nuevo.',
-			});
+			showRsvpStatus(
+				pick({
+					en: 'Network error. Please try again.',
+					es: 'Error de red. Por favor intenta de nuevo.',
+				}),
+				'error'
+			);
 		}
 	});
 </script>
