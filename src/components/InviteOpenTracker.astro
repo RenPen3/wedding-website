@@ -1,13 +1,22 @@
 ---
-/** Tracks invite link opens once per browser session (client → POST /api/invite-open). */
+/** Tracks invite link opens once per browser session (client → Netlify Function). */
+import { INVITE_CODE_PARAM } from '../lib/invite-link';
 ---
 
-<script>
-	const SESSION_PREFIX = 'wedding-invite-tracked:';
+<script define:vars={{ INVITE_CODE_PARAM }}>
+	const TRACK_URL = '/.netlify/functions/track-invite-open';
+	const INVITE_STORAGE_KEY = 'wedding_invite_code';
 
-	function readInviteCodeFromUrl(): string | null {
+	function readInviteSlugFromUrl() {
 		const params = new URLSearchParams(window.location.search);
-		const fromQuery = (params.get('code') ?? params.get('invite') ?? '').trim().toLowerCase();
+		const fromQuery = (
+			params.get(INVITE_CODE_PARAM) ??
+			params.get('code') ??
+			params.get('invite') ??
+			''
+		)
+			.trim()
+			.toLowerCase();
 		if (fromQuery) return fromQuery;
 
 		const match = window.location.pathname.match(/^\/invite\/([^/?#]+)/i);
@@ -22,38 +31,72 @@
 		return null;
 	}
 
-	async function trackInviteOpen(inviteCode: string) {
-		const storageKey = SESSION_PREFIX + inviteCode;
+	function persistInviteCode(code) {
+		if (!code) return;
 		try {
-			if (sessionStorage.getItem(storageKey) === '1') return;
+			sessionStorage.setItem(INVITE_STORAGE_KEY, code);
+		} catch {
+			/* sessionStorage unavailable */
+		}
+	}
+
+	function getStoredInviteCode() {
+		try {
+			return sessionStorage.getItem(INVITE_STORAGE_KEY)?.trim().toLowerCase() ?? '';
+		} catch {
+			return '';
+		}
+	}
+
+	function buildRsvpHref(code) {
+		const qs = new URLSearchParams({ [INVITE_CODE_PARAM]: code });
+		return `/rsvp?${qs.toString()}`;
+	}
+
+	function updateRsvpLinks(code) {
+		if (!code) return;
+		const rsvpUrl = buildRsvpHref(code);
+		document.querySelectorAll('[data-rsvp-link], a[href="/rsvp"], a[href^="/rsvp?"]').forEach((el) => {
+			if (el instanceof HTMLAnchorElement) {
+				el.href = rsvpUrl;
+			}
+		});
+	}
+
+	function trackInviteOpen(slug) {
+		const storageKey = `invite_open_logged_${slug}`;
+
+		try {
+			if (sessionStorage.getItem(storageKey)) return;
+			sessionStorage.setItem(storageKey, 'true');
 		} catch {
 			/* sessionStorage unavailable */
 		}
 
-		try {
-			const res = await fetch('/api/invite-open', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					invite_code: inviteCode,
-					page_path: window.location.pathname + window.location.search,
-				}),
-			});
+		const sessionId = window.posthog?.get_session_id?.() || '';
 
-			if (res.ok) {
-				try {
-					sessionStorage.setItem(storageKey, '1');
-				} catch {
-					/* ignore */
-				}
-			}
-		} catch {
-			/* non-blocking — do not affect page UX */
-		}
+		fetch(TRACK_URL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-PostHog-Session-Id': sessionId,
+			},
+			body: JSON.stringify({ slug, invite_code: slug }),
+		}).catch(() => {
+			// Fail silently. Do not block page UX.
+		});
+
+		window.posthog?.capture('invite_opened', { invite_code: slug });
 	}
 
-	const inviteCode = readInviteCodeFromUrl();
-	if (inviteCode) {
-		void trackInviteOpen(inviteCode);
+	const slug = readInviteSlugFromUrl();
+	if (slug) {
+		persistInviteCode(slug);
+		trackInviteOpen(slug);
+	}
+
+	const activeCode = slug || getStoredInviteCode();
+	if (activeCode) {
+		updateRsvpLinks(activeCode);
 	}
 </script>

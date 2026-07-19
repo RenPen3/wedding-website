@@ -1,8 +1,9 @@
 ---
-import { REGISTRY_URL } from '../lib/site-urls';
+import { REGISTRY_URL, getRsvpUrl } from '../lib/site-urls';
 
 type Props = {
 	integrated?: boolean;
+	inviteCode?: string;
 };
 
 type NavLink = {
@@ -12,9 +13,11 @@ type NavLink = {
 	external?: boolean;
 };
 
-const { integrated = false } = Astro.props;
+const { integrated = false, inviteCode = '' } = Astro.props;
 
 const hash = (id: string) => (integrated ? `#${id}` : `/#${id}`);
+
+const rsvpHref = inviteCode ? getRsvpUrl(inviteCode) : '/rsvp';
 
 const links: NavLink[] = [
 	{ href: hash('details'), en: 'Details', es: 'Detalles' },
@@ -23,7 +26,7 @@ const links: NavLink[] = [
 	{ href: '/honeymoon-fund', en: 'Support', es: 'Apoya' },
 	{ href: '/gallery', en: 'Gallery', es: 'Galería' },
 	{ href: hash('faq'), en: 'FAQ', es: 'Preguntas' },
-	{ href: '/rsvp', en: 'RSVP', es: 'RSVP' },
+	{ href: rsvpHref, en: 'RSVP', es: 'RSVP' },
 ];
 
 const externalLinkProps = (link: NavLink) =>
@@ -131,12 +134,13 @@ const brandClass = integrated
 				{
 					links.map((l) => (
 						<li class="list-none">
-							<a
-								href={l.href}
-								class:list={[linkClass, integrated && 'nav-link']}
-								data-nav-link={integrated ? '' : undefined}
-								{...externalLinkProps(l)}
-							>
+								<a
+									href={l.href}
+									class:list={[linkClass, integrated && 'nav-link']}
+									data-nav-link={integrated ? '' : undefined}
+									data-rsvp-link={l.en === 'RSVP' ? '' : undefined}
+									{...externalLinkProps(l)}
+								>
 								<span data-strand="en">{l.en}</span>
 								<span data-strand="es">{l.es}</span>
 							</a>
@@ -253,6 +257,7 @@ const brandClass = integrated
 										'block rounded-xl px-3 py-3.5 font-serif text-2xl tracking-wide',
 									]}
 									data-mobile-nav-link
+									data-rsvp-link={l.en === 'RSVP' ? '' : undefined}
 									{...externalLinkProps(l)}
 								>
 									<span data-strand="en">{l.en}</span>

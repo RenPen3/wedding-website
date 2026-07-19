@@ -152,5 +152,13 @@ const qrSvg = await QRCode.toString(qrTargetUrl, {
 			flex-direction: column;
 			gap: 0.625rem;
 		}
+
+		.footer-contact-divider {
+			display: none;
+		}
+
+		.footer-contact-numbers li + li::before {
+			content: none;
+		}
 	}
 </style>

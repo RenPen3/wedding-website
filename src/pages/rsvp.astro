@@ -2,29 +2,86 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import RSVPForm from '../components/RSVPForm.astro';
+import RsvpWeddingDetails from '../components/RsvpWeddingDetails.astro';
 import Footer from '../components/Footer.astro';
+import { readInviteCodeFromSearchParams } from '../lib/invite-link';
 
-const inviteCode = Astro.url.searchParams.get('code') ?? '';
+const inviteCode = readInviteCodeFromSearchParams(Astro.url.searchParams);
 ---
 
-<MainLayout title="RSVP — Jocelyn & René">
-	<Navbar />
-	<main class="bg-ivory py-16 md:py-24">
-		<div class="relative z-10 mx-auto max-w-xl px-6 md:px-8" data-reveal>
-			<h1 class="text-center font-serif text-4xl text-plum md:text-5xl">RSVP</h1>
-			<p class="mx-auto mt-4 max-w-md text-center text-brown-soft">
-				<span data-strand="en"
-					>Share your reply by August 1, 2026. Enter your name exactly as it appears on your
-					invitation.</span
-				>
-				<span data-strand="es"
-					>Comparte tu respuesta antes del 1 de agosto de 2026. Ingresa tu nombre tal como aparece en
-					tu invitación.</span>
+<MainLayout title="RSVP — Jocelyn & René" showInvitationIntro>
+	<Navbar inviteCode={inviteCode} />
+	<main class="bg-ivory">
+		<div
+			class="mx-auto flex min-h-[100svh] min-h-[100dvh] w-full max-w-2xl flex-col justify-center px-6 py-[calc(var(--site-nav-height,6.5rem)+2.5rem)] md:px-8 md:py-[calc(var(--site-nav-height,6.5rem)+3rem)]"
+			data-reveal
+		>
+			<h1 class="text-center font-serif text-[2.75rem] text-plum md:text-5xl">RSVP</h1>
+			<p class="rsvp-page__intro text-pretty-wrap mx-auto mt-4 max-w-lg text-center text-lg text-brown-soft md:max-w-3xl md:text-xl">
+				<span data-strand="en">
+					<span class="rsvp-page__intro-line1 block"
+						>We’d love to celebrate&nbsp;with&nbsp;you. Please RSVP by <span class="whitespace-nowrap"
+							>August 1, 2026</span
+						></span
+					>
+					{
+						inviteCode ?
+							<span class="rsvp-page__intro-line2 block">Complete your response&nbsp;below.</span>
+						:	<span class="rsvp-page__intro-line2 block"
+							>Find your name below to get&nbsp;started.</span
+						>
+					}
+				</span>
+				<span data-strand="es">
+					<span class="rsvp-page__intro-line1 block"
+						>Nos encantaría celebrar&nbsp;contigo. Por favor confirma tu asistencia antes del <span
+							class="whitespace-nowrap">1 de agosto de 2026</span
+						></span
+					>
+					{
+						inviteCode ?
+							<span class="rsvp-page__intro-line2 block">Completa tu respuesta&nbsp;abajo.</span>
+						:	<span class="rsvp-page__intro-line2 block"
+							>Busca tu nombre abajo para&nbsp;comenzar.</span
+						>
+					}
+				</span>
 			</p>
-			<div class="mt-10">
-				<RSVPForm inviteCode={inviteCode} />
+
+			<RsvpWeddingDetails />
+
+			<div class="rsvp-page__form mt-8 md:mt-10">
+				<RSVPForm inviteCode={inviteCode} showHeader={false} />
 			</div>
 		</div>
 	</main>
 	<Footer />
 </MainLayout>
+
+<style>
+	.rsvp-page__intro-line2 {
+		margin-top: 0.35rem;
+	}
+
+	@media (min-width: 768px) {
+		.rsvp-page__intro-line1 {
+			white-space: nowrap;
+		}
+
+		html.lang-es .rsvp-page__intro-line1 {
+			white-space: normal;
+		}
+	}
+
+	.rsvp-page__form :global(label.text-sm) {
+		font-size: 1rem;
+	}
+
+	.rsvp-page__form :global(input),
+	.rsvp-page__form :global(textarea),
+	.rsvp-page__form :global(button),
+	.rsvp-page__form :global(.text-brown-soft),
+	.rsvp-page__form :global(.text-brown-muted) {
+		font-size: 1.0625rem;
+	}
+</style>

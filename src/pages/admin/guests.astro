@@ -1,6 +1,6 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
-import { getInviteUrl, getSiteUrl } from '../../lib/site-urls';
+import { getSiteUrl } from '../../lib/site-urls';
 
 const requestOrigin = Astro.url.origin;
 const SITE_URL = getSiteUrl(requestOrigin);
@@ -45,33 +45,33 @@ const SESSION_KEY = 'wedding_admin_token';
 		</div>
 
 		<!-- Dashboard -->
-		<div id="admin-dashboard" class="hidden pb-20 pt-10 md:pt-12">
-			<div class="mx-auto max-w-7xl px-4 md:px-8">
-				<header class="flex flex-wrap items-end justify-between gap-4 border-b border-mauve/15 pb-6">
-					<div>
-						<h1 class="font-serif text-4xl text-plum">Guest invitations</h1>
+		<div id="admin-dashboard" class="hidden pb-20 pt-8 sm:pt-10 md:pt-12">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<header class="flex flex-col gap-4 border-b border-mauve/15 pb-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+					<div class="min-w-0">
+						<h1 class="font-serif text-3xl text-plum sm:text-4xl">Guest invitations</h1>
 						<p class="mt-1 text-sm text-brown-soft">
 							Tracking opens and RSVPs · <span id="guest-count-label">—</span> guests
 						</p>
 					</div>
-					<div class="flex flex-wrap gap-2">
+					<div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
 						<a
 							href="/admin/slideshow"
-							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+							class="w-full rounded-full border border-mauve/25 bg-cream px-5 py-2.5 text-center text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum sm:w-auto"
 						>
 							AI Slideshow
 						</a>
 						<button
 							type="button"
 							id="admin-clear-rsvps"
-							class="rounded-full border border-mauve-dark/30 bg-cream px-5 py-2 text-sm font-medium text-mauve-dark transition hover:border-mauve-dark hover:bg-mauve-dark hover:text-cream"
+							class="w-full rounded-full border border-mauve-dark/30 bg-cream px-5 py-2.5 text-center text-sm font-medium text-mauve-dark transition hover:border-mauve-dark hover:bg-mauve-dark hover:text-cream sm:w-auto"
 						>
 							Clear test RSVPs
 						</button>
 						<button
 							type="button"
 							id="admin-sign-out"
-							class="rounded-full border border-mauve/25 bg-cream px-5 py-2 text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum"
+							class="w-full rounded-full border border-mauve/25 bg-cream px-5 py-2.5 text-center text-sm font-medium text-brown-soft transition hover:border-plum hover:text-plum sm:w-auto"
 						>
 							Sign out
 						</button>
@@ -82,7 +82,7 @@ const SESSION_KEY = 'wedding_admin_token';
 				<p id="admin-loading" class="mt-8 text-brown-soft">Loading guests…</p>
 
 				<!-- Summary cards -->
-				<div id="admin-stats" class="mt-8 hidden grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+				<div id="admin-stats" class="mt-6 hidden grid grid-cols-2 gap-2 sm:mt-8 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-7">
 					<div class="admin-stat-card">
 						<p class="admin-stat-card__label">Total guests</p>
 						<p class="admin-stat-card__value" data-stat="total">0</p>
@@ -114,32 +114,31 @@ const SESSION_KEY = 'wedding_admin_token';
 				</div>
 
 				<!-- Filters -->
-				<div id="admin-filters" class="mt-8 hidden flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-					<div class="flex-1">
+				<div id="admin-filters" class="mt-6 hidden grid gap-4 sm:mt-8 md:grid-cols-2 lg:flex lg:items-end lg:justify-between">
+					<div class="min-w-0 lg:flex-1">
 						<label for="admin-search" class="block text-sm font-medium text-plum">Search</label>
 						<input
 							type="search"
 							id="admin-search"
 							placeholder="Name, invite code, or message…"
-							class="mt-2 w-full max-w-md rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2"
+							class="mt-2 w-full rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2 md:max-w-md lg:max-w-md"
 						/>
 					</div>
-					<div>
+					<div class="md:max-w-xs lg:shrink-0">
 						<label for="admin-rsvp-filter" class="block text-sm font-medium text-plum">RSVP filter</label>
 						<select
 							id="admin-rsvp-filter"
 							class="mt-2 w-full min-w-[10rem] rounded-xl border border-mauve/25 bg-white px-4 py-2.5 text-plum-deep outline-none ring-olive/40 focus:ring-2 lg:w-auto"
 						>
 							<option value="all">All</option>
-							<option value="pending">Pending</option>
-							<option value="attending">Attending</option>
-							<option value="declined">Not attending</option>
+							<option value="rsvpd">RSVP'd</option>
+							<option value="not-rsvpd">Not RSVP'd</option>
 						</select>
 					</div>
 				</div>
 
 				<!-- Table -->
-				<div id="admin-table-wrap" class="mt-6 hidden overflow-x-auto rounded-2xl border border-mauve/20 bg-cream shadow-sm">
+				<div id="admin-table-wrap" class="admin-table-wrap mt-4 hidden sm:mt-6">
 					<table class="admin-table min-w-full text-left text-sm">
 						<thead>
 							<tr>
@@ -148,8 +147,7 @@ const SESSION_KEY = 'wedding_admin_token';
 								<th>Opens</th>
 								<th>RSVP</th>
 								<th>Attending</th>
-								<th>Details</th>
-								<th>Submitted</th>
+								<!-- <th>Details</th> -->
 							</tr>
 						</thead>
 						<tbody id="admin-table-body"></tbody>
@@ -184,6 +182,14 @@ const SESSION_KEY = 'wedding_admin_token';
 	/** @type {Array<Record<string, unknown>>} */
 	let allGuests = [];
 
+	/** Local-only RSVP checkbox state (invite_code → checked). Never sent to Supabase. */
+	/** @type {Map<string, boolean>} */
+	const localRsvpChecked = new Map();
+
+	/** Local-only attending counts from the admin UI (invite_code → number). */
+	/** @type {Map<string, number>} */
+	const localAttendingDraft = new Map();
+
 	function getToken() {
 		return sessionStorage.getItem(SESSION_KEY);
 	}
@@ -210,11 +216,96 @@ const SESSION_KEY = 'wedding_admin_token';
 		return String(g.guest_name ?? g.invite_code ?? '—');
 	}
 
-	function rsvpStatus(g) {
-		if (!g.rsvp_submitted) return 'pending';
-		if (g.rsvp_attending === true) return 'attending';
-		if (g.rsvp_attending === false) return 'declined';
-		return 'pending';
+	const RSVP_FILTER = {
+		ALL: 'all',
+		RSVPD: 'rsvpd',
+		NOT_RSVPD: 'not-rsvpd',
+	};
+
+	function guestInviteCode(g) {
+		return String(g.invite_code ?? '').toLowerCase();
+	}
+
+	function isLocallyRsvpd(g) {
+		const code = guestInviteCode(g);
+		if (localRsvpChecked.has(code)) return Boolean(localRsvpChecked.get(code));
+		return Boolean(g.rsvp_submitted);
+	}
+
+	function initLocalRsvpState(guests) {
+		localRsvpChecked.clear();
+		for (const guest of guests) {
+			localRsvpChecked.set(guestInviteCode(guest), Boolean(guest.rsvp_submitted));
+		}
+	}
+
+	function initLocalAttendingDraft(guests) {
+		localAttendingDraft.clear();
+		for (const guest of guests) {
+			localAttendingDraft.set(guestInviteCode(guest), rowAttendingCount(guest));
+		}
+	}
+
+	function getRowAttendingValue(g) {
+		const code = guestInviteCode(g);
+		if (localAttendingDraft.has(code)) return localAttendingDraft.get(code);
+		return rowAttendingCount(g);
+	}
+
+	function rememberAttendingDraft(row) {
+		const code = String(row.getAttribute('data-invite-code') ?? '').toLowerCase();
+		const value = Math.max(0, Number(row.querySelector('.admin-inline-attending')?.value ?? 0));
+		if (code) localAttendingDraft.set(code, value);
+	}
+
+	function guestAttendingCount(g) {
+		const total = Number(g.rsvp_total_attending ?? 0);
+		if (Number.isFinite(total) && total > 0) return total;
+		const names = Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list.length : 0;
+		return names;
+	}
+
+	function computeStatsFromUi() {
+		let opened = 0;
+		let notOpened = 0;
+		let rsvpAttending = 0;
+		let rsvpDeclined = 0;
+		let totalAttending = 0;
+
+		for (const guest of allGuests) {
+			if (hasOpened(guest)) opened += 1;
+			else notOpened += 1;
+
+			if (isLocallyRsvpd(guest)) {
+				rsvpAttending += 1;
+				totalAttending += getRowAttendingValue(guest);
+			} else {
+				rsvpDeclined += 1;
+			}
+		}
+
+		return {
+			total: allGuests.length,
+			opened,
+			notOpened,
+			rsvpAttending,
+			rsvpDeclined,
+			rsvpPending: rsvpDeclined,
+			totalAttending,
+		};
+	}
+
+	function matchesRsvpFilter(g, filterValue) {
+		if (filterValue === RSVP_FILTER.ALL) return true;
+		const checked = isLocallyRsvpd(g);
+		if (filterValue === RSVP_FILTER.RSVPD) return checked;
+		if (filterValue === RSVP_FILTER.NOT_RSVPD) return !checked;
+		return true;
+	}
+
+	function rowAttendingCount(g) {
+		if (!g.rsvp_submitted || g.rsvp_attending === false) return 0;
+		return guestAttendingCount(g);
 	}
 
 	function hasOpened(g) {
@@ -229,19 +320,184 @@ const SESSION_KEY = 'wedding_admin_token';
 		}).format(new Date(iso));
 	}
 
-	function badge(text, variant) {
-		return `<span class="admin-badge admin-badge--${variant}">${text}</span>`;
+	function formatNamesForInput(g) {
+		const list = Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list : [];
+		if (list.length > 0) return list.join(', ');
+		return String(g.rsvp_guest_names ?? '').trim();
 	}
 
-	function openBadge(g) {
-		return hasOpened(g) ? badge('Opened', 'opened') : badge('Not opened', 'muted');
+	function parseNamesInput(text) {
+		return String(text ?? '')
+			.split(/[\n,]+/)
+			.map((name) => name.trim())
+			.filter(Boolean);
 	}
 
-	function rsvpBadge(g) {
-		const s = rsvpStatus(g);
-		if (s === 'attending') return badge('Attending', 'attending');
-		if (s === 'declined') return badge('Not attending', 'declined');
-		return badge('Pending', 'pending');
+	function applyGuestToRow(row, g) {
+		const rsvpCheckbox = row.querySelector('.admin-inline-rsvp');
+		const attendingInput = row.querySelector('.admin-inline-attending');
+		const namesInput = row.querySelector('.admin-inline-names');
+
+		if (rsvpCheckbox) rsvpCheckbox.checked = isLocallyRsvpd(g);
+		if (attendingInput) attendingInput.value = String(rowAttendingCount(g));
+		if (namesInput) namesInput.value = formatNamesForInput(g);
+		syncRowFieldState(row);
+	}
+
+	function onLocalRsvpCheckboxChange(row) {
+		const code = String(row.getAttribute('data-invite-code') ?? '').toLowerCase();
+		const checkbox = row.querySelector('.admin-inline-rsvp');
+		if (code && checkbox) {
+			localRsvpChecked.set(code, checkbox.checked);
+		}
+		renderTablePreservingInputs();
+		updateStats(computeStatsFromUi());
+	}
+
+	function onAttendingInputChange(row) {
+		rememberAttendingDraft(row);
+		syncRowFieldState(row);
+		updateStats(computeStatsFromUi());
+	}
+
+	function snapshotRowInputs() {
+		/** @type {Map<string, { attending: string, names: string }>} */
+		const snapshot = new Map();
+		tableBody?.querySelectorAll('.guest-row').forEach((row) => {
+			const code = String(row.getAttribute('data-invite-code') ?? '').toLowerCase();
+			rememberAttendingDraft(row);
+			snapshot.set(code, {
+				attending: row.querySelector('.admin-inline-attending')?.value ?? '0',
+				names: row.querySelector('.admin-inline-names')?.value ?? '',
+			});
+		});
+		return snapshot;
+	}
+
+	function restoreRowInputs(snapshot) {
+		tableBody?.querySelectorAll('.guest-row').forEach((row) => {
+			const code = String(row.getAttribute('data-invite-code') ?? '').toLowerCase();
+			const saved = snapshot.get(code);
+			if (!saved) return;
+			const attendingInput = row.querySelector('.admin-inline-attending');
+			const namesInput = row.querySelector('.admin-inline-names');
+			if (attendingInput) attendingInput.value = saved.attending;
+			if (namesInput) namesInput.value = saved.names;
+			rememberAttendingDraft(row);
+			syncRowFieldState(row);
+		});
+	}
+
+	function renderTablePreservingInputs() {
+		const snapshot = snapshotRowInputs();
+		renderTable();
+		restoreRowInputs(snapshot);
+		updateStats(computeStatsFromUi());
+	}
+
+	function syncRowFieldState(row) {
+		const attendingInput = row.querySelector('.admin-inline-attending');
+		const namesInput = row.querySelector('.admin-inline-names');
+		const attendingCount = Number(attendingInput?.value ?? 0);
+
+		attendingInput?.removeAttribute('disabled');
+		if (attendingCount > 0) namesInput?.removeAttribute('disabled');
+		else namesInput?.setAttribute('disabled', 'true');
+	}
+
+	function buildSavePayload(row) {
+		const inviteCode = row.getAttribute('data-invite-code');
+		const attendingCount = Math.max(0, Number(row.querySelector('.admin-inline-attending')?.value ?? 0));
+		const guestNames = parseNamesInput(row.querySelector('.admin-inline-names')?.value ?? '');
+
+		if (attendingCount === 0) {
+			return { invite_code: inviteCode, rsvpStatus: 'declined', totalGuests: 0, guestNames: [] };
+		}
+
+		return {
+			invite_code: inviteCode,
+			rsvpStatus: 'attending',
+			totalGuests: attendingCount,
+			guestNames,
+			guest_names: guestNames,
+		};
+	}
+
+	async function saveGuestRow(row) {
+		const token = getToken();
+		if (!token) {
+			showLogin();
+			return;
+		}
+
+		const saveBtn = row.querySelector('.admin-row-save');
+		const errorEl = row.querySelector('.admin-row-error');
+		errorEl?.classList.add('hidden');
+		errorEl.textContent = '';
+
+		let payload;
+		try {
+			payload = buildSavePayload(row);
+		} catch (err) {
+			if (errorEl) {
+				errorEl.textContent = err instanceof Error ? err.message : 'Invalid RSVP data.';
+				errorEl.classList.remove('hidden');
+			}
+			return;
+		}
+
+		const originalLabel = saveBtn?.textContent ?? 'Save';
+		saveBtn?.setAttribute('disabled', 'true');
+		if (saveBtn) saveBtn.textContent = 'Saving…';
+
+		try {
+			const res = await fetch('/api/admin/rsvps', {
+				method: 'PUT',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(payload),
+			});
+			const data = await res.json();
+
+			if (res.status === 401) {
+				clearToken();
+				showLogin();
+				return;
+			}
+
+			if (!res.ok || !data.ok) {
+				throw new Error(data.error ?? 'Failed to save RSVP');
+			}
+
+			const updated = data.guest;
+			const index = allGuests.findIndex(
+				(guest) => String(guest.invite_code) === String(updated.invite_code)
+			);
+			if (index >= 0) {
+				allGuests[index] = { ...allGuests[index], ...updated };
+			}
+
+			applyGuestToRow(row, updated);
+			localAttendingDraft.set(guestInviteCode(updated), rowAttendingCount(updated));
+			updateStats(computeStatsFromUi());
+
+			if (saveBtn) {
+				saveBtn.textContent = 'Saved';
+				setTimeout(() => {
+					if (saveBtn) saveBtn.textContent = originalLabel;
+				}, 1500);
+			}
+		} catch (err) {
+			if (errorEl) {
+				errorEl.textContent = err instanceof Error ? err.message : 'Could not save RSVP.';
+				errorEl.classList.remove('hidden');
+			}
+		} finally {
+			saveBtn?.removeAttribute('disabled');
+			if (saveBtn && saveBtn.textContent === 'Saving…') saveBtn.textContent = originalLabel;
+		}
 	}
 
 	function updateStats(stats) {
@@ -254,11 +510,10 @@ const SESSION_KEY = 'wedding_admin_token';
 
 	function getFilteredGuests() {
 		const q = (searchInput?.value ?? '').trim().toLowerCase();
-		const rsvp = rsvpFilter?.value ?? 'all';
+		const filterValue = rsvpFilter?.value ?? RSVP_FILTER.ALL;
 
 		return allGuests.filter((g) => {
-			const status = rsvpStatus(g);
-			if (rsvp !== 'all' && status !== rsvp) return false;
+			if (!matchesRsvpFilter(g, filterValue)) return false;
 
 			if (!q) return true;
 			const haystack = [
@@ -275,6 +530,14 @@ const SESSION_KEY = 'wedding_admin_token';
 		});
 	}
 
+	function escapeHtml(str) {
+		return String(str ?? '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
 	function renderTable() {
 		const guests = getFilteredGuests();
 		if (!tableBody) return;
@@ -286,6 +549,7 @@ const SESSION_KEY = 'wedding_admin_token';
 		if (guests.length === 0) {
 			tableBody.innerHTML = '';
 			emptyEl?.classList.remove('hidden');
+			updateStats(computeStatsFromUi());
 			return;
 		}
 
@@ -293,15 +557,25 @@ const SESSION_KEY = 'wedding_admin_token';
 
 		tableBody.innerHTML = guests
 			.map((g) => {
-				const inviteUrl = `${SITE_URL}/invite/${encodeURIComponent(g.invite_code)}`;
-				const status = rsvpStatus(g);
-				const attending =
-					status === 'attending' ?
-						String(g.rsvp_total_attending ?? '—')
-					: status === 'declined' ? '0'
-					: '—';
+				const code = String(g.invite_code ?? '');
+				const inviteUrl = `${SITE_URL}/?invite_code=${encodeURIComponent(code)}`;
+				const maxGuests = Number(g.max_guests ?? 1);
+				const rsvpChecked = isLocallyRsvpd(g);
+				const attendingCount = getRowAttendingValue(g);
+				const namesValue = formatNamesForInput(g);
+				const namesDisabled = attendingCount === 0;
 
-				return `<tr>
+				// <td data-label="Details" class="admin-table__cell--details">
+				// 		<label class="admin-inline-label">Names</label>
+				// 		<textarea
+				// 			rows="3"
+				// 			class="admin-inline-input admin-inline-names w-full min-w-[12rem] max-w-[18rem]"
+				// 			placeholder="Guest name(s)"
+				// 			${namesDisabled ? 'disabled' : ''}
+				// 		>${escapeHtml(namesValue)}</textarea>
+				// 	</td>
+
+				return `<tr class="guest-row" data-invite-code="${escapeHtml(code)}">
 					<td data-label="Guest">
 						<p class="font-medium text-plum">${escapeHtml(guestName(g))}</p>
 						<p class="mt-0.5 text-xs text-brown-muted">Max guests: ${g.max_guests ?? '—'}</p>
@@ -310,26 +584,43 @@ const SESSION_KEY = 'wedding_admin_token';
 						<p class="font-mono text-xs text-plum">${escapeHtml(g.invite_code)}</p>
 						<button type="button" class="admin-copy mt-2" data-url="${escapeHtml(inviteUrl)}">Copy link</button>
 					</td>
-					<td data-label="Opens">
-						<div class="flex flex-wrap gap-1">${openBadge(g)}</div>
-						<p class="mt-1 text-xs text-brown-soft">Count: ${g.open_count ?? 0}</p>
-						<p class="text-xs text-brown-muted">First: ${fmtDate(g.first_opened_at)}</p>
-						<p class="text-xs text-brown-muted">Last: ${fmtDate(g.last_opened_at)}</p>
+					<td data-label="Opens" class="admin-table__cell--opens">
+						<p class="text-sm text-plum">Opened: ${hasOpened(g) ? 'Yes' : 'No'}</p>
+						<p class="admin-opens-detail mt-1 text-xs text-brown-soft">Open count: ${g.open_count ?? 0}</p>
+						<p class="admin-opens-detail text-xs text-brown-muted">First opened: ${fmtDate(g.first_opened_at)}</p>
+						<p class="admin-opens-detail text-xs text-brown-muted">Last opened: ${fmtDate(g.last_opened_at)}</p>
 					</td>
-					<td data-label="RSVP">${rsvpBadge(g)}</td>
-					<td data-label="Attending" class="font-medium">${attending}</td>
-					<td data-label="Details">
-						<p class="text-xs font-medium text-brown-muted">Attending names</p>
-						${guestNamesDisplay(g)}
-						<p class="mt-2 text-xs font-medium text-brown-muted">Message</p>
-						<p class="text-xs text-brown-muted max-w-[14rem]" title="${escapeHtml(g.rsvp_message ?? '')}">${escapeHtml(g.rsvp_message ?? '—')}</p>
+					<td data-label="RSVP" class="admin-table__cell--rsvp">
+						<label class="admin-rsvp-check">
+							<input
+								type="checkbox"
+								class="admin-inline-rsvp"
+								${rsvpChecked ? 'checked' : ''}
+								aria-label="RSVP'd"
+							/>
+							<span class="text-xs text-brown-soft">RSVP'd</span>
+						</label>
 					</td>
-					<td data-label="Submitted">
-						<p class="text-xs whitespace-nowrap">${fmtDate(g.rsvp_submitted_at)}</p>
+					<td data-label="Attending" class="admin-table__cell--attending">
+						<input
+							type="number"
+							min="0"
+							max="${maxGuests}"
+							value="${attendingCount}"
+							class="admin-inline-input admin-inline-attending w-full min-w-[4.5rem]"
+							aria-label="Attending count"
+						/>
 					</td>
 				</tr>`;
 			})
 			.join('');
+
+		tableBody.querySelectorAll('.guest-row').forEach((row) => {
+			syncRowFieldState(row);
+			row.querySelector('.admin-inline-rsvp')?.addEventListener('change', () => onLocalRsvpCheckboxChange(row));
+			row.querySelector('.admin-inline-attending')?.addEventListener('input', () => onAttendingInputChange(row));
+			row.querySelector('.admin-inline-attending')?.addEventListener('change', () => onAttendingInputChange(row));
+		});
 
 		tableBody.querySelectorAll('.admin-copy').forEach((btn) => {
 			btn.addEventListener('click', async () => {
@@ -346,27 +637,42 @@ const SESSION_KEY = 'wedding_admin_token';
 				}
 			});
 		});
+
+		tableBody.querySelectorAll('.admin-row-save').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const row = btn.closest('.guest-row');
+				if (row) saveGuestRow(row);
+			});
+		});
+
+		updateStats(computeStatsFromUi());
 	}
 
-	function escapeHtml(str) {
-		return String(str ?? '')
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;');
-	}
+	function mergeInviteOpens(guests, records) {
+		const openBySlug = new Map(
+			(records ?? []).map((record) => [String(record.slug ?? '').toLowerCase(), record]),
+		);
 
-	function guestNamesDisplay(g) {
-		const list = Array.isArray(g.rsvp_guest_names_list) ? g.rsvp_guest_names_list : [];
-		if (list.length > 0) {
-			return `<ul class="mt-1 space-y-0.5 text-xs text-brown-soft">${list
-				.map((n) => `<li>${escapeHtml(n)}</li>`)
-				.join('')}</ul>`;
-		}
-		const fallback = String(g.rsvp_guest_names ?? '').trim();
-		return fallback ?
-				`<p class="text-xs text-brown-soft">${escapeHtml(fallback)}</p>`
-			:	'<p class="text-xs text-brown-soft">—</p>';
+		return guests.map((guest) => {
+			const open = openBySlug.get(String(guest.invite_code ?? '').toLowerCase());
+			if (!open) {
+				return {
+					...guest,
+					invite_opened: false,
+					first_opened_at: null,
+					last_opened_at: null,
+					open_count: 0,
+				};
+			}
+
+			return {
+				...guest,
+				invite_opened: Boolean(open.opened) || (open.openCount ?? 0) > 0,
+				first_opened_at: open.firstOpenedAt ?? null,
+				last_opened_at: open.lastOpenedAt ?? null,
+				open_count: open.openCount ?? 0,
+			};
+		});
 	}
 
 	async function loadGuests() {
@@ -381,23 +687,35 @@ const SESSION_KEY = 'wedding_admin_token';
 		loadErrorEl?.classList.add('hidden');
 
 		try {
-			const res = await fetch('/api/admin/guests', {
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			const data = await res.json();
+			const authHeaders = { Authorization: `Bearer ${token}` };
+			const [guestsRes, opensRes] = await Promise.all([
+				fetch('/api/admin/guests', { headers: authHeaders }),
+				fetch('/.netlify/functions/get-invite-opens', { headers: authHeaders }),
+			]);
+			const data = await guestsRes.json();
 
-			if (res.status === 401) {
+			if (guestsRes.status === 401) {
 				clearToken();
 				showLogin();
 				return;
 			}
 
-			if (!res.ok || !data.ok) {
+			if (!guestsRes.ok || !data.ok) {
 				throw new Error(data.error ?? 'Failed to load guests');
 			}
 
-			allGuests = data.guests ?? [];
-			updateStats(data.stats);
+			let guests = data.guests ?? [];
+
+			if (opensRes.ok) {
+				const opensData = await opensRes.json();
+				if (opensData.ok) {
+					guests = mergeInviteOpens(guests, opensData.records ?? []);
+				}
+			}
+
+			allGuests = guests;
+			initLocalRsvpState(allGuests);
+			initLocalAttendingDraft(allGuests);
 			loadingEl?.classList.add('hidden');
 			statsEl?.classList.remove('hidden');
 			filtersEl?.classList.remove('hidden');
@@ -485,6 +803,7 @@ const SESSION_KEY = 'wedding_admin_token';
 			}
 
 			window.alert(`Cleared ${data.removed} RSVP${data.removed === 1 ? '' : 's'}.`);
+			await loadGuests();
 		} catch (err) {
 			window.alert(err instanceof Error ? err.message : 'Could not clear RSVPs.');
 		} finally {
@@ -493,8 +812,9 @@ const SESSION_KEY = 'wedding_admin_token';
 		}
 	});
 
-	searchInput?.addEventListener('input', renderTable);
-	rsvpFilter?.addEventListener('change', renderTable);
+	searchInput?.addEventListener('input', renderTablePreservingInputs);
+	rsvpFilter?.addEventListener('change', renderTablePreservingInputs);
+	rsvpFilter?.addEventListener('input', renderTablePreservingInputs);
 
 	if (getToken()) {
 		loadGuests();
@@ -504,30 +824,52 @@ const SESSION_KEY = 'wedding_admin_token';
 </script>
 
 <style>
-	.admin-stat-card {
+	.admin-guests {
+		padding-bottom: max(5rem, env(safe-area-inset-bottom));
+	}
+
+	.admin-guests .admin-stat-card {
 		border-radius: 1rem;
 		border: 1px solid rgb(155 123 142 / 0.2);
 		background: var(--color-cream);
-		padding: 0.75rem 1rem;
+		padding: 0.625rem 0.75rem;
 		box-shadow: 0 1px 3px rgb(42 26 50 / 0.06);
 	}
 
-	.admin-stat-card__label {
-		font-size: 0.75rem;
+	@media (min-width: 640px) {
+		.admin-guests .admin-stat-card {
+			padding: 0.75rem 1rem;
+		}
+	}
+
+	.admin-guests .admin-stat-card__label {
+		font-size: 0.6875rem;
 		font-weight: 500;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: var(--color-brown-soft);
 	}
 
-	.admin-stat-card__value {
+	@media (min-width: 640px) {
+		.admin-guests .admin-stat-card__label {
+			font-size: 0.75rem;
+		}
+	}
+
+	.admin-guests .admin-stat-card__value {
 		margin-top: 0.25rem;
 		font-family: var(--font-serif);
-		font-size: 1.5rem;
+		font-size: 1.375rem;
 		color: var(--color-plum);
 	}
 
-	.admin-badge {
+	@media (min-width: 640px) {
+		.admin-guests .admin-stat-card__value {
+			font-size: 1.5rem;
+		}
+	}
+
+	.admin-guests .admin-badge {
 		display: inline-flex;
 		border-radius: 9999px;
 		padding: 0.125rem 0.625rem;
@@ -535,32 +877,32 @@ const SESSION_KEY = 'wedding_admin_token';
 		font-weight: 500;
 	}
 
-	.admin-badge--opened,
-	.admin-badge--attending {
+	.admin-guests .admin-badge--opened,
+	.admin-guests .admin-badge--attending {
 		background: rgb(107 115 73 / 0.15);
 		color: var(--color-olive);
 	}
 
-	.admin-badge--declined {
+	.admin-guests .admin-badge--declined {
 		background: rgb(155 123 142 / 0.15);
 		color: var(--color-mauve-dark);
 	}
 
-	.admin-badge--pending {
+	.admin-guests .admin-badge--pending {
 		background: rgb(160 139 114 / 0.15);
 		color: var(--color-brown-soft);
 	}
 
-	.admin-badge--muted {
+	.admin-guests .admin-badge--muted {
 		background: rgb(155 123 142 / 0.1);
 		color: var(--color-brown-muted);
 	}
 
-	.admin-copy {
+	.admin-guests .admin-copy {
 		border-radius: 9999px;
 		border: 1px solid rgb(155 123 142 / 0.25);
 		background: #fff;
-		padding: 0.25rem 0.75rem;
+		padding: 0.375rem 0.875rem;
 		font-size: 0.75rem;
 		font-weight: 500;
 		color: var(--color-plum);
@@ -570,12 +912,27 @@ const SESSION_KEY = 'wedding_admin_token';
 			background-color 0.2s;
 	}
 
-	.admin-copy:hover {
+	.admin-guests .admin-copy:hover {
 		border-color: var(--color-plum);
 		background: var(--color-ivory);
 	}
 
-	.admin-table thead {
+	.admin-guests .admin-table-wrap {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		border-radius: 1rem;
+		border: 1px solid rgb(155 123 142 / 0.2);
+		background: var(--color-cream);
+		box-shadow: 0 1px 3px rgb(42 26 50 / 0.06);
+	}
+
+	@media (min-width: 640px) {
+		.admin-guests .admin-table-wrap {
+			border-radius: 1.25rem;
+		}
+	}
+
+	.admin-guests .admin-table thead {
 		border-bottom: 1px solid rgb(155 123 142 / 0.2);
 		background: rgb(255 255 255 / 0.8);
 		font-size: 0.75rem;
@@ -585,54 +942,236 @@ const SESSION_KEY = 'wedding_admin_token';
 		color: var(--color-olive);
 	}
 
-	.admin-table th {
-		padding: 0.75rem;
+	.admin-guests .admin-table th {
+		padding: 0.875rem 1rem;
 		white-space: nowrap;
 	}
 
-	.admin-table td {
-		padding: 1rem 0.75rem;
+	.admin-guests .admin-table td {
+		padding: 1rem;
 		vertical-align: top;
 		color: var(--color-brown-soft);
 	}
 
-	.admin-table tbody tr {
+	.admin-guests .admin-table__cell--rsvp {
+		min-width: 5.5rem;
+	}
+
+	.admin-guests .admin-rsvp-check {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		padding: 0.25rem 0;
+	}
+
+	.admin-guests .admin-rsvp-check input[type='checkbox'] {
+		width: 1.125rem;
+		height: 1.125rem;
+		accent-color: var(--color-plum);
+		cursor: pointer;
+	}
+
+	.admin-guests .admin-table__cell--details {
+		min-width: 14rem;
+	}
+
+	.admin-guests .admin-table__cell--attending {
+		min-width: 5.5rem;
+	}
+
+	.admin-guests .admin-table__cell--manage {
+		min-width: 6.5rem;
+	}
+
+	.admin-guests .admin-table tbody tr {
 		background: rgb(255 255 255 / 0.4);
 		border-top: 1px solid rgb(155 123 142 / 0.15);
 		transition: background-color 0.2s;
 	}
 
-	.admin-table tbody tr:hover {
+	.admin-guests .admin-table tbody tr:hover {
 		background: rgb(255 255 255 / 0.7);
 	}
 
+	/* Desktop: traditional table */
+	@media (min-width: 1024px) {
+		.admin-guests .admin-table {
+			min-width: 52rem;
+		}
+
+		.admin-guests .admin-table th,
+		.admin-guests .admin-table td {
+			padding: 1rem 1.125rem;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] .admin-inline-attending {
+			max-width: 6rem;
+		}
+	}
+
+	/* Tablet + mobile: card rows */
 	@media (max-width: 1023px) {
-		.admin-table thead {
+		.admin-guests .admin-table-wrap {
+			overflow: visible;
+			border: none;
+			background: transparent;
+			box-shadow: none;
+		}
+
+		.admin-guests .admin-table thead {
 			display: none;
 		}
 
-		.admin-table tbody tr {
+		.admin-guests .admin-table tbody {
 			display: block;
-			margin-bottom: 1rem;
-			border-radius: 0.75rem;
-			border: 1px solid rgb(155 123 142 / 0.15);
+		}
+
+		.admin-guests .admin-table tbody tr.guest-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 0.75rem 1rem;
+			margin-bottom: 0.875rem;
 			padding: 1rem;
+			border-radius: 1rem;
+			border: 1px solid rgb(155 123 142 / 0.2);
+			background: var(--color-cream);
+			box-shadow: 0 1px 3px rgb(42 26 50 / 0.06);
 		}
 
-		.admin-table td {
+		.admin-guests .admin-table tbody tr.guest-row:hover {
+			background: rgb(255 255 255 / 0.85);
+		}
+
+		.admin-guests .admin-table td {
 			display: block;
-			padding: 0.5rem 0;
+			padding: 0;
 		}
 
-		.admin-table td::before {
+		.admin-guests .admin-table td::before {
 			content: attr(data-label);
 			display: block;
-			margin-bottom: 0.25rem;
-			font-size: 0.75rem;
+			margin-bottom: 0.375rem;
+			font-size: 0.6875rem;
 			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: 0.05em;
 			color: var(--color-olive);
 		}
+
+		.admin-guests .admin-table td[data-label='Guest'],
+		.admin-guests .admin-table td[data-label='Invite'],
+		.admin-guests .admin-table td[data-label='Opens'] {
+			grid-column: 1 / -1;
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP'],
+		.admin-guests .admin-table td[data-label='Attending'] {
+			align-self: end;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] .admin-inline-attending {
+			width: 100%;
+		}
+
+		.admin-guests .admin-copy {
+			margin-top: 0.5rem;
+		}
+	}
+
+	/* Mobile: tighter layout, compact opens */
+	@media (max-width: 639px) {
+		.admin-guests .admin-table tbody tr.guest-row {
+			grid-template-columns: 1fr;
+			padding: 0.875rem;
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP'],
+		.admin-guests .admin-table td[data-label='Attending'] {
+			grid-column: 1 / -1;
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP'] {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.75rem;
+			padding-top: 0.25rem;
+			border-top: 1px solid rgb(155 123 142 / 0.12);
+		}
+
+		.admin-guests .admin-table td[data-label='RSVP']::before {
+			margin-bottom: 0;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.75rem;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending']::before {
+			margin-bottom: 0;
+			flex-shrink: 0;
+		}
+
+		.admin-guests .admin-table td[data-label='Attending'] .admin-inline-attending {
+			width: 5.5rem;
+			flex-shrink: 0;
+		}
+
+		.admin-guests .admin-opens-detail {
+			display: none;
+		}
+	}
+
+	/* Tablet: RSVP + Attending side by side */
+	@media (min-width: 640px) and (max-width: 1023px) {
+		.admin-guests .admin-table tbody tr.guest-row {
+			padding: 1.125rem 1.25rem;
+		}
+	}
+
+	.admin-guests .admin-inline-label {
+		display: block;
+		margin-bottom: 0.375rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-brown-muted);
+	}
+
+	.admin-guests .admin-inline-input {
+		border-radius: 0.75rem;
+		border: 1px solid rgb(155 123 142 / 0.25);
+		background: #fff;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--color-plum-deep);
+		outline: none;
+	}
+
+	.admin-guests .admin-inline-input:focus {
+		box-shadow: 0 0 0 2px rgb(107 115 73 / 0.35);
+	}
+
+	.admin-guests .admin-inline-input:disabled {
+		background: rgb(255 255 255 / 0.5);
+		color: var(--color-brown-muted);
+		cursor: not-allowed;
+	}
+
+	.admin-guests .admin-inline-names {
+		resize: vertical;
+		min-height: 5rem;
+		margin-top: 0.25rem;
+	}
+
+	.admin-guests #admin-empty {
+		border-radius: 1rem;
+		border: 1px solid rgb(155 123 142 / 0.2);
+		background: var(--color-cream);
 	}
 </style>

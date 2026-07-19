@@ -4,7 +4,8 @@ import { findInvitedGuest, getRsvpForGuest } from '../../lib/rsvp-store';
 
 export const GET: APIRoute = async ({ url }) => {
 	const id = url.searchParams.get('id')?.trim();
-	const inviteCode = url.searchParams.get('code')?.trim();
+	const inviteCode =
+		url.searchParams.get('invite_code')?.trim() || url.searchParams.get('code')?.trim();
 	const name = url.searchParams.get('name')?.trim();
 
 	// Supabase guest selected from dropdown

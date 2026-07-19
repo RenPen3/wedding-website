@@ -156,3 +156,13 @@
 		}
 	}
 }
+
+@layer utilities {
+	.text-pretty-wrap {
+		text-wrap: pretty;
+	}
+
+	.text-balance-wrap {
+		text-wrap: balance;
+	}
+}

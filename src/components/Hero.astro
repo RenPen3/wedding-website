@@ -1,4 +1,13 @@
 ---
+import { getRsvpUrl } from '../lib/site-urls';
+
+type Props = {
+	inviteCode?: string;
+};
+
+const { inviteCode = '' } = Astro.props;
+const rsvpHref = inviteCode ? getRsvpUrl(inviteCode) : '/rsvp';
+
 const desktopBgImage = '/hero.jpg';
 const mobileBgImage = '/hero_img2.jpg';
 ---
@@ -53,8 +62,9 @@ const mobileBgImage = '/hero_img2.jpg';
 			style="--reveal-delay: 420ms"
 		>
 			<a
-				href="/rsvp"
+				href={rsvpHref}
 				class="inline-flex min-w-[10rem] items-center justify-center rounded-full border border-cream/40 bg-cream px-8 py-3 font-medium text-plum-deep shadow-lg transition hover:bg-ivory"
+				data-rsvp-link
 			>
 				RSVP
 			</a>

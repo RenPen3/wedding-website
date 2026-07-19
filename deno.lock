@@ -11,12 +11,12 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@astrojs/netlify@^7.0.9",
+        "npm:@astrojs/netlify@^7.0.13",
         "npm:@netlify/blobs@^10.7.6",
         "npm:@supabase/supabase-js@^2.105.4",
         "npm:@tailwindcss/vite@^4.3.0",
         "npm:@types/qrcode@^1.5.6",
-        "npm:astro@^6.3.1",
+        "npm:astro@^6.4.6",
         "npm:qrcode@^1.5.4",
         "npm:tailwindcss@^4.3.0"
       ]

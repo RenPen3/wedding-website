@@ -3,6 +3,7 @@ import '../styles/global.css';
 import ScrollReveal from '../components/ScrollReveal.astro';
 import InvitationIntro from '../components/InvitationIntro.astro';
 import InviteOpenTracker from '../components/InviteOpenTracker.astro';
+import PostHog from '../components/posthog.astro';
 
 type Props = {
 	title?: string;
@@ -40,11 +41,14 @@ const {
 			} catch (_) {}
 		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="icon" type="image/png" href="/images/our_favicon.png" />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		{noindex && <meta name="robots" content="noindex, nofollow" />}
 		<title>{title}</title>
+		<PostHog />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link

@@ -7,36 +7,42 @@ import FAQ from './FAQ.astro';
 import RSVPForm from './RSVPForm.astro';
 import PhotoGallery from './PhotoGallery.astro';
 import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE } from '../lib/site-urls';
+
+type Props = {
+	inviteCode?: string;
+};
+
+const { inviteCode = '' } = Astro.props;
 ---
 
-<Hero />
+<Hero inviteCode={inviteCode} />
 <Countdown />
 <WeddingDetails />
 <section id="rsvp" class="relative z-10 scroll-mt-24 bg-plum-deep py-20 text-cream md:py-28" data-reveal>
 	<div class="mx-auto max-w-xl px-6 md:px-8">
-		<h2 class="text-center font-serif text-3xl md:text-4xl">
+		<h2 class="text-balance-wrap text-center font-serif text-3xl md:text-4xl">
 			<span data-strand="en">Kindly respond</span>
 			<span data-strand="es">Confirma tu asistencia</span>
 		</h2>
-		<p class="mx-auto mt-3 max-w-md text-center text-ivory/80">
+		<p class="text-pretty-wrap mx-auto mt-3 max-w-md text-center text-ivory/80">
 			<span data-strand="en">
-				We cannot wait to celebrate with you. Enter your name to find your invitation.
+				We cannot wait to celebrate&nbsp;with&nbsp;you. Enter your name to find your&nbsp;invitation.
 			</span>
 			<span data-strand="es">
-				No vemos la hora de celebrar contigo. Ingresa tu nombre para encontrar tu invitación.
+				No vemos la hora de celebrar&nbsp;contigo. Ingresa tu nombre para encontrar tu&nbsp;invitación.
 			</span>
 		</p>
 		<div class="mt-10">
-			<RSVPForm />
+			<RSVPForm inviteCode={inviteCode} showHeader={false} />
 		</div>
 
 		<div class="rsvp-help">
-			<p>
+			<p class="text-pretty-wrap">
 				<span data-strand="en">
-					Having trouble with the RSVP form? Contact us directly and we’ll help you.
+					Having trouble with the RSVP form? Contact us directly and we’ll help&nbsp;you.
 				</span>
 				<span data-strand="es">
-					¿Tienes problemas con el formulario de RSVP? Contáctanos directamente y te ayudaremos.
+					¿Tienes problemas con el formulario de RSVP? Contáctanos directamente y te&nbsp;ayudaremos.
 				</span>
 			</p>
 			<div class="rsvp-help-contact">
@@ -135,6 +141,19 @@ import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE } from '../lib
 		.rsvp-help-contact {
 			flex-direction: column;
 			gap: 0.625rem;
+		}
+
+		.rsvp-help-divider {
+			display: none;
+		}
+
+		.rsvp-help-numbers {
+			flex-direction: column;
+			gap: 0.25rem;
+		}
+
+		.rsvp-help-numbers li + li::before {
+			content: none;
 		}
 	}
 </style>

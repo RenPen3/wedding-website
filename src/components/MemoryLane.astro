@@ -1,676 +1,311 @@
 ---
-import { memoryLaneHeading, memoryLaneItems } from '../lib/memory-lane';
+import {
+	memoryLaneHeading,
+	memoryLaneHero,
+	memoryLaneItems,
+	storyTimelineHeading,
+} from '../lib/memory-lane';
 import { storyIntro } from '../lib/our-story';
-
-const rotations = ['-2.5deg', '2deg', '-1.5deg', '2.5deg', '-2deg', '1.5deg'];
-
-const florals = [
-	{ src: '/story/memory-lane/floral-1.png', class: 'memory-lane__floral-img--1' },
-	{ src: '/story/memory-lane/floral-2.png', class: 'memory-lane__floral-img--2' },
-	{ src: '/story/memory-lane/floral-3.png', class: 'memory-lane__floral-img--3' },
-	{ src: '/story/memory-lane/floral-4.png', class: 'memory-lane__floral-img--4' },
-];
-
-const backgroundImages = [
-	{ src: '/images/memory-bg-1.jpg', class: 'bg-1' },
-	{ src: '/images/memory-bg-2.jpg', class: 'bg-2' },
-	{ src: '/images/memory-bg-3.jpg', class: 'bg-3' },
-	{ src: '/images/memory-bg-4.jpg', class: 'bg-4' },
-	{ src: '/images/memory-bg-5.jpg', class: 'bg-5' },
-	{ src: '/images/memory-bg-6.jpg', class: 'bg-6' },
-	{ src: '/images/memory-bg-7.jpg', class: 'bg-7' },
-];
 ---
 
-<section
-	class="memory-lane relative overflow-hidden py-16 md:py-24"
-	aria-labelledby="memory-lane-heading"
->
-	<div class="memory-lane__backdrop" aria-hidden="true"></div>
+<section class="memory-lane" aria-labelledby="memory-lane-heading">
+	<div class="memory-lane__hero relative flex min-h-[52svh] items-start md:min-h-[58vh] md:items-center">
+		<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+			<div
+				class="absolute inset-0 hidden bg-cover bg-center md:block"
+				style={`background-image: url('${memoryLaneHero.desktopImage}');`}
+			>
+			</div>
+			<div
+				class="absolute inset-0 bg-cover bg-center md:hidden"
+				style={`background-image: url('${memoryLaneHero.mobileImage}');`}
+			>
+			</div>
+			<div
+				class="absolute inset-0 bg-gradient-to-b from-plum-deep/75 via-plum-deep/50 to-plum-deep/82"
+			>
+			</div>
+		</div>
 
-	<div class="memory-bg-images" aria-hidden="true">
-		{
-			backgroundImages.map((image) => (
-				<img
-					src={image.src}
-					alt=""
-					width="800"
-					height="800"
-					loading="lazy"
-					decoding="async"
-					class={`memory-bg-img ${image.class}`}
-				/>
-			))
-		}
-	</div>
-
-	<div class="memory-lane__florals" aria-hidden="true">
-		{
-			florals.map((floral) => (
-				<img
-					src={floral.src}
-					alt=""
-					width="600"
-					height="600"
-					loading="lazy"
-					decoding="async"
-					class={`memory-lane__floral-img ${floral.class}`}
-				/>
-			))
-		}
-	</div>
-
-	<div class="relative z-[2] mx-auto max-w-5xl px-6 md:px-8">
-		<div class="text-center" data-reveal>
-			<p class="text-xs font-medium uppercase tracking-[0.32em] text-brown-muted">
+		<div
+			class="memory-lane__hero-content relative z-10 mx-auto w-full max-w-3xl px-6 pt-24 pb-16 text-center md:px-8 md:py-24"
+			data-reveal-hero
+		>
+			<p
+				class="memory-lane__eyebrow text-xs font-medium uppercase tracking-[0.32em] text-ivory/85"
+				data-reveal-child
+				style="--reveal-delay: 0ms"
+			>
 				<span data-strand="en">Our Story</span>
 				<span data-strand="es">Nuestra historia</span>
 			</p>
-			<h2 id="memory-lane-heading" class="mt-3 font-script text-5xl text-plum md:text-6xl lg:text-7xl">
+			<h1
+				id="memory-lane-heading"
+				class="memory-lane__heading mt-6 font-script text-5xl leading-[1.45] text-cream md:mt-3 md:text-6xl lg:text-7xl"
+				data-reveal-child
+				style="--reveal-delay: 100ms"
+			>
 				<span data-strand="en">{memoryLaneHeading.en}</span>
 				<span data-strand="es">{memoryLaneHeading.es}</span>
-			</h2>
-			<div class="mx-auto mt-5 h-px w-20 bg-mauve/50" aria-hidden="true"></div>
-			<p class="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-brown-soft md:text-xl">
+			</h1>
+			<div
+				class="mx-auto mt-5 h-px w-20 bg-ivory/45"
+				aria-hidden="true"
+				data-reveal-child
+				style="--reveal-delay: 180ms"
+			>
+			</div>
+			<p
+				class="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-ivory/90 md:text-xl"
+				data-reveal-child
+				style="--reveal-delay: 260ms"
+			>
 				<span data-strand="en">{storyIntro.en}</span>
 				<span data-strand="es">{storyIntro.es}</span>
 			</p>
 		</div>
+	</div>
 
-		<ol class="memory-lane__timeline relative mt-14 list-none p-0 md:mt-20">
-			<div class="memory-lane__line" aria-hidden="true"></div>
+	<div class="memory-lane__body bg-cream py-16 md:py-24">
+		<div class="mx-auto max-w-6xl px-6 md:px-8">
+			<h2
+				id="story-timeline-heading"
+				class="text-center font-serif text-4xl font-semibold text-plum md:text-5xl"
+				data-reveal
+			>
+				<span data-strand="en">{storyTimelineHeading.en}</span>
+				<span data-strand="es">{storyTimelineHeading.es}</span>
+			</h2>
 
-			{
-				memoryLaneItems.map((item, index) => {
-					const isLeft = index % 2 === 0;
-					const rotation = rotations[index % rotations.length];
+			<ol
+				class="memory-lane__timeline relative mt-14 list-none p-0 md:mt-20"
+				aria-labelledby="story-timeline-heading"
+			>
+				<div class="memory-lane__line" aria-hidden="true"></div>
 
-					return (
-						<li
-							class={`memory-lane__item ${isLeft ? 'memory-lane__item--left' : 'memory-lane__item--right'}`}
-							data-reveal
-							style={`--reveal-delay: ${index * 90}ms; --polaroid-rotate: ${rotation};`}
-						>
-							<div class="memory-lane__dot" aria-hidden="true"></div>
+				{
+					memoryLaneItems.map((item, index) => {
+						const textOnLeft = index % 2 === 0;
 
-							<div class="memory-lane__row">
-								<div class="memory-lane__photo-col">
-									<figure class="memory-lane__polaroid">
-										<div class="memory-lane__polaroid-inner">
-											<img
-												src={item.image}
-												alt={item.caption.en}
-												width="400"
-												height="500"
-												loading="lazy"
-												class="memory-lane__photo"
-											/>
-										</div>
-										<figcaption class="memory-lane__year">{item.year}</figcaption>
-									</figure>
-								</div>
-
-								<div class="memory-lane__caption-col">
-									<blockquote class="memory-lane__caption">
-										<p class="font-serif text-xl leading-snug text-plum md:text-2xl lg:text-[1.65rem]">
-											<span data-strand="en">{item.caption.en}</span>
-											<span data-strand="es">{item.caption.es}</span>
-										</p>
+						return (
+							<li
+								class:list={[
+									'memory-lane__item',
+									textOnLeft
+										? 'memory-lane__item--text-left'
+										: 'memory-lane__item--text-right',
+								]}
+								data-reveal
+								style={`--reveal-delay: ${index * 90}ms`}
+							>
+								<article class="memory-lane__entry">
+									<div class="memory-lane__col memory-lane__col--left">
 										{
-											item.description && (
-												<p class="mt-3 text-sm leading-relaxed text-brown-soft md:text-base">
-													<span data-strand="en">{item.description.en}</span>
-													<span data-strand="es">{item.description.es}</span>
-												</p>
+											textOnLeft ? (
+												<div class="memory-lane__copy">
+													<p class="memory-lane__date">
+														<span data-strand="en">{item.date.en}</span>
+														<span data-strand="es">{item.date.es}</span>
+													</p>
+													<h3 class="memory-lane__title">
+														<span data-strand="en">{item.title.en}</span>
+														<span data-strand="es">{item.title.es}</span>
+													</h3>
+													<p class="memory-lane__description">
+														<span data-strand="en">{item.description.en}</span>
+														<span data-strand="es">{item.description.es}</span>
+													</p>
+												</div>
+											) : (
+												<figure class="memory-lane__media">
+													<img
+														src={item.image}
+														alt={item.title.en}
+														width="560"
+														height="300"
+														loading="lazy"
+														decoding="async"
+														class="memory-lane__photo"
+														style={[
+															item.imagePosition && `object-position: ${item.imagePosition}`,
+															item.imageFit && `object-fit: ${item.imageFit}`,
+														]
+															.filter(Boolean)
+															.join('; ') || undefined}
+													/>
+												</figure>
 											)
 										}
-									</blockquote>
-								</div>
-							</div>
-						</li>
-					);
-				})
-			}
-		</ol>
+									</div>
+
+									<div class="memory-lane__col memory-lane__col--center">
+										<div class="memory-lane__marker" aria-hidden="true"></div>
+									</div>
+
+									<div class="memory-lane__col memory-lane__col--right">
+										{
+											textOnLeft ? (
+												<figure class="memory-lane__media">
+													<img
+														src={item.image}
+														alt={item.title.en}
+														width="560"
+														height="300"
+														loading="lazy"
+														decoding="async"
+														class="memory-lane__photo"
+														style={[
+															item.imagePosition && `object-position: ${item.imagePosition}`,
+															item.imageFit && `object-fit: ${item.imageFit}`,
+														]
+															.filter(Boolean)
+															.join('; ') || undefined}
+													/>
+												</figure>
+											) : (
+												<div class="memory-lane__copy">
+													<p class="memory-lane__date">
+														<span data-strand="en">{item.date.en}</span>
+														<span data-strand="es">{item.date.es}</span>
+													</p>
+													<h3 class="memory-lane__title">
+														<span data-strand="en">{item.title.en}</span>
+														<span data-strand="es">{item.title.es}</span>
+													</h3>
+													<p class="memory-lane__description">
+														<span data-strand="en">{item.description.en}</span>
+														<span data-strand="es">{item.description.es}</span>
+													</p>
+												</div>
+											)
+										}
+									</div>
+								</article>
+							</li>
+						);
+					})
+				}
+			</ol>
+		</div>
 	</div>
 </section>
 
 <style>
-	.memory-lane {
-		color: var(--color-plum-deep);
+	.memory-lane__eyebrow {
+		margin-bottom: 0.625rem;
 	}
 
-	.memory-lane__backdrop {
-		position: absolute;
-		inset: 0;
-		z-index: 0;
-		background:
-			radial-gradient(ellipse 80% 50% at 50% 0%, rgb(155 123 142 / 0.12), transparent 55%),
-			radial-gradient(ellipse 60% 40% at 20% 80%, rgb(107 115 73 / 0.08), transparent 50%),
-			radial-gradient(ellipse 60% 40% at 80% 70%, rgb(155 123 142 / 0.1), transparent 50%),
-			linear-gradient(180deg, var(--color-cream) 0%, var(--color-ivory) 45%, #ebe3d8 100%);
-	}
-
-	.memory-lane__backdrop::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background-image: url('/story/memory-lane/placeholder.svg');
-		background-size: cover;
-		background-position: center;
-		opacity: 0.04;
-		filter: blur(40px);
-		transform: scale(1.15);
-	}
-
-	.memory-bg-images {
-		position: absolute;
-		inset: 0;
-		z-index: 0;
-		overflow: hidden;
-		pointer-events: none;
-	}
-
-	@media (max-width: 767px) {
-		.memory-bg-images {
-			display: none;
-		}
-	}
-
-	.memory-bg-img {
-		position: absolute;
-		display: block;
-		object-fit: cover;
-		border-radius: 16px;
-		opacity: 0.08;
-		pointer-events: none;
-		filter: blur(2px);
-		width: clamp(11.25rem, 52vw, 15rem);
-		height: clamp(11.25rem, 52vw, 15rem);
-	}
-
-	/* Left edge — upper */
-	.memory-bg-img.bg-1 {
-		top: 33%;
-		left: 0;
-		right: auto;
-		opacity: 0.09;
-		transform: translateX(-8%) rotate(-4deg);
-	}
-
-	/* Right edge — upper-mid */
-	.memory-bg-img.bg-2 {
-		top: 52%;
-		right: 0;
-		left: auto;
-		opacity: 0.08;
-		transform: translateX(6%) rotate(3deg);
-	}
-
-	/* Left edge — lower */
-	.memory-bg-img.bg-3 {
-		display: none;
-		top: 78%;
-		left: 0;
-		right: auto;
-		opacity: 0.08;
-		transform: translateX(-7%) rotate(-2deg);
-	}
-
-	/* Left edge — mid (desktop) */
-	.memory-bg-img.bg-4 {
-		display: none;
-		top: 74%;
-		left: 0;
-		bottom: auto;
-		right: auto;
-		opacity: 0.08;
-		transform: translateX(-8%) rotate(5deg);
-	}
-
-	/* Right edge — mid (desktop) */
-	.memory-bg-img.bg-5 {
-		display: none;
-		top: 46%;
-		right: 0;
-		left: auto;
-		opacity: 0.08;
-		transform: translateX(6%) rotate(-5deg);
-	}
-
-	/* Right edge — lower-mid (desktop) */
-	.memory-bg-img.bg-6 {
-		display: none;
-		top: 80%;
-		right: 0;
-		left: auto;
-		bottom: auto;
-		opacity: 0.07;
-		transform: translateX(5%) rotate(2deg);
-	}
-
-	/* Left edge — bottom (desktop) */
-	.memory-bg-img.bg-7 {
-		display: none;
-		bottom: 0;
-		left: 0;
-		right: auto;
-		top: auto;
-		opacity: 0.08;
-		transform: translateX(-5%) rotate(-3deg);
-	}
-
-	@media (min-width: 480px) {
-		.memory-bg-img.bg-3 {
-			display: block;
-		}
+	.memory-lane__heading {
+		padding-top: 0.125rem;
 	}
 
 	@media (min-width: 768px) {
-		.memory-bg-img {
-			filter: blur(1.5px);
-			width: clamp(16.25rem, 22vw, 23.75rem);
-			height: clamp(16.25rem, 22vw, 23.75rem);
+		.memory-lane__eyebrow {
+			margin-bottom: 0;
 		}
 
-		.memory-bg-img.bg-4,
-		.memory-bg-img.bg-5,
-		.memory-bg-img.bg-6,
-		.memory-bg-img.bg-7 {
-			display: block;
-		}
-
-		.memory-bg-img.bg-1 {
-			top: 26%;
-			left: 0;
-			width: clamp(16.25rem, 20vw, 20rem);
-			height: clamp(16.25rem, 20vw, 20rem);
-			opacity: 0.1;
-			transform: translateX(-10%) rotate(-4deg);
-		}
-
-		.memory-bg-img.bg-2 {
-			top: 34%;
-			right: 0;
-			left: auto;
-			width: clamp(17.5rem, 21vw, 21.25rem);
-			height: clamp(17.5rem, 21vw, 21.25rem);
-			opacity: 0.11;
-			transform: translateX(9%) rotate(3deg);
-		}
-
-		.memory-bg-img.bg-4 {
-			top: 48%;
-			left: 0;
-			bottom: auto;
-			right: auto;
-			width: clamp(17.5rem, 21vw, 22.5rem);
-			height: clamp(17.5rem, 21vw, 22.5rem);
-			opacity: 0.1;
-			transform: translateX(-11%) rotate(5deg);
-		}
-
-		.memory-bg-img.bg-5 {
-			top: 56%;
-			right: 0;
-			left: auto;
-			width: clamp(16.25rem, 19vw, 19.5rem);
-			height: clamp(16.25rem, 19vw, 19.5rem);
-			opacity: 0.09;
-			transform: translateX(8%) rotate(-5deg);
-		}
-
-		.memory-bg-img.bg-3 {
-			top: 66%;
-			left: 0;
-			right: auto;
-			width: clamp(16.25rem, 20vw, 20rem);
-			height: clamp(16.25rem, 20vw, 20rem);
-			opacity: 0.08;
-			transform: translateX(-10%) rotate(-2deg);
-		}
-
-		.memory-bg-img.bg-6 {
-			top: 76%;
-			right: 0;
-			left: auto;
-			bottom: auto;
-			width: clamp(16.25rem, 18vw, 18.75rem);
-			height: clamp(16.25rem, 18vw, 18.75rem);
-			opacity: 0.08;
-			transform: translateX(9%) rotate(2deg);
-		}
-
-		.memory-bg-img.bg-7 {
-			top: auto;
-			bottom: 0;
-			left: 0;
-			right: auto;
-			width: clamp(16.25rem, 19vw, 19rem);
-			height: clamp(16.25rem, 19vw, 19rem);
-			opacity: 0.1;
-			transform: translateX(-7%) rotate(-3deg);
-		}
-	}
-
-	@media (min-width: 1024px) {
-		.memory-bg-img.bg-1 {
-			top: 24%;
-			transform: translateX(-12%) rotate(-4deg);
-		}
-
-		.memory-bg-img.bg-2 {
-			top: 32%;
-			transform: translateX(10%) rotate(3deg);
-		}
-
-		.memory-bg-img.bg-4 {
-			top: 46%;
-			transform: translateX(-13%) rotate(5deg);
-		}
-
-		.memory-bg-img.bg-5 {
-			top: 54%;
-			transform: translateX(9%) rotate(-5deg);
-		}
-
-		.memory-bg-img.bg-3 {
-			top: 64%;
-			transform: translateX(-11%) rotate(-2deg);
-		}
-
-		.memory-bg-img.bg-6 {
-			top: 74%;
-			transform: translateX(10%) rotate(2deg);
-		}
-
-		.memory-bg-img.bg-7 {
-			bottom: 0;
-			left: 0;
-			right: auto;
-			transform: translateX(-8%) rotate(-3deg);
-		}
-	}
-
-	.memory-lane__florals {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		overflow: hidden;
-		pointer-events: none;
-	}
-
-	.memory-lane__floral-img {
-		position: absolute;
-		display: block;
-		height: auto;
-		max-width: 100%;
-		object-fit: contain;
-	}
-
-	/* Mobile — smaller corners, side florals tucked to edges */
-	.memory-lane__floral-img--1 {
-		top: 0.25rem;
-		left: 0;
-		width: clamp(4.75rem, 34vw, 7.5rem);
-			rotate: 110deg;
-			transform: translate(-10%, 0) ;
-	}
-
-	.memory-lane__floral-img--2 {
-		top: 0.25rem;
-		right: 0;
-		width: clamp(4.75rem, 34vw, 7.5rem);
-		transform: scaleX(-1) translate(-10%, 0);
-	}
-
-	.memory-lane__floral-img--3 {
-		display: none;
-	}
-
-	.memory-lane__floral-img--4 {
-		right: 0;
-		bottom: 0;
-		width: clamp(4.5rem, 32vw, 7rem);
-		transform: translate(8%, 6%);
-	}
-
-	@media (min-width: 480px) {
-		.memory-lane__floral-img--2 {
-			width: clamp(6rem, 30vw, 7rem);
-			transform: scaleX(-1) translate(8%, 10%) rotate(20deg);
-		}
-		.memory-lane__floral-img--1{
-			rotate: 110deg;
-
-		}
-
-	
-		.memory-lane__floral-img--3 {
-			display: block;
-			left: 0;
-			top: auto;
-			bottom: 18%;
-			width: clamp(6.5rem, 26vw, 10rem);
-			transform: translateX(-28%);
-		}
-
-		.memory-lane__floral-img--4 {
-			width: clamp(5.5rem, 28vw, 8.5rem);
-		}
-	}
-
-	@media (min-width: 640px) {
-		.memory-lane__floral-img--1 {
-			width: clamp(7rem, 26vw, 10rem);
-			transform: translate(6%, -2%) rotate(0deg);
-
-		}
-
-		.memory-lane__floral-img--2 {
-			width: clamp(7.5rem, 28vw, 10.5rem);
-			transform: scaleX(-1) translate(-6%, -2%);
-		}
-
-		.memory-lane__floral-img--3 {
-			top: 40%;
-			bottom: auto;
-			left: 0;
-			width: clamp(8rem, 22vw, 13rem);
-			transform: translateX(-24%);
-		}
-
-		.memory-lane__floral-img--4 {
-			width: clamp(7rem, 24vw, 11rem);
-		}
-	}
-
-	@media (min-width: 768px) {
-		.memory-lane__floral-img--1 {
-			top: 0;
-			width: clamp(13rem, 24vw, 22rem);
-			transform: translate(-4%, -3%) rotate(0deg);
-		}
-
-		.memory-lane__floral-img--2 {
-			top: 0;
-			width: clamp(14rem, 26vw, 24rem);
-			transform: scaleX(-1) translate(-3%, -2%);
-		}
-
-		.memory-lane__floral-img--3 {
-			top: 36%;
-			left: 0;
-			width: clamp(12rem, 20vw, 20rem);
-			transform: translateX(-18%);
-		}
-
-		.memory-lane__floral-img--4 {
-			width: clamp(13rem, 22vw, 21rem);
-			bottom: 1.5rem;
-			transform: translate(5%, 8%);
-		}
-	}
-
-	@media (min-width: 1024px) {
-
-		.memory-lane__floral-img--1 {
-			top: 0;
-			width: clamp(13rem, 24vw, 22rem);
-			transform: translate(4%, 3%) rotate(0deg);
-		}
-		.memory-lane__floral-img--3 {
-			left: max(0rem, calc(50% - 44rem));
-			transform: translateX(39%) rotate(-90deg);
-		}
-
-		.memory-lane__floral-img--4 {
-			right: max(0.5rem, calc(50% - 38rem));
+		.memory-lane__heading {
+			padding-top: 0.25rem;
 		}
 	}
 
 	.memory-lane__timeline {
 		display: flex;
 		flex-direction: column;
-		gap: 3.5rem;
-	}
-
-	@media (min-width: 768px) {
-		.memory-lane__timeline {
-			gap: 5rem;
-		}
+		gap: 0;
+		padding-left: 0;
 	}
 
 	.memory-lane__line {
-		position: absolute;
-		left: 50%;
-		top: 0;
-		bottom: 0;
-		width: 1px;
-		transform: translateX(-50%);
-		background: linear-gradient(
-			180deg,
-			transparent,
-			rgb(155 123 142 / 0.35) 8%,
-			rgb(155 123 142 / 0.35) 92%,
-			transparent
-		);
+		display: none;
 	}
 
 	.memory-lane__item {
 		position: relative;
+		padding-bottom: 3.5rem;
 	}
 
-	.memory-lane__dot {
-		position: absolute;
-		left: 50%;
-		top: 2.5rem;
-		z-index: 2;
-		width: 0.625rem;
-		height: 0.625rem;
-		transform: translateX(-50%);
-		border-radius: 9999px;
-		background: var(--color-cream);
-		border: 2px solid rgb(155 123 142 / 0.55);
-		box-shadow: 0 0 0 4px rgb(245 240 232 / 0.85);
+	.memory-lane__item:last-child {
+		padding-bottom: 0;
 	}
 
-	@media (min-width: 768px) {
-		.memory-lane__dot {
-			top: 50%;
-			transform: translate(-50%, -50%);
-		}
-	}
-
-	.memory-lane__row {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+	.memory-lane__entry {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: 1.25rem;
-		padding-top: 3rem;
 	}
 
-	@media (min-width: 768px) {
-		.memory-lane__row {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			align-items: center;
-			gap: 2.5rem 3rem;
-			padding-top: 0;
-		}
-
-		.memory-lane__item--left .memory-lane__photo-col {
-			grid-column: 1;
-			grid-row: 1;
-			justify-self: end;
-		}
-
-		.memory-lane__item--left .memory-lane__caption-col {
-			grid-column: 2;
-			grid-row: 1;
-			justify-self: start;
-			padding-left: 0.5rem;
-		}
-
-		.memory-lane__item--right .memory-lane__photo-col {
-			grid-column: 2;
-			grid-row: 1;
-			justify-self: start;
-		}
-
-		.memory-lane__item--right .memory-lane__caption-col {
-			grid-column: 1;
-			grid-row: 1;
-			justify-self: end;
-			text-align: right;
-			padding-right: 0.5rem;
-		}
+	.memory-lane__item--text-right .memory-lane__col--left {
+		order: 2;
 	}
 
-	.memory-lane__photo-col {
-		width: 100%;
-		max-width: 16rem;
+	.memory-lane__item--text-right .memory-lane__col--right {
+		order: 1;
 	}
 
-	@media (min-width: 768px) {
-		.memory-lane__photo-col {
-			max-width: 15rem;
-		}
+	.memory-lane__col--center {
+		display: none;
 	}
 
-	@media (min-width: 1024px) {
-		.memory-lane__photo-col {
-			max-width: 17rem;
-		}
+	.memory-lane__marker {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.125rem;
+		height: 1.125rem;
+		border-radius: 9999px;
+		border: 2px solid var(--color-brown-muted);
+		background: var(--color-cream);
 	}
 
-	.memory-lane__polaroid {
+	.memory-lane__marker::after {
+		content: '';
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 9999px;
+		background: var(--color-brown-muted);
+	}
+
+	.memory-lane__copy {
 		margin: 0;
-		padding: 0.65rem 0.65rem 1.35rem;
-		background: #fff;
-		border-radius: 2px;
-		box-shadow:
-			0 1px 2px rgb(61 38 69 / 0.06),
-			0 8px 24px rgb(61 38 69 / 0.1),
-			0 0 0 1px rgb(61 38 69 / 0.04);
-		transform: rotate(var(--polaroid-rotate, 0deg));
-		transition:
-			transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-			box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+		max-width: 100%;
+		text-align: center;
 	}
 
-	.memory-lane__polaroid:hover {
-		transform: rotate(0deg) scale(1.03);
-		box-shadow:
-			0 2px 4px rgb(61 38 69 / 0.08),
-			0 14px 32px rgb(61 38 69 / 0.14),
-			0 0 0 1px rgb(61 38 69 / 0.05);
+	.memory-lane__date {
+		margin: 0;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		letter-spacing: 0.28em;
+		text-transform: uppercase;
+		color: var(--color-brown-muted);
 	}
 
-	.memory-lane__polaroid-inner {
+	.memory-lane__title {
+		margin: 0.625rem 0 0;
+		font-family: var(--font-serif);
+		font-size: 1.625rem;
+		font-weight: 600;
+		line-height: 1.25;
+		color: var(--color-plum);
+	}
+
+	.memory-lane__description {
+		margin: 0.75rem 0 0;
+		font-family: var(--font-serif);
+		font-size: 1.0625rem;
+		line-height: 1.65;
+		color: var(--color-plum);
+	}
+
+	.memory-lane__media {
+		margin: 0;
 		overflow: hidden;
-		background: var(--color-ivory);
-		aspect-ratio: 4 / 5;
+		border-radius: 1rem;
+		box-shadow: 0 6px 28px rgb(61 38 69 / 0.08);
+		width: 100%;
+		height: clamp(11rem, 42vw, 14rem);
+		background: var(--color-cream);
 	}
 
 	.memory-lane__photo {
@@ -680,53 +315,121 @@ const backgroundImages = [
 		object-fit: cover;
 	}
 
-	.memory-lane__year {
-		margin-top: 0.85rem;
-		text-align: center;
-		font-family: var(--font-serif);
-		font-style: italic;
-		font-size: 1.75rem;
-		line-height: 1;
-		color: var(--color-plum);
-	}
-
-	.memory-lane__caption-col {
-		max-width: 18rem;
-		text-align: center;
-	}
-
 	@media (min-width: 768px) {
-		.memory-lane__caption-col {
-			max-width: 14rem;
+		.memory-lane__line {
+			display: block;
+			position: absolute;
+			left: 50%;
+			top: 0;
+			bottom: 0;
+			width: 1px;
+			transform: translateX(-50%);
+			background: var(--color-brown-muted);
+			opacity: 0.65;
 		}
 
-		.memory-lane__item--right .memory-lane__caption-col {
+		.memory-lane__item {
+			padding-bottom: 5.5rem;
+		}
+
+		.memory-lane__entry {
+			grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr);
+			align-items: center;
+			column-gap: 0;
+		}
+
+		.memory-lane__item--text-right .memory-lane__col--left,
+		.memory-lane__item--text-right .memory-lane__col--right {
+			order: unset;
+		}
+
+		.memory-lane__col--center {
+			display: flex;
+			position: relative;
+			left: auto;
+			top: auto;
+			transform: none;
+			justify-content: center;
+			align-self: center;
+		}
+
+		.memory-lane__col--left,
+		.memory-lane__col--right {
+			min-width: 0;
+		}
+
+		.memory-lane__item--text-left .memory-lane__col--left {
+			padding-right: 2rem;
+		}
+
+		.memory-lane__item--text-left .memory-lane__col--right {
+			padding-left: 2rem;
+		}
+
+		.memory-lane__item--text-right .memory-lane__col--left {
+			padding-right: 2rem;
+			display: flex;
+			justify-content: flex-end;
+		}
+
+		.memory-lane__item--text-right .memory-lane__col--right {
+			padding-left: 2rem;
+		}
+
+		.memory-lane__item--text-left .memory-lane__copy {
+			margin-left: auto;
+			max-width: 22rem;
 			text-align: right;
 		}
 
-		.memory-lane__item--left .memory-lane__caption-col {
+		.memory-lane__item--text-right .memory-lane__copy {
+			max-width: 22rem;
 			text-align: left;
+		}
+
+		.memory-lane__media {
+			width: min(100%, 560px);
+			height: clamp(12.5rem, 22vw, 18.75rem);
+		}
+
+		.memory-lane__item--text-left .memory-lane__col--right .memory-lane__media {
+			margin-right: auto;
+		}
+
+		.memory-lane__item--text-right .memory-lane__col--left .memory-lane__media {
+			margin-left: auto;
+		}
+
+		.memory-lane__title {
+			font-size: 1.875rem;
 		}
 	}
 
 	@media (min-width: 1024px) {
-		.memory-lane__caption-col {
-			max-width: 16rem;
-		}
-	}
-
-	.memory-lane__caption {
-		margin: 0;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.memory-lane__polaroid {
-			transform: none;
-			transition: none;
+		.memory-lane__item {
+			padding-bottom: 6.5rem;
 		}
 
-		.memory-lane__polaroid:hover {
-			transform: none;
+		.memory-lane__item--text-left .memory-lane__col--left {
+			padding-right: 2.5rem;
+		}
+
+		.memory-lane__item--text-left .memory-lane__col--right {
+			padding-left: 2.5rem;
+		}
+
+		.memory-lane__item--text-right .memory-lane__col--left {
+			padding-right: 2.5rem;
+		}
+
+		.memory-lane__item--text-right .memory-lane__col--right {
+			padding-left: 2.5rem;
+		}
+
+		.memory-lane__media {
+			width: 560px;
+			max-width: 100%;
+			height: 300px;
 		}
 	}
 </style>

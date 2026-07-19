@@ -10,7 +10,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { allAttendingGuestNames } from './guest-names';
 import { createAdminSupabase } from './supabase';
-import type { SavedRsvp } from './rsvp-store';
+import type { RsvpSource, SavedRsvp } from './rsvp-store';
 import { normalizeInviteCode as normalizeSlug } from './invite-opens';
 
 export type SupabaseSyncResult = { ok: true } | { ok: false; error: string };
@@ -31,6 +31,7 @@ async function insertRsvpResponse(
 		inviteCode: string;
 		totalAttending: number;
 		allGuestNames: string[];
+		rsvpSource: RsvpSource;
 	}
 ): Promise<SupabaseSyncResult> {
 	const firstName = rsvp.firstName.trim();
@@ -57,6 +58,7 @@ async function insertRsvpResponse(
 			guest_names: guestNamesText || null,
 			message: rsvp.message || null,
 			submitted_at: submittedAt,
+			rsvp_source: opts.rsvpSource,
 		},
 		{
 			invite_code: opts.inviteCode,
@@ -118,9 +120,41 @@ async function insertRsvpResponse(
 	};
 }
 
+export async function deleteRsvpFromSupabase(
+	inviteCode: string
+): Promise<SupabaseSyncResult> {
+	const client = createAdminSupabase();
+	if (!client) {
+		return { ok: false, error: 'RSVP sync is not configured on the server' };
+	}
+
+	const code = normalizeSlug(inviteCode);
+	const { error } = await client.from('rsvp_responses').delete().eq('invite_code', code);
+	if (error) {
+		console.error('[rsvp-supabase] delete failed:', code, error.message);
+		return { ok: false, error: error.message };
+	}
+	return { ok: true };
+}
+
+export async function clearAllRsvpsFromSupabase(): Promise<SupabaseSyncResult> {
+	const client = createAdminSupabase();
+	if (!client) {
+		return { ok: false, error: 'RSVP sync is not configured on the server' };
+	}
+
+	const { error } = await client.from('rsvp_responses').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+	if (error) {
+		console.error('[rsvp-supabase] clear all failed:', error.message);
+		return { ok: false, error: error.message };
+	}
+	return { ok: true };
+}
+
 export async function syncRsvpToSupabase(
 	rsvp: SavedRsvp,
-	inviteCode?: string | null
+	inviteCode?: string | null,
+	rsvpSource: RsvpSource = rsvp.rsvpSource ?? 'guest'
 ): Promise<SupabaseSyncResult> {
 	const client = createAdminSupabase();
 	if (!client) {
@@ -131,7 +165,7 @@ export async function syncRsvpToSupabase(
 	const normalizedFromForm = normalizeSlug(inviteCode ?? '');
 	const code = normalizedFromForm || syntheticInviteCode(rsvp.name);
 	const allGuestNames = rsvp.attending ? allAttendingGuestNames(rsvp.guestNames) : [];
-	const totalAttending = rsvp.attending ? allGuestNames.length : 0;
+	const totalAttending = rsvp.attending ? Math.max(rsvp.guestCount, allGuestNames.length) : 0;
 
 	console.log('[rsvp-supabase] sync start:', {
 		invite_code: code,
@@ -145,5 +179,6 @@ export async function syncRsvpToSupabase(
 		inviteCode: code,
 		totalAttending,
 		allGuestNames,
+		rsvpSource,
 	});
 }
