@@ -1,7 +1,7 @@
 [
 	{ "name": "Ray Cano", "maxGuests": 3 },
 	{ "name": "Sandra Cano", "maxGuests": 2 },
-	{ "name": "Pedro Perez Jr", "maxGuests": 3 },
+	{ "name": "Pedro Perez Jr", "maxGuests": 4 },
 	{ "name": "Maby Ramos", "maxGuests": 3 },
 	{ "name": "Joseph Ramos", "maxGuests": 2 },
 	{ "name": "Blanca Garcia-Medina", "maxGuests": 4 },
@@ -53,5 +53,6 @@
 	{ "name": "Nohelia Melgar", "maxGuests": 2 },
 	{ "name": "Jenna Duran", "maxGuests": 2 },
 	{ "name": "Elsy Diaz", "maxGuests": 2 },
+	{ "name": "Joey Photographer", "maxGuests": 2 },
 	{ "name": "Freddy Krue", "maxGuests": 3 }
 ]
