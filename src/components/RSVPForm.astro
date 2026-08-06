@@ -1,4 +1,7 @@
 ---
+import { RSVP_OPEN } from '../lib/rsvp-feature';
+import { CONTACT_EMAIL, CONTACT_PHONE_JOCELYN, CONTACT_PHONE_RENE } from '../lib/site-urls';
+
 type Props = {
 	inviteCode?: string;
 	showHeader?: boolean;
@@ -12,14 +15,49 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		showHeader && (
 			<>
 				<h3 class="font-serif text-2xl text-plum md:text-3xl">RSVP</h3>
-				<p class="mt-2 text-brown-soft">
-					<span data-strand="en">Please respond by August 1, 2026.</span>
-					<span data-strand="es">Por favor responde antes del 1 de agosto de 2026.</span>
-				</p>
+				{
+					RSVP_OPEN ? (
+						<p class="mt-2 text-brown-soft">
+							<span data-strand="en">Please respond by August 1, 2026.</span>
+							<span data-strand="es">Por favor responde antes del 1 de agosto de 2026.</span>
+						</p>
+					) : (
+						<p class="mt-2 text-brown-soft">
+							<span data-strand="en">RSVP is now closed.</span>
+							<span data-strand="es">El RSVP ya está cerrado.</span>
+						</p>
+					)
+				}
 			</>
 		)
 	}
 
+	{
+		!RSVP_OPEN ? (
+			<div class:list={['space-y-4', showHeader ? 'mt-8' : '']} role="status">
+				<p class="font-serif text-2xl text-plum md:text-3xl">
+					<span data-strand="en">RSVP closed</span>
+					<span data-strand="es">RSVP cerrado</span>
+				</p>
+				<p class="text-brown-soft leading-relaxed">
+					<span data-strand="en">
+						The RSVP deadline has passed, so we can no longer accept responses online. If you need to
+						update your plans, please contact us directly.
+					</span>
+					<span data-strand="es">
+						La fecha límite del RSVP ya pasó, por lo que ya no podemos aceptar respuestas en línea. Si
+						necesitas actualizar tus planes, por favor contáctanos directamente.
+					</span>
+				</p>
+				<p class="text-sm text-brown-muted">
+					<span data-strand="en">René: {CONTACT_PHONE_RENE} · Jocelyn: {CONTACT_PHONE_JOCELYN}</span>
+					<span data-strand="es">René: {CONTACT_PHONE_RENE} · Jocelyn: {CONTACT_PHONE_JOCELYN}</span>
+					<br />
+					<a class="underline decoration-mauve/40 underline-offset-2 hover:text-plum" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+				</p>
+			</div>
+		) : (
+			<>
 	<div id="rsvp-success" class:list={['space-y-6', showHeader ? 'mt-8' : '', 'hidden']} aria-live="polite">
 		<p class="font-serif text-2xl text-plum md:text-3xl" id="rsvp-success-heading"></p>
 		<div id="rsvp-success-names" class="space-y-3 rounded-2xl border border-mauve/15 bg-white/60 px-5 py-4"></div>
@@ -200,8 +238,13 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 			</button>
 		</div>
 	</form>
+			</>
+		)
+	}
 </div>
 
+{
+	RSVP_OPEN && (
 <script>
 	type Lang = 'en' | 'es';
 
@@ -982,6 +1025,8 @@ const { inviteCode = '', showHeader = true } = Astro.props;
 		}
 	});
 </script>
+	)
+}
 
 <style is:global>
 	.rsvp-dropdown {

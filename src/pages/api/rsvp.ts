@@ -1,10 +1,22 @@
 import type { APIRoute } from "astro";
 import { getGuestById, getGuestByInviteCode } from "../../lib/guest-search";
+import { RSVP_OPEN } from "../../lib/rsvp-feature";
 import { findInvitedGuest, saveRsvp } from "../../lib/rsvp-store";
 import { syncRsvpToSupabase } from "../../lib/rsvp-supabase";
 import { getPostHogServer } from "../../lib/posthog-server";
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!RSVP_OPEN) {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error:
+          "RSVP is closed. The deadline has passed. Please contact the couple if you need to update your response.",
+      }),
+      { status: 403, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   let body: Record<string, unknown>;
 
   try {

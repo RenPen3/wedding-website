@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar.astro';
 import RSVPForm from '../components/RSVPForm.astro';
 import RsvpWeddingDetails from '../components/RsvpWeddingDetails.astro';
 import Footer from '../components/Footer.astro';
+import { RSVP_OPEN } from '../lib/rsvp-feature';
 import { readInviteCodeFromSearchParams } from '../lib/invite-link';
 
 const inviteCode = readInviteCodeFromSearchParams(Astro.url.searchParams);
@@ -18,34 +19,49 @@ const inviteCode = readInviteCodeFromSearchParams(Astro.url.searchParams);
 		>
 			<h1 class="text-center font-serif text-[2.75rem] text-plum md:text-5xl">RSVP</h1>
 			<p class="rsvp-page__intro text-pretty-wrap mx-auto mt-4 max-w-lg text-center text-lg text-brown-soft md:max-w-3xl md:text-xl">
-				<span data-strand="en">
-					<span class="rsvp-page__intro-line1 block"
-						>We’d love to celebrate&nbsp;with&nbsp;you. Please RSVP by <span class="whitespace-nowrap"
-							>August 1, 2026</span
-						></span
-					>
-					{
-						inviteCode ?
-							<span class="rsvp-page__intro-line2 block">Complete your response&nbsp;below.</span>
-						:	<span class="rsvp-page__intro-line2 block"
-							>Find your name below to get&nbsp;started.</span
-						>
-					}
-				</span>
-				<span data-strand="es">
-					<span class="rsvp-page__intro-line1 block"
-						>Nos encantaría celebrar&nbsp;contigo. Por favor confirma tu asistencia antes del <span
-							class="whitespace-nowrap">1 de agosto de 2026</span
-						></span
-					>
-					{
-						inviteCode ?
-							<span class="rsvp-page__intro-line2 block">Completa tu respuesta&nbsp;abajo.</span>
-						:	<span class="rsvp-page__intro-line2 block"
-							>Busca tu nombre abajo para&nbsp;comenzar.</span
-						>
-					}
-				</span>
+				{
+					RSVP_OPEN ? (
+						<>
+							<span data-strand="en">
+								<span class="rsvp-page__intro-line1 block"
+									>We’d love to celebrate&nbsp;with&nbsp;you. Please RSVP by <span class="whitespace-nowrap"
+										>August 1, 2026</span
+									></span
+								>
+								{
+									inviteCode ?
+										<span class="rsvp-page__intro-line2 block">Complete your response&nbsp;below.</span>
+									:	<span class="rsvp-page__intro-line2 block"
+										>Find your name below to get&nbsp;started.</span
+									>
+								}
+							</span>
+							<span data-strand="es">
+								<span class="rsvp-page__intro-line1 block"
+									>Nos encantaría celebrar&nbsp;contigo. Por favor confirma tu asistencia antes del <span
+										class="whitespace-nowrap">1 de agosto de 2026</span
+									></span
+								>
+								{
+									inviteCode ?
+										<span class="rsvp-page__intro-line2 block">Completa tu respuesta&nbsp;abajo.</span>
+									:	<span class="rsvp-page__intro-line2 block"
+										>Busca tu nombre abajo para&nbsp;comenzar.</span
+									>
+								}
+							</span>
+						</>
+					) : (
+						<>
+							<span data-strand="en">
+								Online RSVP is closed. If your plans change, please contact&nbsp;us.
+							</span>
+							<span data-strand="es">
+								El RSVP en línea está cerrado. Si tus planes cambian, por favor&nbsp;contáctanos.
+							</span>
+						</>
+					)
+				}
 			</p>
 
 			<RsvpWeddingDetails />
