@@ -2,6 +2,7 @@
 import Hero from './Hero.astro';
 import Countdown from './Countdown.astro';
 import WeddingDetails from './WeddingDetails.astro';
+import Schedule from './Schedule.astro';
 import Registry from './Registry.astro';
 import FAQ from './FAQ.astro';
 import RSVPForm from './RSVPForm.astro';
@@ -19,6 +20,7 @@ const { inviteCode = '' } = Astro.props;
 <Hero inviteCode={inviteCode} />
 <Countdown />
 <WeddingDetails />
+<Schedule />
 <section id="rsvp" class="relative z-10 scroll-mt-24 bg-plum-deep py-20 text-cream md:py-28" data-reveal>
 	<div class="mx-auto max-w-xl px-6 md:px-8">
 		<h2 class="text-balance-wrap text-center font-serif text-3xl md:text-4xl">
